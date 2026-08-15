@@ -54,15 +54,61 @@ def _redact_headers(headers: dict) -> dict:
     return {k: (_REDACTED if _REDACT_KEY.search(k) else v) for k, v in headers.items()}
 
 
+class HermeticViolation(RuntimeError):
+    """Raised in replay mode when the service attempts an outbound call that
+    the capture did not record. Reaching the network during a reproduction
+    would silently break the determinism guarantee, so it is an error."""
+
+
+_replay_stubs: list[dict] | None = None
+_replay_path_loaded: str | None = None
+
+
+def _load_stubs() -> list[dict] | None:
+    """Stubs for the current replay, loaded once per KINTSUGI_REPLAY_FILE.
+    Consumed in recorded order so repeated identical calls replay faithfully."""
+    global _replay_stubs, _replay_path_loaded
+    path = os.environ.get("KINTSUGI_REPLAY_FILE")
+    if not path:
+        return None
+    if path != _replay_path_loaded:
+        import json
+        with open(path, encoding="utf-8") as f:
+            _replay_stubs = list(json.load(f)["external_calls"])
+        _replay_path_loaded = path
+    return _replay_stubs
+
+
 class CaptureClient(httpx.Client):
     """Drop-in httpx.Client that records outbound calls into the active capture.
 
     Managed services make their outbound calls through this client. Each
     request/response pair is appended to the current request's capture
     context, body-capped and header-redacted.
+
+    In replay mode (KINTSUGI_REPLAY_FILE set) the client never touches the
+    network: every send is served from the recorded external calls of the
+    capture being reproduced, matched in recorded order by method and URL
+    path. An unrecorded call raises HermeticViolation.
     """
 
     def send(self, request: httpx.Request, **kwargs) -> httpx.Response:  # type: ignore[override]
+        stubs = _load_stubs()
+        if stubs is not None:
+            key = (request.method, request.url.path)
+            for i, call in enumerate(stubs):
+                from urllib.parse import urlparse
+                if (call["method"], urlparse(call["url"]).path) == key:
+                    stub = stubs.pop(i)
+                    return httpx.Response(
+                        status_code=stub["status"],
+                        content=stub["response_body"].encode(),
+                        headers={"content-type": stub["response_headers"].get(
+                            "content-type", "application/json")},
+                        request=request,
+                    )
+            raise HermeticViolation(
+                f"unrecorded outbound call during replay: {request.method} {request.url}")
         response = super().send(request, **kwargs)
         ctx = _ctx.get()
         if ctx is not None:
@@ -146,6 +192,15 @@ class CaptureMiddleware:
         cascade into the managed service."""
         if self._deliver_override is not None:
             self._deliver_override(event)
+            return
+
+        sink = os.environ.get("KINTSUGI_CAPTURE_FILE")
+        if sink:
+            # shadow/replay mode: append the event to a local file instead of
+            # posting anywhere; the replay harness reads it back
+            import json
+            with open(sink, "a", encoding="utf-8") as f:
+                f.write(json.dumps(event) + "\n")
             return
 
         def post():
