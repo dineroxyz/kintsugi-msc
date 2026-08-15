@@ -39,12 +39,15 @@ def _run_harness_once(capture_path: str, service_spec: str,
     env.pop("KINTSUGI_REPLAY_FILE", None)   # harness sets its own
     env.pop("KINTSUGI_CAPTURE_FILE", None)
     root = workdir or os.getcwd()
-    env["PYTHONPATH"] = root + os.pathsep + env.get("PYTHONPATH", "")
+    # the service under test must win the import race, so the harness runs
+    # WITH the workdir as cwd (first on sys.path under -m); the platform
+    # itself is reachable through PYTHONPATH
+    env["PYTHONPATH"] = root + os.pathsep + os.getcwd() + os.pathsep + env.get("PYTHONPATH", "")
     proc = subprocess.run(
         [sys.executable, "-m", "control_plane.reproduction.harness",
          capture_path, service_spec],
         capture_output=True, text=True, timeout=timeout, env=env,
-        cwd=os.getcwd(),
+        cwd=root,
     )
     if proc.returncode != 0:
         return {"failed": False, "harness_error": proc.stderr[-2000:]}
@@ -99,6 +102,16 @@ def reproduce(capture: dict, service_spec: str, *, workdir: str | None = None,
         return ReproductionResult(
             "refused", f"failure signature varied across replays: {sorted(signatures)}",
             None, verdicts)
+
+    replayed = signatures.pop()
+    captured_type = capture.get("exception_type")
+    if captured_type and not replayed.startswith(captured_type + "@"):
+        return ReproductionResult(
+            "refused",
+            f"replay failed deterministically but with a different failure than "
+            f"captured ({replayed} vs {captured_type}); the incident depends on "
+            "state the capture does not carry", None, verdicts)
+    signatures = {replayed}
 
     return ReproductionResult("reproduced",
                               f"failed identically on {runs}/{runs} replays",

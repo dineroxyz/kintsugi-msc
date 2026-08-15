@@ -50,6 +50,17 @@ def get_order(order_id: int) -> dict:
     return ORDERS[order_id]
 
 
+@app.get("/quote")
+def quote(sku: str, quantity: int = 1, code: str = "") -> dict:
+    """Quote a price for a SKU with an optional discount code."""
+    resp = _pricing.get(f"{BETA_URL}/price/{sku}")
+    resp.raise_for_status()
+    unit = resp.json()["price"]
+    rate = {"SAVE10": 0.10, "SAVE20": 0.20}.get(code)
+    total = unit * quantity * (1 - rate)  # rate is None for unknown codes
+    return {"sku": sku, "quantity": quantity, "total": round(total, 2)}
+
+
 @app.get("/orders/{order_id}/discounted")
 def discounted(order_id: int, code: str = "") -> dict:
     """Apply a discount code. The shape of handler the corpus faults target."""

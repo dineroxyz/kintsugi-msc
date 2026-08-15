@@ -121,9 +121,16 @@ def _reproduction_passes(capture: dict, service_spec: str, tree: str) -> dict:
 
 
 def _suite_passes(tree: str, suite_path: str | None) -> dict:
-    """Run the service's own test suite in the patched tree."""
-    target = os.path.join(tree, suite_path) if suite_path else tree
-    if suite_path and not os.path.exists(target):
+    """Run the service's own test suite in the patched tree.
+
+    suite_path None means the service declares no suite; the gate records
+    that and moves on. It never falls back to running the whole tree —
+    when the tree is the platform's own repo that recurses into the gate.
+    """
+    if suite_path is None:
+        return {"passed": True, "note": "service declares no suite"}
+    target = os.path.join(tree, suite_path)
+    if not os.path.exists(target):
         return {"passed": True, "note": "service has no suite"}
     env = dict(os.environ)
     env["PYTHONPATH"] = tree + os.pathsep + os.getcwd() + os.pathsep + env.get("PYTHONPATH", "")
