@@ -64,6 +64,42 @@ def test_c3_refuses_stateful_fault_before_any_model_call(tmp_path):
     assert trial.outcome == "refused", trial.detail
 
 
+def test_c3_heals_fanout_incidents_until_traffic_is_clean(tmp_path):
+    """F21's beta fault breaks every alpha path that prices SKUs: /quote and
+    POST /orders each raise their own incident. The heal arm must respond to
+    both before the probe passes, issuing one certificate per incident."""
+    from control_plane.certificates.issuer import CertificateStore
+
+    entry = load_entry("F21")
+    before = open(os.path.join(SERVICES, "alpha/main.py")).read()
+
+    def diff_for(old, new):
+        after = before.replace(old, new)
+        return "".join(difflib.unified_diff(
+            before.splitlines(keepends=True), after.splitlines(keepends=True),
+            fromfile="a/alpha/main.py", tofile="b/alpha/main.py"))
+
+    quote_fix = diff_for('    unit = resp.json()["price"]\n',
+                         '    unit = float(resp.json()["price"])\n')
+    orders_fix = diff_for('        price = resp.json()["price"]\n',
+                          '        price = float(resp.json()["price"])\n')
+
+    def complete(evidence):
+        if "POST /orders" in evidence:
+            return orders_fix
+        assert "GET /quote" in evidence
+        return quote_fix
+
+    store = CertificateStore(str(tmp_path / "certs"))
+    trial = run_trial(entry, "C3", str(tmp_path / "w"),
+                      complete=complete, certificates=store)
+    assert trial.outcome == "recovered", trial.detail
+    assert len(trial.detail["incidents"]) == 2, trial.detail
+    assert len(store.verify_chain()) == 2
+    paths = {i["signature"] for i in trial.detail["incidents"]}
+    assert len(paths) == 2      # two distinct incident signatures healed
+
+
 def test_c2_ungated_arm_ships_a_false_fix_and_the_probe_catches_it(tmp_path):
     entry = load_entry("F01")
     faulty = inject(entry, SERVICES, str(tmp_path / "for-diff"))

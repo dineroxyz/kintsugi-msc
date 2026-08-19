@@ -87,4 +87,15 @@ two raters; disagreements resolved by discussion and reported.
 
 ## Amendments
 
-(none)
+**A1 (2026-08-19, before the main study; prompted by pilot run 2).**
+Protocol clarification for the heal arms (C2, C3): a trial responds to
+successive DISTINCT incidents until the probe passes, up to four
+incidents per trial, because one injected fault can fan out into several
+consumer incidents (pilot run 2, F21: a dependency type drift broke both
+alpha paths that price SKUs, and the platform correctly healed the first
+incident while the trial's probe measured the second). `false_fix` now
+means specifically: an incident RECURS after its own patch deployed, or
+the probe fails with no new incident forming. Outcome definitions are
+otherwise unchanged; no metric or statistical test changed. Pilot runs 1
+and 2 are preserved under study/pilot_run1 and study/pilot_run2 with
+findings notes; neither enters the main analysis, as already registered.

@@ -1,0 +1,241 @@
+{
+  "version": 1,
+  "sequence": 2,
+  "issued_at": "2026-08-19T16:49:25",
+  "service_spec": "alpha.main:app",
+  "signature": "KeyError@main.py:106",
+  "capture": {
+    "service": "alpha",
+    "release": "r2",
+    "exception_type": "KeyError",
+    "exception_message": "'unit_price'",
+    "frames": [
+      {
+        "file": "/Users/ssheyii/kintsugi/libs/kintsugi_capture/__init__.py",
+        "line": 158,
+        "function": "__call__",
+        "code": "await self.app(scope, buffering_receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py",
+        "line": 63,
+        "function": "__call__",
+        "code": "await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 53,
+        "function": "wrapped_app",
+        "code": "raise exc"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 42,
+        "function": "wrapped_app",
+        "code": "await app(scope, receive, sender)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py",
+        "line": 18,
+        "function": "__call__",
+        "code": "await self.app(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/routing.py",
+        "line": 670,
+        "function": "__call__",
+        "code": "await self.middleware_stack(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 2734,
+        "function": "app",
+        "code": "await route.handle(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 1281,
+        "function": "handle",
+        "code": "await super().handle(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/routing.py",
+        "line": 280,
+        "function": "handle",
+        "code": "await self.app(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 158,
+        "function": "app",
+        "code": "await wrap_app_handling_exceptions(app, request)(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 53,
+        "function": "wrapped_app",
+        "code": "raise exc"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 42,
+        "function": "wrapped_app",
+        "code": "await app(scope, receive, sender)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 144,
+        "function": "app",
+        "code": "response = await f(request)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 706,
+        "function": "app",
+        "code": "raw_response = await run_endpoint_function("
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 354,
+        "function": "run_endpoint_function",
+        "code": "return await run_in_threadpool(dependant.call, **values)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/concurrency.py",
+        "line": 34,
+        "function": "run_in_threadpool",
+        "code": "return await anyio.to_thread.run_sync(func)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/to_thread.py",
+        "line": 65,
+        "function": "run_sync",
+        "code": "return await get_async_backend().run_sync_in_worker_thread("
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py",
+        "line": 2641,
+        "function": "run_sync_in_worker_thread",
+        "code": "return await future"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py",
+        "line": 1033,
+        "function": "run",
+        "code": "result = context.run(func, *args)"
+      },
+      {
+        "file": "/private/var/folders/mv/mzz_q2mn3q3c827r6pfcby640000gn/T/pilot-F04-C3-j_keyvbx/live_alpha/alpha/main.py",
+        "line": 106,
+        "function": "quote",
+        "code": "unit = resp.json()[\"unit_price\"]"
+      }
+    ],
+    "request": {
+      "method": "GET",
+      "path": "/quote",
+      "query": "sku=WIDGET&code=SAVE10",
+      "headers": {
+        "host": "127.0.0.1:61030",
+        "accept": "*/*",
+        "accept-encoding": "gzip, deflate, br",
+        "connection": "keep-alive",
+        "user-agent": "python-httpx/0.28.1"
+      },
+      "body": ""
+    },
+    "external_calls": [
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:61031/price/WIDGET",
+        "request_headers": {
+          "host": "127.0.0.1:61031",
+          "accept": "*/*",
+          "accept-encoding": "gzip, deflate, br",
+          "connection": "keep-alive",
+          "user-agent": "python-httpx/0.28.1"
+        },
+        "request_body": "",
+        "status": 200,
+        "response_headers": {
+          "date": "Wed, 19 Aug 2026 15:48:48 GMT",
+          "server": "uvicorn",
+          "content-length": "29",
+          "content-type": "application/json"
+        },
+        "response_body": "{\"sku\":\"WIDGET\",\"price\":25.0}"
+      }
+    ]
+  },
+  "reproduction": {
+    "status": "reproduced",
+    "reason": "failed identically on 5/5 replays",
+    "signature": "KeyError@main.py:106",
+    "verdicts": [
+      {
+        "failed": true,
+        "exception_type": "KeyError",
+        "top_frame": "main.py:106",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "KeyError",
+        "top_frame": "main.py:106",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "KeyError",
+        "top_frame": "main.py:106",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "KeyError",
+        "top_frame": "main.py:106",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "KeyError",
+        "top_frame": "main.py:106",
+        "status_code": 500,
+        "hermetic_violation": false
+      }
+    ]
+  },
+  "candidates": [
+    {
+      "attempt": 1,
+      "diff": "--- a/alpha/main.py\n+++ b/alpha/main.py\n@@ -92,17 +92,42 @@\n \n \n+_UNIT_PRICE_KEYS = (\"unit_price\", \"price\", \"amount\", \"unit_amount\")\n+_UNIT_PRICE_CENT_KEYS = (\"unit_price_cents\", \"price_cents\", \"amount_cents\")\n+\n+\n+def _unit_price(payload: dict) -> float:\n+    \"\"\"Extract the per-unit price from a pricing response.\n+\n+    The pricing service has shipped several payload shapes; accept the\n+    known ones instead of assuming one fixed key.\n+    \"\"\"\n+    if not isinstance(payload, dict):\n+        raise HTTPException(status_code=502, detail=\"malformed pricing response\")\n+    for key in _UNIT_PRICE_KEYS:\n+        value = payload.get(key)\n+        if isinstance(value, (int, float)):\n+            return float(value)\n+        if isinstance(value, dict):\n+            return _unit_price(value)\n+    for key in _UNIT_PRICE_CENT_KEYS:\n+        value = payload.get(key)\n+        if isinstance(value, (int, float)):\n+            return float(value) / 100.0\n+    raise HTTPException(status_code=502, detail=\"malformed pricing response\")\n+\n+\n @app.get(\"/quote\")\n def quote(sku: str, quantity: int = 1, code: str = \"\") -> dict:\n     \"\"\"Quote a price for a SKU with an optional discount code.\"\"\"\n     if quantity < 1:\n         raise HTTPException(status_code=422, detail=\"quantity must be at least 1\")\n     try:\n         resp = _pricing.get(f\"{BETA_URL}/price/{sku}\")\n     except httpx.HTTPError:\n         raise HTTPException(status_code=503, detail=\"pricing unavailable\")\n     if resp.status_code == 404:\n         raise HTTPException(status_code=404, detail=f\"unknown sku {sku!r}\")\n     resp.raise_for_status()\n-    unit = resp.json()[\"unit_price\"]\n+    unit = _unit_price(resp.json())\n     rate = discount_rate(code)\n     total = unit * quantity * (1 - rate)",
+      "conditions": {
+        "structural": true,
+        "applies": true,
+        "reproduction": true,
+        "suite": true
+      }
+    }
+  ],
+  "patch": "--- a/alpha/main.py\n+++ b/alpha/main.py\n@@ -92,17 +92,42 @@\n \n \n+_UNIT_PRICE_KEYS = (\"unit_price\", \"price\", \"amount\", \"unit_amount\")\n+_UNIT_PRICE_CENT_KEYS = (\"unit_price_cents\", \"price_cents\", \"amount_cents\")\n+\n+\n+def _unit_price(payload: dict) -> float:\n+    \"\"\"Extract the per-unit price from a pricing response.\n+\n+    The pricing service has shipped several payload shapes; accept the\n+    known ones instead of assuming one fixed key.\n+    \"\"\"\n+    if not isinstance(payload, dict):\n+        raise HTTPException(status_code=502, detail=\"malformed pricing response\")\n+    for key in _UNIT_PRICE_KEYS:\n+        value = payload.get(key)\n+        if isinstance(value, (int, float)):\n+            return float(value)\n+        if isinstance(value, dict):\n+            return _unit_price(value)\n+    for key in _UNIT_PRICE_CENT_KEYS:\n+        value = payload.get(key)\n+        if isinstance(value, (int, float)):\n+            return float(value) / 100.0\n+    raise HTTPException(status_code=502, detail=\"malformed pricing response\")\n+\n+\n @app.get(\"/quote\")\n def quote(sku: str, quantity: int = 1, code: str = \"\") -> dict:\n     \"\"\"Quote a price for a SKU with an optional discount code.\"\"\"\n     if quantity < 1:\n         raise HTTPException(status_code=422, detail=\"quantity must be at least 1\")\n     try:\n         resp = _pricing.get(f\"{BETA_URL}/price/{sku}\")\n     except httpx.HTTPError:\n         raise HTTPException(status_code=503, detail=\"pricing unavailable\")\n     if resp.status_code == 404:\n         raise HTTPException(status_code=404, detail=f\"unknown sku {sku!r}\")\n     resp.raise_for_status()\n-    unit = resp.json()[\"unit_price\"]\n+    unit = _unit_price(resp.json())\n     rate = discount_rate(code)\n     total = unit * quantity * (1 - rate)",
+  "verification_record": {
+    "payload": {
+      "signature": "KeyError@main.py:106",
+      "diff_sha256": "bd992e021b392cf722be48f2df1f2d76e5c8bd36676151d9f84733cf19d9c89e",
+      "conditions": {
+        "structural": true,
+        "applies": true,
+        "reproduction": true,
+        "suite": true
+      }
+    },
+    "hmac": "993df71507643acb0110790c38a3fbb2b0db2cd36bb4de25157a2dde8330399b"
+  },
+  "prev_hash": "90804c34d524a5e9472b976401124a978f1ecb031e844abe897fd06eaa23a8fd",
+  "hash": "fb30c2badc5dc87761203b1982e174fd2c88d88dabc68aff69fb5a429c86c405",
+  "hmac": "c6d9e64ba18c9fc2124bb2f478ae5c96dc20c4d3e42962dc838bc828c772f977"
+}

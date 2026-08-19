@@ -185,6 +185,18 @@ class TrialRig:
                 return False
         return True
 
+    def traffic_clean(self, quiet: float = 0.8, timeout: float = 8.0) -> bool:
+        """True once the live traffic stream shows no 5xx for `quiet`
+        seconds. The probe alone is not recovery: a fault that fans out
+        keeps erroring on paths the entry's trigger never touches."""
+        deadline = time.time() + timeout
+        while time.time() < deadline:
+            window = self.load.since(time.time() - quiet)
+            if window and not any(s.status >= 500 for s in window):
+                return True
+            time.sleep(0.1)
+        return False
+
     def deploy_patch(self, record: str, patched_tree: str,
                      service: str | None = None) -> None:
         target = self.procs[service or self.entry.trigger_service]
@@ -230,9 +242,12 @@ def run_trial(entry: CorpusEntry, arm: str, workdir: str, *,
         rig.stop()
 
 
-def _finish(rig: TrialRig, trial: Trial) -> Trial:
+def _finish(rig: TrialRig, trial: Trial,
+            recovered_at: float | None = None) -> Trial:
     if trial.outcome == "recovered":
-        trial.timings["recovered"] = time.time()
+        # MTTR runs to the probe pass (the registered definition), not to
+        # the later traffic-clean confirmation
+        trial.timings["recovered"] = recovered_at or time.time()
         trial.mttr_seconds = round(
             trial.timings["recovered"] - trial.timings["first_error"], 3)
     return trial
@@ -248,9 +263,13 @@ def _run_c1(rig: TrialRig, first_event: dict, timings: dict) -> Trial:
     rig.new_events()   # events from before the action are not recurrence
     while time.time() < deadline:
         if rig.probe():
-            report = [a.action for a in arm.report.actions]
-            return _finish(rig, Trial(rig.entry.id, "C1", "recovered", None,
-                                      timings, {"actions": report}))
+            probe_passed = time.time()
+            if rig.traffic_clean():
+                report = [a.action for a in arm.report.actions]
+                return _finish(rig, Trial(rig.entry.id, "C1", "recovered",
+                                          None, timings,
+                                          {"actions": report}),
+                               recovered_at=probe_passed)
         event = rig.wait_for_event(timeout=5.0)
         if event is None:
             break
@@ -264,32 +283,75 @@ def _run_c1(rig: TrialRig, first_event: dict, timings: dict) -> Trial:
                  {"actions": report})
 
 
+MAX_INCIDENTS_PER_TRIAL = 4
+
+
+def _incident_key(event: dict) -> tuple[str, str]:
+    return (event["exception_type"], event["request"]["path"])
+
+
 def _run_heal_arm(rig: TrialRig, arm: str, first_event: dict, timings: dict,
                   *, complete, suite_path, certificates=None,
                   practice_bank=None) -> Trial:
-    # heal the service that raised the incident; for cross-service faults
-    # that is the consumer, and the admitted patch is necessarily defensive
-    svc = first_event["service"]
-    notes = practice_bank.notes_for(first_event) if practice_bank else None
-    outcome = heal(first_event, f"{svc}.main:app", rig.trees[svc],
-                   complete=complete, incident_id=rig.entry.id,
-                   suite_path=suite_path, memory_notes=notes,
-                   require_reproduction=(arm == "C3"))
-    timings["heal_finished"] = time.time()
-    detail = {"heal_status": outcome.status, "heal_reason": outcome.reason,
-              "candidates": len(outcome.candidates)}
+    """Heal successive incidents until the traffic is clean.
 
-    if outcome.status != "deployed":
-        refused = outcome.reason.startswith("reproduction refused")
-        return Trial(rig.entry.id, arm, "refused" if refused else "escalated",
-                     None, timings, detail)
+    One injected fault can fan out into several distinct incidents (a
+    dependency fault breaks every consumer path that touches it), so a
+    single heal is not the protocol; responding to what the capture stream
+    shows is. An incident RECURRING after its own patch deployed is the
+    false-fix signal; a DIFFERENT incident is the next piece of work.
+    """
+    detail: dict = {"incidents": []}
+    healed_keys: set[tuple[str, str]] = set()
+    event = first_event
 
-    rig.deploy_patch(outcome.verification_record, outcome.patched_tree)
-    timings["patch_deployed"] = time.time()
-    if certificates is not None:
-        cert = certificates.issue(first_event, outcome, f"{svc}.main:app")
-        detail["certificate"] = cert["hash"]
-    if not rig.probe():
-        return Trial(rig.entry.id, arm, "false_fix", None, timings, detail)
-    return _finish(rig, Trial(rig.entry.id, arm, "recovered", None,
-                              timings, detail))
+    for _ in range(MAX_INCIDENTS_PER_TRIAL):
+        # heal the service that raised the incident; for cross-service
+        # faults that is the consumer, and its patch is necessarily defensive
+        svc = event["service"]
+        notes = practice_bank.notes_for(event) if practice_bank else None
+        outcome = heal(event, f"{svc}.main:app", rig.trees[svc],
+                       complete=complete, incident_id=rig.entry.id,
+                       suite_path=suite_path, memory_notes=notes,
+                       require_reproduction=(arm == "C3"))
+        timings["heal_finished"] = time.time()
+        detail["incidents"].append(
+            {"signature": outcome.signature, "heal_status": outcome.status,
+             "heal_reason": outcome.reason,
+             "candidates": len(outcome.candidates)})
+        detail["heal_status"] = outcome.status
+        detail["heal_reason"] = outcome.reason
+        detail["candidates"] = sum(i["candidates"]
+                                   for i in detail["incidents"])
+
+        if outcome.status != "deployed":
+            refused = outcome.reason.startswith("reproduction refused")
+            return Trial(rig.entry.id, arm,
+                         "refused" if refused else "escalated",
+                         None, timings, detail)
+
+        rig.deploy_patch(outcome.verification_record, outcome.patched_tree,
+                         service=svc)
+        timings["patch_deployed"] = time.time()
+        if certificates is not None:
+            cert = certificates.issue(event, outcome, f"{svc}.main:app")
+            detail.setdefault("certificates", []).append(cert["hash"])
+        healed_keys.add(_incident_key(event))
+        rig.new_events()          # discard pre-deploy captures
+
+        if rig.probe():
+            probe_passed = time.time()
+            if rig.traffic_clean():
+                return _finish(rig, Trial(rig.entry.id, arm, "recovered",
+                                          None, timings, detail),
+                               recovered_at=probe_passed)
+
+        event = rig.wait_for_event(timeout=5.0)
+        if event is None or _incident_key(event) in healed_keys:
+            # probe failing with nothing new, or a healed incident is back:
+            # the deployed patch did not do its job
+            return Trial(rig.entry.id, arm, "false_fix", None, timings,
+                         detail)
+
+    return Trial(rig.entry.id, arm, "escalated", None, timings,
+                 dict(detail, heal_reason="incident budget exhausted"))
