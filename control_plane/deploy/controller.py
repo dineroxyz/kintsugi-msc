@@ -42,9 +42,16 @@ class WindowStats:
 
 
 def guard_decision(baseline: WindowStats, canary: WindowStats,
-                   thresholds: GuardThresholds = GuardThresholds()) -> dict:
+                   thresholds: GuardThresholds = GuardThresholds(),
+                   expected_requests: int | None = None) -> dict:
     """Promote, or breach with the reasons. A repair that degrades any
-    observed signal is not a repair, whatever the gate concluded."""
+    observed signal is not a repair, whatever the gate concluded.
+
+    `expected_requests` makes the throughput term split-aware: under a
+    traffic split the canary only ever receives its assigned fraction, so
+    its request count is judged against that expectation rather than
+    against the full baseline window.
+    """
     breaches = []
     if canary.error_rate > baseline.error_rate + thresholds.max_error_rate_increase:
         breaches.append(f"error rate {canary.error_rate:.3f} vs baseline "
@@ -54,10 +61,11 @@ def guard_decision(baseline: WindowStats, canary: WindowStats,
             > thresholds.max_p95_latency_ratio):
         breaches.append(f"p95 latency {canary.p95_latency_ms:.0f}ms vs baseline "
                         f"{baseline.p95_latency_ms:.0f}ms")
-    if baseline.requests > 0 and (
-            canary.requests / baseline.requests < thresholds.min_throughput_ratio):
-        breaches.append(f"throughput fell to {canary.requests}/{baseline.requests} "
-                        "of baseline")
+    reference = expected_requests if expected_requests is not None else baseline.requests
+    if reference > 0 and (
+            canary.requests / reference < thresholds.min_throughput_ratio):
+        breaches.append(f"throughput fell to {canary.requests}/{reference} "
+                        "of expected")
     return {"promote": not breaches, "breaches": breaches}
 
 
