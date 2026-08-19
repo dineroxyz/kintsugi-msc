@@ -1,0 +1,43 @@
+{
+  "id": "F16",
+  "title": "Discount handler references a renamed variable",
+  "pattern": "rename-nameerror",
+  "provenance": {
+    "origin": "seeded",
+    "modeled_on": "a variable renamed at its binding site but not at one use; NameError on the untouched path"
+  },
+  "service": "alpha",
+  "deterministic": true,
+  "stateful": true,
+  "mutations": [
+    {
+      "file": "alpha/main.py",
+      "find": "    rate = discount_rate(code)\n    discounted_total = order[\"total\"] * (1 - rate)\n",
+      "replace": "    rate = discount_rate(coupon)\n    discounted_total = order[\"total\"] * (1 - rate)\n"
+    }
+  ],
+  "setup": [
+    {
+      "method": "POST",
+      "path": "/orders",
+      "json": {
+        "lines": [
+          {
+            "sku": "WIDGET",
+            "quantity": 1
+          }
+        ]
+      }
+    }
+  ],
+  "trigger": {
+    "method": "GET",
+    "path": "/orders/1/discounted",
+    "params": {
+      "code": "SAVE10"
+    }
+  },
+  "expected_exception": "NameError",
+  "expected_c3": "refused",
+  "notes": "stateful: the 404 guard fires first in a fresh replay, so the captured failure is unreachable"
+}

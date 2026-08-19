@@ -1,0 +1,31 @@
+{
+  "id": "F21",
+  "title": "Beta starts returning the price as a string",
+  "pattern": "cross-service-type-drift",
+  "provenance": {
+    "origin": "seeded",
+    "modeled_on": "dependency serialisation change; the fault lives in beta but the crash and the capture form in alpha, so the platform can only patch the consumer"
+  },
+  "service": "beta",
+  "trigger_service": "alpha",
+  "deterministic": true,
+  "stateful": false,
+  "mutations": [
+    {
+      "file": "beta/main.py",
+      "find": "    return {\"sku\": sku, \"price\": PRICES[sku]}\n",
+      "replace": "    return {\"sku\": sku, \"price\": str(PRICES[sku])}\n"
+    }
+  ],
+  "trigger": {
+    "method": "GET",
+    "path": "/quote",
+    "params": {
+      "sku": "WIDGET",
+      "quantity": 2
+    }
+  },
+  "expected_exception": "TypeError",
+  "expected_c3": "healed",
+  "notes": "an admitted alpha-side patch is defensive coercion; the corpus true fix is beta-side. Discussion material on where a repair belongs"
+}

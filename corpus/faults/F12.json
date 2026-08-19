@@ -1,0 +1,25 @@
+{
+  "id": "F12",
+  "title": "Cancel loses its pop-with-default and dels blindly",
+  "pattern": "guard-removal-keyerror",
+  "provenance": {
+    "origin": "seeded",
+    "modeled_on": "defensive pop(key, None) rewritten as index plus del; cancelling an unknown order crashes"
+  },
+  "service": "alpha",
+  "deterministic": true,
+  "stateful": false,
+  "mutations": [
+    {
+      "file": "alpha/main.py",
+      "find": "    order = ORDERS.pop(order_id, None)\n    if order is None:\n        raise HTTPException(status_code=404, detail=f\"no order {order_id}\")\n",
+      "replace": "    order = ORDERS[order_id]\n    del ORDERS[order_id]\n"
+    }
+  ],
+  "trigger": {
+    "method": "POST",
+    "path": "/orders/999999/cancel"
+  },
+  "expected_exception": "KeyError",
+  "expected_c3": "healed"
+}

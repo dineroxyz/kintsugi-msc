@@ -1,0 +1,32 @@
+{
+  "id": "F17",
+  "title": "Order line validation dropped, missing sku indexes",
+  "pattern": "validation-removal-keyerror",
+  "provenance": {
+    "origin": "seeded",
+    "modeled_on": "request validation removed; the handler indexes a field the malformed request never carried"
+  },
+  "service": "alpha",
+  "deterministic": true,
+  "stateful": false,
+  "mutations": [
+    {
+      "file": "alpha/main.py",
+      "find": "    for line in lines:\n        if \"sku\" not in line:\n            raise HTTPException(status_code=422, detail=\"line missing sku\")\n        resp = _pricing.get(f\"{BETA_URL}/price/{line['sku']}\")\n",
+      "replace": "    for line in lines:\n        resp = _pricing.get(f\"{BETA_URL}/price/{line['sku']}\")\n"
+    }
+  ],
+  "trigger": {
+    "method": "POST",
+    "path": "/orders",
+    "json": {
+      "lines": [
+        {
+          "quantity": 2
+        }
+      ]
+    }
+  },
+  "expected_exception": "KeyError",
+  "expected_c3": "healed"
+}

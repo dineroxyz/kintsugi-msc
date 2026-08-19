@@ -28,35 +28,41 @@ class Sample:
 
 class LoadGenerator:
     def __init__(self, base_url: str, plan: list[dict], *,
-                 interval: float = 0.02, timeout: float = 5.0):
+                 interval: float = 0.02, timeout: float = 5.0,
+                 workers: int = 1):
         self.base_url = base_url.rstrip("/")
         self.plan = plan
         self.interval = interval
         self.timeout = timeout
+        self.workers = workers      # >1 makes requests genuinely overlap,
+                                    # which race faults need to fire
         self.samples: list[Sample] = []
         self._lock = threading.Lock()
         self._stop = threading.Event()
-        self._thread: threading.Thread | None = None
+        self._threads: list[threading.Thread] = []
 
     def start(self) -> None:
-        self._thread = threading.Thread(target=self._run, daemon=True)
-        self._thread.start()
+        self._threads = [threading.Thread(target=self._run, args=(w,),
+                                          daemon=True)
+                         for w in range(self.workers)]
+        for thread in self._threads:
+            thread.start()
 
     def stop(self) -> list[Sample]:
         self._stop.set()
-        if self._thread:
-            self._thread.join(timeout=self.timeout + 2)
+        for thread in self._threads:
+            thread.join(timeout=self.timeout + 2)
         return self.samples
 
-    def _run(self) -> None:
-        i = 0
+    def _run(self, offset: int) -> None:
+        i = offset      # workers start staggered through the plan
         with httpx.Client(timeout=self.timeout) as client:
             while not self._stop.is_set():
                 request = self.plan[i % len(self.plan)]
                 i += 1
+                url = request.get("url") or self.base_url + request["path"]
                 try:
-                    resp = client.request(request["method"],
-                                          self.base_url + request["path"],
+                    resp = client.request(request["method"], url,
                                           params=request.get("params"),
                                           json=request.get("json"))
                     status = resp.status_code

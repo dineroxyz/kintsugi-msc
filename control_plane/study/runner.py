@@ -19,6 +19,7 @@ from __future__ import annotations
 import json
 import os
 import shutil
+import threading
 import time
 from dataclasses import dataclass, field
 
@@ -62,47 +63,73 @@ class Trial:
 
 
 class TrialRig:
-    """The live pieces of one trial, so tests can also drive them directly."""
+    """The live pieces of one trial, so tests can also drive them directly.
+
+    Every service runs from its own live tree (a full copy of services/),
+    so a fault can be deployed to alpha or to beta alike. The capture file
+    is shared; events carry the service that raised them, and the heal arms
+    dispatch on that, which is what makes cross-service entries (fault in
+    beta, crash in alpha) work without special cases.
+    """
 
     def __init__(self, entry: CorpusEntry, workdir: str):
         self.entry = entry
         self.workdir = workdir
         self.capture_file = os.path.join(workdir, "capture.jsonl")
         self.r1 = os.path.join(workdir, "r1")
-        self.live = os.path.join(workdir, "live")
-        for dest in (self.r1, self.live):
+        self.trees = {name: os.path.join(workdir, f"live_{name}")
+                      for name in ("alpha", "beta")}
+        for dest in [self.r1, *self.trees.values()]:
             shutil.copytree(SERVICES, dest,
                             ignore=shutil.ignore_patterns("__pycache__", ".git"))
-        self.beta = ServiceProcess(self.r1, "beta.main:app", free_port(),
-                                   "b1", PLATFORM_ROOT)
-        self.alpha = ServiceProcess(
-            self.live, "alpha.main:app", free_port(), "r1", PLATFORM_ROOT,
-            extra_env={"KINTSUGI_CAPTURE_FILE": self.capture_file})
+        self.procs = {
+            name: ServiceProcess(
+                self.trees[name], f"{name}.main:app", free_port(), "r1",
+                PLATFORM_ROOT,
+                extra_env={"KINTSUGI_CAPTURE_FILE": self.capture_file})
+            for name in ("alpha", "beta")}
         self.load: LoadGenerator | None = None
         self._events_seen = 0
 
+    @property
+    def alpha(self) -> ServiceProcess:
+        return self.procs["alpha"]
+
+    @property
+    def faulty_proc(self) -> ServiceProcess:
+        """The process where the incident forms (the trigger's target)."""
+        return self.procs[self.entry.trigger_service]
+
     def start(self) -> None:
-        self.beta.start()
-        self.alpha.extra_env["BETA_URL"] = f"http://127.0.0.1:{self.beta.port}"
+        self.procs["beta"].start()
+        self.alpha.extra_env["BETA_URL"] = \
+            f"http://127.0.0.1:{self.procs['beta'].port}"
         self.alpha.start()
-        plan = HEALTHY_PLAN + self.entry.setup + [self.entry.trigger]
+        trigger = dict(self.entry.trigger)
+        if self.entry.trigger_service != "alpha":
+            trigger["url"] = (f"http://127.0.0.1:"
+                              f"{self.faulty_proc.port}{trigger['path']}")
+        plan = HEALTHY_PLAN + self.entry.setup + [trigger]
+        workers = 8 if self.entry.requires_concurrency else 1
         self.load = LoadGenerator(f"http://127.0.0.1:{self.alpha.port}", plan,
-                                  interval=0.01)
+                                  interval=0.01, workers=workers)
         self.load.start()
 
     def stop(self) -> None:
         if self.load:
             self.load.stop()
-        self.alpha.stop()
-        self.beta.stop()
+        for proc in self.procs.values():
+            proc.stop()
 
     def deploy_fault(self) -> float:
-        """Release r2: the clean tree plus the entry's fault, deployed live."""
+        """Release r2: the clean tree plus the entry's fault, deployed to
+        the service the entry targets."""
         faulty = inject(self.entry, SERVICES, os.path.join(self.workdir, "r2"))
-        DeployController._sync(faulty, self.live)
-        purge_pycache(self.live)
-        self.alpha.release = "r2"
-        self.alpha.restart()
+        target = self.procs[self.entry.service]
+        DeployController._sync(faulty, target.tree)
+        purge_pycache(target.tree)
+        target.release = "r2"
+        target.restart()
         return time.time()
 
     def new_events(self) -> list[dict]:
@@ -124,22 +151,46 @@ class TrialRig:
         return None
 
     def probe(self, attempts: int = 5) -> bool:
-        """Post-condition: setup then trigger, no 5xx across `attempts`."""
-        with httpx.Client(timeout=5.0,
-                          base_url=f"http://127.0.0.1:{self.alpha.port}") as client:
-            for _ in range(attempts):
-                for request in self.entry.setup + [self.entry.trigger]:
-                    resp = client.request(request["method"], request["path"],
-                                          params=request.get("params"),
-                                          json=request.get("json"))
-                    if resp.status_code >= 500:
+        """Post-condition: setup then trigger, no 5xx across `attempts`.
+        Setup runs against alpha (where state lives); the trigger goes to
+        the entry's trigger service. Race entries fire the trigger from
+        overlapping threads, since sequential requests cannot race."""
+        alpha_base = f"http://127.0.0.1:{self.alpha.port}"
+        trigger_base = f"http://127.0.0.1:{self.faulty_proc.port}"
+        for _ in range(attempts):
+            with httpx.Client(timeout=5.0, base_url=alpha_base) as client:
+                for request in self.entry.setup:
+                    if client.request(request["method"], request["path"],
+                                      params=request.get("params"),
+                                      json=request.get("json")).status_code >= 500:
                         return False
+            statuses: list[int] = []
+
+            def fire():
+                with httpx.Client(timeout=5.0, base_url=trigger_base) as c:
+                    statuses.append(c.request(
+                        self.entry.trigger["method"], self.entry.trigger["path"],
+                        params=self.entry.trigger.get("params"),
+                        json=self.entry.trigger.get("json")).status_code)
+
+            if self.entry.requires_concurrency:
+                threads = [threading.Thread(target=fire) for _ in range(8)]
+                for t in threads:
+                    t.start()
+                for t in threads:
+                    t.join()
+            else:
+                fire()
+            if any(s >= 500 for s in statuses):
+                return False
         return True
 
-    def deploy_patch(self, record: str, patched_tree: str) -> None:
-        DeployController(self.live).deploy(record, patched_tree)
-        purge_pycache(self.live)
-        self.alpha.restart()
+    def deploy_patch(self, record: str, patched_tree: str,
+                     service: str | None = None) -> None:
+        target = self.procs[service or self.entry.trigger_service]
+        DeployController(target.tree).deploy(record, patched_tree)
+        purge_pycache(target.tree)
+        target.restart()
 
 
 def run_trial(entry: CorpusEntry, arm: str, workdir: str, *,
@@ -185,7 +236,9 @@ def _finish(rig: TrialRig, trial: Trial) -> Trial:
 
 
 def _run_c1(rig: TrialRig, first_event: dict, timings: dict) -> Trial:
-    arm = C1Repertoire(rig.alpha, rig.r1)
+    # the repertoire acts on the service whose release changed last (r2):
+    # restart it, then roll IT back. Deploy-aware, like real runbooks.
+    arm = C1Repertoire(rig.procs[rig.entry.service], rig.r1)
     signature = signature_of(first_event)
     deadline = time.time() + 30
     arm.on_incident(signature)
@@ -210,7 +263,10 @@ def _run_c1(rig: TrialRig, first_event: dict, timings: dict) -> Trial:
 
 def _run_heal_arm(rig: TrialRig, arm: str, first_event: dict, timings: dict,
                   *, complete, suite_path) -> Trial:
-    outcome = heal(first_event, "alpha.main:app", rig.live,
+    # heal the service that raised the incident; for cross-service faults
+    # that is the consumer, and the admitted patch is necessarily defensive
+    svc = first_event["service"]
+    outcome = heal(first_event, f"{svc}.main:app", rig.trees[svc],
                    complete=complete, incident_id=rig.entry.id,
                    suite_path=suite_path,
                    require_reproduction=(arm == "C3"))

@@ -1,0 +1,28 @@
+{
+  "id": "F15",
+  "title": "Per-unit maths gains an off-by-one denominator",
+  "pattern": "off-by-one-divzero",
+  "provenance": {
+    "origin": "seeded",
+    "modeled_on": "an off-by-one introduced into a denominator; the default argument value is exactly the zero case"
+  },
+  "service": "alpha",
+  "deterministic": true,
+  "stateful": false,
+  "mutations": [
+    {
+      "file": "alpha/main.py",
+      "find": "            \"per_unit\": round(total / quantity, 2),\n",
+      "replace": "            \"per_unit\": round(total / (quantity - 1), 2),\n"
+    }
+  ],
+  "trigger": {
+    "method": "GET",
+    "path": "/quote",
+    "params": {
+      "sku": "WIDGET"
+    }
+  },
+  "expected_exception": "ZeroDivisionError",
+  "expected_c3": "healed"
+}

@@ -1,0 +1,28 @@
+{
+  "id": "F13",
+  "title": "Restock count loses its integer coercion",
+  "pattern": "boundary-type-confusion",
+  "provenance": {
+    "origin": "seeded",
+    "modeled_on": "same boundary family as F05, surfacing in a comparison instead of arithmetic"
+  },
+  "service": "alpha",
+  "deterministic": true,
+  "stateful": false,
+  "mutations": [
+    {
+      "file": "alpha/main.py",
+      "find": "    count = int(payload.get(\"count\", 0))\n",
+      "replace": "    count = payload.get(\"count\", 0)\n"
+    }
+  ],
+  "trigger": {
+    "method": "POST",
+    "path": "/restock/WIDGET",
+    "json": {
+      "count": "5"
+    }
+  },
+  "expected_exception": "TypeError",
+  "expected_c3": "healed"
+}

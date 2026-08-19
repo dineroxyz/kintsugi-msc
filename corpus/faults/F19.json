@@ -1,0 +1,28 @@
+{
+  "id": "F19",
+  "title": "Discount rate assigned only inside a new conditional",
+  "pattern": "conditional-unboundlocal",
+  "provenance": {
+    "origin": "seeded",
+    "modeled_on": "an assignment moved under a condition during a refactor; the fall-through path reads an unbound local"
+  },
+  "service": "alpha",
+  "deterministic": true,
+  "stateful": false,
+  "mutations": [
+    {
+      "file": "alpha/main.py",
+      "find": "    rate = discount_rate(code)\n    total = unit * quantity * (1 - rate)\n",
+      "replace": "    if code:\n        rate = discount_rate(code)\n    total = unit * quantity * (1 - rate)\n"
+    }
+  ],
+  "trigger": {
+    "method": "GET",
+    "path": "/quote",
+    "params": {
+      "sku": "GADGET"
+    }
+  },
+  "expected_exception": "UnboundLocalError",
+  "expected_c3": "healed"
+}

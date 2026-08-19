@@ -1,0 +1,41 @@
+{
+  "id": "F11",
+  "title": "Stock reservation races between check and pop",
+  "pattern": "toctou-race",
+  "provenance": {
+    "origin": "seeded",
+    "modeled_on": "check-then-act on shared state with the lock dropped; two requests pass the emptiness check and the second pops an empty list"
+  },
+  "service": "alpha",
+  "deterministic": false,
+  "stateful": false,
+  "requires_concurrency": true,
+  "mutations": [
+    {
+      "file": "alpha/main.py",
+      "find": "import os\nimport threading\n\nfrom fastapi import FastAPI, HTTPException\n",
+      "replace": "import os\nimport threading\nimport time\n\nfrom fastapi import FastAPI, HTTPException\n"
+    },
+    {
+      "file": "alpha/main.py",
+      "find": "    with _stock_lock:\n        if not STOCK[sku]:\n            raise HTTPException(status_code=409, detail=f\"{sku} out of stock\")\n        unit = STOCK[sku].pop()\n",
+      "replace": "    if not STOCK[sku]:\n        raise HTTPException(status_code=409, detail=f\"{sku} out of stock\")\n    time.sleep(0.004)\n    unit = STOCK[sku].pop()\n"
+    }
+  ],
+  "setup": [
+    {
+      "method": "POST",
+      "path": "/restock/WIDGET",
+      "json": {
+        "count": 4
+      }
+    }
+  ],
+  "trigger": {
+    "method": "POST",
+    "path": "/reserve/WIDGET"
+  },
+  "expected_exception": "IndexError",
+  "expected_c3": "refused",
+  "notes": "expected refusal: a single-request replay cannot interleave; the demo's live race-refusal moment"
+}

@@ -1,15 +1,16 @@
 """Managed demo service `alpha`.
 
 A small order service, deliberately ordinary: FastAPI handlers, one outbound
-dependency (the `beta` pricing service), and the Kintsugi capture agent as
-its only unusual component. This tree is the CLEAN release; every study
-fault is injected into a copy of it by the corpus injector, never committed
-here.
+dependency (the `beta` pricing service), shared in-memory state behind a
+lock, and the Kintsugi capture agent as its only unusual component. This
+tree is the CLEAN release; every study fault is injected into a copy of it
+by the corpus injector, never committed here.
 """
 
 from __future__ import annotations
 
 import os
+import threading
 
 from fastapi import FastAPI, HTTPException
 
@@ -22,9 +23,15 @@ app.add_middleware(CaptureMiddleware, service="alpha")
 
 _pricing = CaptureClient(timeout=5.0)
 
-# naive in-memory store; realistic enough for a demo service
+# naive in-memory state; realistic enough for a demo service
 ORDERS: dict[int, dict] = {}
 NEXT_ID = iter(range(1, 10**6))
+
+STOCK: dict[str, list[str]] = {
+    "WIDGET": [f"WIDGET-{i}" for i in range(50)],
+    "GADGET": [f"GADGET-{i}" for i in range(50)],
+}
+_stock_lock = threading.Lock()
 
 DISCOUNTS = {"SAVE10": 0.10, "SAVE20": 0.20}
 
@@ -49,7 +56,12 @@ def create_order(order: dict) -> dict:
         raise HTTPException(status_code=422, detail="order has no lines")
     total = 0.0
     for line in lines:
+        if "sku" not in line:
+            raise HTTPException(status_code=422, detail="line missing sku")
         resp = _pricing.get(f"{BETA_URL}/price/{line['sku']}")
+        if resp.status_code == 404:
+            raise HTTPException(status_code=422,
+                                detail=f"unknown sku {line['sku']!r}")
         resp.raise_for_status()
         price = resp.json()["price"]
         quantity = int(line.get("quantity", 1))
@@ -67,12 +79,22 @@ def get_order(order_id: int) -> dict:
     return ORDERS[order_id]
 
 
+@app.post("/orders/{order_id}/cancel")
+def cancel_order(order_id: int) -> dict:
+    order = ORDERS.pop(order_id, None)
+    if order is None:
+        raise HTTPException(status_code=404, detail=f"no order {order_id}")
+    return {"id": order_id, "cancelled": True, "total": order["total"]}
+
+
 @app.get("/quote")
 def quote(sku: str, quantity: int = 1, code: str = "") -> dict:
     """Quote a price for a SKU with an optional discount code."""
     if quantity < 1:
         raise HTTPException(status_code=422, detail="quantity must be at least 1")
     resp = _pricing.get(f"{BETA_URL}/price/{sku}")
+    if resp.status_code == 404:
+        raise HTTPException(status_code=404, detail=f"unknown sku {sku!r}")
     resp.raise_for_status()
     unit = resp.json()["price"]
     rate = discount_rate(code)
@@ -92,3 +114,24 @@ def discounted(order_id: int, code: str = "") -> dict:
     discounted_total = order["total"] * (1 - rate)
     return {"id": order_id, "total": order["total"],
             "discounted": round(discounted_total, 2)}
+
+
+@app.post("/restock/{sku}")
+def restock(sku: str, payload: dict) -> dict:
+    count = int(payload.get("count", 0))
+    if count < 1:
+        raise HTTPException(status_code=422, detail="count must be at least 1")
+    with _stock_lock:
+        STOCK[sku] = [f"{sku}-{i}" for i in range(count)]
+    return {"sku": sku, "stocked": count}
+
+
+@app.post("/reserve/{sku}")
+def reserve(sku: str) -> dict:
+    if sku not in STOCK:
+        raise HTTPException(status_code=404, detail=f"unknown sku {sku!r}")
+    with _stock_lock:
+        if not STOCK[sku]:
+            raise HTTPException(status_code=409, detail=f"{sku} out of stock")
+        unit = STOCK[sku].pop()
+    return {"sku": sku, "unit": unit}

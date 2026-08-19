@@ -39,7 +39,7 @@ class CorpusEntry:
     title: str
     pattern: str                    # short name of the fault family
     provenance: dict                # origin + what real-world shape it models
-    service: str                    # which managed service it targets
+    service: str                    # which service tree the fault is injected into
     deterministic: bool
     stateful: bool                  # needs prior requests to build state
     mutations: list[Mutation]
@@ -47,7 +47,16 @@ class CorpusEntry:
     setup: list[dict] = field(default_factory=list)   # requests run first
     expected_exception: str = ""
     expected_c3: str = "healed"     # "healed" | "refused" under the gated arm
+    trigger_service: str = ""       # where the trigger is sent and the capture
+                                    # forms; defaults to `service`. Differs for
+                                    # cross-service faults (break beta, crash alpha)
+    requires_concurrency: bool = False   # race faults: only fires under
+                                         # overlapping requests
     notes: str = ""
+
+    def __post_init__(self):
+        if not self.trigger_service:
+            self.trigger_service = self.service
 
     @staticmethod
     def from_file(path: str) -> "CorpusEntry":

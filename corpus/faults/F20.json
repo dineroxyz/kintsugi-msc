@@ -1,0 +1,25 @@
+{
+  "id": "F20",
+  "title": "Beta's unknown-SKU guard removed",
+  "pattern": "guard-removal-keyerror",
+  "provenance": {
+    "origin": "seeded",
+    "modeled_on": "the dependency's own input guard lost; the fault and the incident are both in beta"
+  },
+  "service": "beta",
+  "deterministic": true,
+  "stateful": false,
+  "mutations": [
+    {
+      "file": "beta/main.py",
+      "find": "def price(sku: str) -> dict:\n    if sku not in PRICES:\n        raise HTTPException(status_code=404, detail=f\"unknown sku {sku!r}\")\n    return {\"sku\": sku, \"price\": PRICES[sku]}\n",
+      "replace": "def price(sku: str) -> dict:\n    return {\"sku\": sku, \"price\": PRICES[sku]}\n"
+    }
+  ],
+  "trigger": {
+    "method": "GET",
+    "path": "/price/UNOBTAINIUM"
+  },
+  "expected_exception": "KeyError",
+  "expected_c3": "healed"
+}

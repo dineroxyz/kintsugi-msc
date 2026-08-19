@@ -1,0 +1,33 @@
+{
+  "id": "F18",
+  "title": "Order total accumulator initialised as a string",
+  "pattern": "wrong-initialiser-type",
+  "provenance": {
+    "origin": "seeded",
+    "modeled_on": "an accumulator's initialiser changed type; the first += mixes str and float"
+  },
+  "service": "alpha",
+  "deterministic": true,
+  "stateful": false,
+  "mutations": [
+    {
+      "file": "alpha/main.py",
+      "find": "    total = 0.0\n",
+      "replace": "    total = \"\"\n"
+    }
+  ],
+  "trigger": {
+    "method": "POST",
+    "path": "/orders",
+    "json": {
+      "lines": [
+        {
+          "sku": "DOODAD",
+          "quantity": 1
+        }
+      ]
+    }
+  },
+  "expected_exception": "TypeError",
+  "expected_c3": "healed"
+}
