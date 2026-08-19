@@ -96,6 +96,27 @@ def _entry_of(evidence_text: str, corpus):
     raise AssertionError("could not attribute evidence to an entry")
 
 
+def test_cross_service_fault_rehearses_with_faulty_dependency(clean_beta,
+                                                              tmp_path):
+    """F21's fault lives in beta but crashes alpha; practice must run the
+    faulty beta as a subprocess so the rehearsal reaches the real failure,
+    and the admitted patch is the alpha-side defensive coercion."""
+    import difflib
+    entry = load_entry("F21")
+    before = open(os.path.join(SERVICES, "alpha/main.py")).read()
+    after = before.replace('    unit = resp.json()["price"]\n',
+                           '    unit = float(resp.json()["price"])\n')
+    diff = "".join(difflib.unified_diff(
+        before.splitlines(keepends=True), after.splitlines(keepends=True),
+        fromfile="a/alpha/main.py", tofile="b/alpha/main.py"))
+
+    rehearsal = rehearse(entry, str(tmp_path / "w"), complete=lambda _e: diff)
+    assert rehearsal.status == "would_heal", (rehearsal.status,
+                                              rehearsal.reason)
+    assert rehearsal.capture["service"] == "alpha"
+    assert "float" in rehearsal.patch
+
+
 def test_banked_rehearsal_recalls_for_resembling_incident(clean_beta, tmp_path):
     entry = load_entry("F01")
     bank = PracticeBank(str(tmp_path / "bank.jsonl"))

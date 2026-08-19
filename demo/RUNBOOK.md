@@ -57,7 +57,7 @@ from corpus import load_entry
 from corpus.injector import inject
 store = CertificateStore("study/pilot/certificates")
 cert = store.verify_chain()[0]        # or the examiner's pick by sequence
-entry = load_entry(cert["capture"].get("entry", "F01")) if False else load_entry("F01")
+entry = load_entry("F01")             # the entry the picked certificate healed
 fresh = inject(entry, "services", tempfile.mkdtemp() + "/tree")
 print(json.dumps(replay_certificate(cert, fresh), indent=2))
 EOF

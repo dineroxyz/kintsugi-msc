@@ -34,6 +34,17 @@ BANK_PATH = os.environ.get("KINTSUGI_BANK_PATH",
 app = FastAPI(title="Kintsugi Console")
 app.mount("/api", control_plane_api)
 
+
+@app.on_event("startup")
+def _init_db() -> None:
+    # a mounted sub-app's own startup hooks never fire under Starlette
+    # mounts, so the control plane's table creation must happen here
+    try:
+        from control_plane.db import init_db
+        init_db()
+    except Exception as exc:      # console must render even without a DB
+        print(f"console: init_db failed ({exc}); API ingest will be down")
+
 STYLE = """
 <style>
   :root { --lacquer:#161311; --panel:#211c18; --line:#3a322a;

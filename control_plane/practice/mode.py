@@ -103,7 +103,29 @@ class PracticeBank:
 
 
 def _fire_in_shadow(entry: CorpusEntry, shadow: str) -> dict | None:
-    """Import the shadow service in-process and fire the entry's trigger."""
+    """Import the shadow service in-process and fire the entry's trigger.
+
+    Cross-service entries (fault injected into one service, incident forming
+    in another) additionally run the FAULTY dependency as a subprocess from
+    the same shadow tree, so the consumer's outbound calls hit the fault."""
+    dependency = None
+    saved_beta_url = os.environ.get("BETA_URL")
+    if entry.service != entry.trigger_service:
+        from control_plane.deploy.live import ServiceProcess, free_port
+        dependency = ServiceProcess(shadow, f"{entry.service}.main:app",
+                                    free_port(), "practice", PLATFORM_ROOT)
+        dependency.start()
+        os.environ["BETA_URL"] = f"http://127.0.0.1:{dependency.port}"
+    try:
+        return _fire_in_shadow_inner(entry, shadow)
+    finally:
+        if dependency is not None:
+            dependency.stop()
+            if saved_beta_url is not None:
+                os.environ["BETA_URL"] = saved_beta_url
+
+
+def _fire_in_shadow_inner(entry: CorpusEntry, shadow: str) -> dict | None:
     sys.path.insert(0, shadow)
     for name in [n for n in sys.modules if n.startswith(("alpha", "beta"))]:
         del sys.modules[name]

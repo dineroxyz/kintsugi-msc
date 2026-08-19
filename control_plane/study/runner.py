@@ -224,7 +224,11 @@ def run_trial(entry: CorpusEntry, arm: str, workdir: str, *,
 
         if arm == "C0":
             time.sleep(observe_seconds)
-            outcome = "recovered" if rig.probe() else "unrecovered"
+            # the registered definition: probe AND a clean traffic stream.
+            # A probabilistic fault can slip a five-round probe by luck,
+            # but not a live stream still showing its 5xx samples.
+            outcome = ("recovered" if rig.probe() and rig.traffic_clean()
+                       else "unrecovered")
             return Trial(entry.id, arm, outcome, None, timings,
                          {"actions": ["observed"]})
 
