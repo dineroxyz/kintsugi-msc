@@ -195,7 +195,8 @@ class TrialRig:
 
 def run_trial(entry: CorpusEntry, arm: str, workdir: str, *,
               complete=None, observe_seconds: float = 1.5,
-              suite_path: str | None = None, certificates=None) -> Trial:
+              suite_path: str | None = None, certificates=None,
+              practice_bank=None) -> Trial:
     rig = TrialRig(entry, workdir)
     timings: dict = {}
     try:
@@ -221,7 +222,8 @@ def run_trial(entry: CorpusEntry, arm: str, workdir: str, *,
         if arm in ("C2", "C3"):
             return _run_heal_arm(rig, arm, first_event, timings,
                                  complete=complete, suite_path=suite_path,
-                                 certificates=certificates)
+                                 certificates=certificates,
+                                 practice_bank=practice_bank)
 
         raise ValueError(f"unknown arm {arm}")
     finally:
@@ -263,13 +265,15 @@ def _run_c1(rig: TrialRig, first_event: dict, timings: dict) -> Trial:
 
 
 def _run_heal_arm(rig: TrialRig, arm: str, first_event: dict, timings: dict,
-                  *, complete, suite_path, certificates=None) -> Trial:
+                  *, complete, suite_path, certificates=None,
+                  practice_bank=None) -> Trial:
     # heal the service that raised the incident; for cross-service faults
     # that is the consumer, and the admitted patch is necessarily defensive
     svc = first_event["service"]
+    notes = practice_bank.notes_for(first_event) if practice_bank else None
     outcome = heal(first_event, f"{svc}.main:app", rig.trees[svc],
                    complete=complete, incident_id=rig.entry.id,
-                   suite_path=suite_path,
+                   suite_path=suite_path, memory_notes=notes,
                    require_reproduction=(arm == "C3"))
     timings["heal_finished"] = time.time()
     detail = {"heal_status": outcome.status, "heal_reason": outcome.reason,
