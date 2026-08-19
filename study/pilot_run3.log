@@ -1,0 +1,125 @@
+F01 x C0: unrecovered (mttr=None, wall=3.1s)
+F01 x C1: recovered (mttr=1.098, wall=3.4s)
+F01 x C2: recovered (mttr=9.309, wall=11.6s)
+F01 x C3: recovered (mttr=9.061, wall=11.4s)
+F02 x C0: unrecovered (mttr=None, wall=3.1s)
+F02 x C1: recovered (mttr=1.219, wall=3.5s)
+F02 x C2: recovered (mttr=10.919, wall=13.2s)
+F02 x C3: refused (mttr=None, wall=2.5s)
+F03 x C0: unrecovered (mttr=None, wall=3.1s)
+F03 x C1: recovered (mttr=1.052, wall=3.3s)
+F03 x C2: recovered (mttr=9.722, wall=12.1s)
+F03 x C3: recovered (mttr=12.225, wall=14.4s)
+F04 x C0: unrecovered (mttr=None, wall=3.1s)
+F04 x C1: recovered (mttr=1.043, wall=3.2s)
+F04 x C2: recovered (mttr=46.709, wall=49.0s)
+F04 x C3: recovered (mttr=65.843, wall=68.2s)
+F05 x C0: unrecovered (mttr=None, wall=3.0s)
+F05 x C1: recovered (mttr=1.054, wall=3.3s)
+F05 x C2: escalated (mttr=None, wall=31.4s)
+F05 x C3: recovered (mttr=16.491, wall=18.7s)
+F06 x C0: unrecovered (mttr=None, wall=3.2s)
+F06 x C1: recovered (mttr=1.132, wall=3.5s)
+F06 x C2: recovered (mttr=12.303, wall=14.4s)
+F06 x C3: refused (mttr=None, wall=2.5s)
+F07 x C0: unrecovered (mttr=None, wall=3.0s)
+F07 x C1: recovered (mttr=1.054, wall=3.2s)
+F07 x C2: recovered (mttr=7.44, wall=9.7s)
+F07 x C3: recovered (mttr=13.648, wall=16.0s)
+F08 x C0: unrecovered (mttr=None, wall=3.1s)
+F08 x C1: recovered (mttr=1.117, wall=3.4s)
+F08 x C2: recovered (mttr=27.953, wall=30.3s)
+F08 x C3: recovered (mttr=19.82, wall=22.1s)
+F09 x C0: recovered (mttr=None, wall=3.1s)
+F09 x C1: recovered (mttr=9.137, wall=11.4s)
+F09 x C2: recovered (mttr=9.65, wall=11.9s)
+F09 x C3: refused (mttr=None, wall=2.4s)
+F10 x C0: unrecovered (mttr=None, wall=3.0s)
+F10 x C1: recovered (mttr=1.164, wall=3.3s)
+F10 x C2: recovered (mttr=18.644, wall=20.9s)
+F10 x C3: recovered (mttr=16.991, wall=19.2s)
+F11 x C0: unrecovered (mttr=None, wall=4.2s)
+F11 x C1: recovered (mttr=1.119, wall=4.2s)
+F11 x C2: recovered (mttr=21.548, wall=23.9s)
+F11 x C3: refused (mttr=None, wall=3.0s)
+F12 x C0: unrecovered (mttr=None, wall=3.1s)
+F12 x C1: recovered (mttr=1.101, wall=3.4s)
+F12 x C2: recovered (mttr=7.685, wall=9.9s)
+F12 x C3: recovered (mttr=8.445, wall=10.7s)
+F13 x C0: unrecovered (mttr=None, wall=3.0s)
+F13 x C1: recovered (mttr=1.109, wall=3.4s)
+F13 x C2: recovered (mttr=19.635, wall=21.9s)
+F13 x C3: recovered (mttr=31.553, wall=33.8s)
+F14 x C0: unrecovered (mttr=None, wall=3.0s)
+F14 x C1: recovered (mttr=1.121, wall=3.4s)
+F14 x C2: recovered (mttr=7.134, wall=9.4s)
+F14 x C3: recovered (mttr=8.758, wall=10.9s)
+F15 x C0: unrecovered (mttr=None, wall=3.0s)
+F15 x C1: recovered (mttr=1.011, wall=3.3s)
+F15 x C2: recovered (mttr=15.265, wall=17.5s)
+F15 x C3: recovered (mttr=6.72, wall=9.0s)
+F16 x C0: unrecovered (mttr=None, wall=3.2s)
+F16 x C1: recovered (mttr=1.018, wall=3.3s)
+F16 x C2: recovered (mttr=5.41, wall=7.7s)
+F16 x C3: refused (mttr=None, wall=2.6s)
+F17 x C0: unrecovered (mttr=None, wall=3.1s)
+F17 x C1: recovered (mttr=1.062, wall=3.3s)
+F17 x C2: recovered (mttr=28.068, wall=30.4s)
+F17 x C3: recovered (mttr=13.68, wall=16.0s)
+F18 x C0: unrecovered (mttr=None, wall=3.0s)
+F18 x C1: recovered (mttr=1.071, wall=3.4s)
+F18 x C2: recovered (mttr=7.218, wall=9.5s)
+F18 x C3: recovered (mttr=7.589, wall=9.8s)
+F19 x C0: unrecovered (mttr=None, wall=3.0s)
+F19 x C1: recovered (mttr=1.18, wall=3.4s)
+F19 x C2: recovered (mttr=14.15, wall=16.5s)
+F19 x C3: recovered (mttr=12.977, wall=15.2s)
+F20 x C0: unrecovered (mttr=None, wall=3.1s)
+F20 x C1: recovered (mttr=1.111, wall=3.4s)
+F20 x C2: recovered (mttr=7.719, wall=10.0s)
+F20 x C3: recovered (mttr=16.989, wall=19.3s)
+F21 x C0: unrecovered (mttr=None, wall=3.1s)
+F21 x C1: recovered (mttr=1.127, wall=3.3s)
+F21 x C2: recovered (mttr=39.214, wall=41.4s)
+F21 x C3: recovered (mttr=36.387, wall=38.7s)
+{
+  "C0": {
+    "outcomes": {
+      "unrecovered": 20,
+      "recovered": 1
+    },
+    "recovered": 1,
+    "false_fix": 0,
+    "median_mttr": null,
+    "mttr_n": 0
+  },
+  "C1": {
+    "outcomes": {
+      "recovered": 21
+    },
+    "recovered": 21,
+    "false_fix": 0,
+    "median_mttr": 1.11,
+    "mttr_n": 21
+  },
+  "C2": {
+    "outcomes": {
+      "recovered": 20,
+      "escalated": 1
+    },
+    "recovered": 20,
+    "false_fix": 0,
+    "median_mttr": 11.61,
+    "mttr_n": 20
+  },
+  "C3": {
+    "outcomes": {
+      "recovered": 16,
+      "refused": 5
+    },
+    "recovered": 16,
+    "false_fix": 0,
+    "median_mttr": 13.66,
+    "mttr_n": 16
+  }
+}

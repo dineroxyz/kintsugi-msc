@@ -1,0 +1,255 @@
+{
+  "version": 1,
+  "sequence": 5,
+  "issued_at": "2026-08-19T19:03:31",
+  "service_spec": "alpha.main:app",
+  "signature": "ValueError@main.py:43",
+  "capture": {
+    "service": "alpha",
+    "release": "r2",
+    "exception_type": "ValueError",
+    "exception_message": "invalid literal for int() with base 10: 'XX'",
+    "frames": [
+      {
+        "file": "/Users/ssheyii/kintsugi/libs/kintsugi_capture/__init__.py",
+        "line": 158,
+        "function": "__call__",
+        "code": "await self.app(scope, buffering_receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py",
+        "line": 63,
+        "function": "__call__",
+        "code": "await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 53,
+        "function": "wrapped_app",
+        "code": "raise exc"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 42,
+        "function": "wrapped_app",
+        "code": "await app(scope, receive, sender)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py",
+        "line": 18,
+        "function": "__call__",
+        "code": "await self.app(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/routing.py",
+        "line": 670,
+        "function": "__call__",
+        "code": "await self.middleware_stack(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 2734,
+        "function": "app",
+        "code": "await route.handle(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 1281,
+        "function": "handle",
+        "code": "await super().handle(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/routing.py",
+        "line": 280,
+        "function": "handle",
+        "code": "await self.app(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 158,
+        "function": "app",
+        "code": "await wrap_app_handling_exceptions(app, request)(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 53,
+        "function": "wrapped_app",
+        "code": "raise exc"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 42,
+        "function": "wrapped_app",
+        "code": "await app(scope, receive, sender)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 144,
+        "function": "app",
+        "code": "response = await f(request)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 706,
+        "function": "app",
+        "code": "raw_response = await run_endpoint_function("
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 354,
+        "function": "run_endpoint_function",
+        "code": "return await run_in_threadpool(dependant.call, **values)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/concurrency.py",
+        "line": 34,
+        "function": "run_in_threadpool",
+        "code": "return await anyio.to_thread.run_sync(func)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/to_thread.py",
+        "line": 65,
+        "function": "run_sync",
+        "code": "return await get_async_backend().run_sync_in_worker_thread("
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py",
+        "line": 2641,
+        "function": "run_sync_in_worker_thread",
+        "code": "return await future"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py",
+        "line": 1033,
+        "function": "run",
+        "code": "result = context.run(func, *args)"
+      },
+      {
+        "file": "/private/var/folders/mv/mzz_q2mn3q3c827r6pfcby640000gn/T/pilot-F08-C3-3opw8nrx/live_alpha/alpha/main.py",
+        "line": 107,
+        "function": "quote",
+        "code": "rate = discount_rate(code)"
+      },
+      {
+        "file": "/private/var/folders/mv/mzz_q2mn3q3c827r6pfcby640000gn/T/pilot-F08-C3-3opw8nrx/live_alpha/alpha/main.py",
+        "line": 43,
+        "function": "discount_rate",
+        "code": "return min(int(code[3:]), 90) / 100.0"
+      }
+    ],
+    "request": {
+      "method": "GET",
+      "path": "/quote",
+      "query": "sku=SPROCKET&code=PCTXX",
+      "headers": {
+        "host": "127.0.0.1:56421",
+        "accept": "*/*",
+        "accept-encoding": "gzip, deflate, br",
+        "connection": "keep-alive",
+        "user-agent": "python-httpx/0.28.1"
+      },
+      "body": ""
+    },
+    "external_calls": [
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:56422/price/SPROCKET",
+        "request_headers": {
+          "host": "127.0.0.1:56422",
+          "accept": "*/*",
+          "accept-encoding": "gzip, deflate, br",
+          "connection": "keep-alive",
+          "user-agent": "python-httpx/0.28.1"
+        },
+        "request_body": "",
+        "status": 200,
+        "response_headers": {
+          "date": "Wed, 19 Aug 2026 18:03:10 GMT",
+          "server": "uvicorn",
+          "content-length": "30",
+          "content-type": "application/json"
+        },
+        "response_body": "{\"sku\":\"SPROCKET\",\"price\":9.5}"
+      }
+    ]
+  },
+  "reproduction": {
+    "status": "reproduced",
+    "reason": "failed identically on 5/5 replays",
+    "signature": "ValueError@main.py:43",
+    "verdicts": [
+      {
+        "failed": true,
+        "exception_type": "ValueError",
+        "top_frame": "main.py:43",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "ValueError",
+        "top_frame": "main.py:43",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "ValueError",
+        "top_frame": "main.py:43",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "ValueError",
+        "top_frame": "main.py:43",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "ValueError",
+        "top_frame": "main.py:43",
+        "status_code": 500,
+        "hermetic_violation": false
+      }
+    ]
+  },
+  "candidates": [
+    {
+      "attempt": 1,
+      "diff": "--- a/alpha/main.py\n+++ b/alpha/main.py\n@@\n def discount_rate(code: str) -> float:\n     \"\"\"Named codes from the table; PCT<n> codes give n percent off.\"\"\"\n     if code.startswith(\"PCT\"):\n-        return min(int(code[3:]), 90) / 100.0\n+        suffix = code[3:]\n+        if not suffix.isdigit():\n+            raise HTTPException(status_code=422,\n+                                detail=f\"invalid discount code {code!r}\")\n+        return min(int(suffix), 90) / 100.0\n     return DISCOUNTS.get(code, 0.0)",
+      "conditions": {
+        "structural": true,
+        "applies": false
+      }
+    },
+    {
+      "attempt": 2,
+      "diff": "--- a/alpha/main.py\n+++ b/alpha/main.py\n@@ -40,5 +40,9 @@\n def discount_rate(code: str) -> float:\n     \"\"\"Named codes from the table; PCT<n> codes give n percent off.\"\"\"\n     if code.startswith(\"PCT\"):\n-        return min(int(code[3:]), 90) / 100.0\n+        suffix = code[3:]\n+        if not suffix.isdigit():\n+            raise HTTPException(status_code=422,\n+                                detail=f\"invalid discount code {code!r}\")\n+        return min(int(suffix), 90) / 100.0\n     return DISCOUNTS.get(code, 0.0)",
+      "conditions": {
+        "structural": true,
+        "applies": true,
+        "reproduction": true,
+        "suite": true
+      }
+    }
+  ],
+  "patch": "--- a/alpha/main.py\n+++ b/alpha/main.py\n@@ -40,5 +40,9 @@\n def discount_rate(code: str) -> float:\n     \"\"\"Named codes from the table; PCT<n> codes give n percent off.\"\"\"\n     if code.startswith(\"PCT\"):\n-        return min(int(code[3:]), 90) / 100.0\n+        suffix = code[3:]\n+        if not suffix.isdigit():\n+            raise HTTPException(status_code=422,\n+                                detail=f\"invalid discount code {code!r}\")\n+        return min(int(suffix), 90) / 100.0\n     return DISCOUNTS.get(code, 0.0)",
+  "verification_record": {
+    "payload": {
+      "signature": "ValueError@main.py:43",
+      "diff_sha256": "c375f0e7ac376e4091dd0a89c82a5be89e43a16a69d6ec02144b41294bdaa80a",
+      "conditions": {
+        "structural": true,
+        "applies": true,
+        "reproduction": true,
+        "suite": true
+      }
+    },
+    "hmac": "8fd884725464bde8c8e7236c8adebe0f06d065e1109006a4db8507353eb99ded"
+  },
+  "prev_hash": "3ca1fe20d6c53cbf85ed5e872ea26fc5f9a152b91b084bf4547e9427e67c3122",
+  "hash": "f958a9a9c30a65423f045a64a6df27c997fc017f3db47e837250fae967b0cce3",
+  "hmac": "0a2dab68b0ec4cee34adb6b68d135295e7716f3a95dd98485a920158fe231d25"
+}
