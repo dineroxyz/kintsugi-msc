@@ -14,8 +14,12 @@ from sqlalchemy import ForeignKey, String, Text, create_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, sessionmaker
 
 DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///data/kintsugi.sqlite")
-if DATABASE_URL.startswith("postgres://"):  # Railway URL form -> SQLAlchemy driver form
+# Railway hands out both postgres:// and postgresql:// forms; either way the
+# installed driver is psycopg (3), so pin the dialect explicitly
+if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+psycopg://", 1)
+elif DATABASE_URL.startswith("postgresql://"):
+    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg://", 1)
 
 _kwargs: dict = {}
 if DATABASE_URL.startswith("sqlite"):
