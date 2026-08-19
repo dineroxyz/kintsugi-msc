@@ -32,9 +32,13 @@ prefixes."""
 
 
 def _strip_fences(text: str) -> str:
-    text = text.strip()
-    m = re.match(r"^```(?:diff|patch)?\n(.*?)```\s*$", text, re.S)
-    return m.group(1) if m else text
+    # Never .strip() the whole completion: a unified diff may legitimately
+    # END in blank context lines (a lone space each), and stripping them
+    # corrupts the final hunk's line count. Only leading junk is removed.
+    m = re.search(r"```(?:diff|patch)?\n(.*?)```", text, re.S)
+    if m:
+        text = m.group(1)
+    return text.lstrip()
 
 
 def render_evidence(package: dict) -> str:
