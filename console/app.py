@@ -1,0 +1,234 @@
+"""Kintsugi operations console.
+
+Server-rendered, no build step: the study results, the certificate chain,
+the practice bank, and the incident stream, each read straight from the
+artefacts the platform writes. Mounts the control plane API under /api so
+one deployment carries both.
+
+    uvicorn console.app:app --port 8100
+"""
+
+from __future__ import annotations
+
+import html
+import json
+import os
+import statistics
+
+from fastapi import FastAPI
+from fastapi.responses import HTMLResponse
+
+from control_plane.api.main import app as control_plane_api
+from control_plane.certificates.issuer import (CertificateError,
+                                               CertificateStore)
+from control_plane.practice.mode import PracticeBank
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+STUDY_DIR = os.environ.get("KINTSUGI_STUDY_DIR",
+                           os.path.join(ROOT, "study", "pilot"))
+CERT_DIR = os.environ.get("KINTSUGI_CERT_DIR",
+                          os.path.join(STUDY_DIR, "certificates"))
+BANK_PATH = os.environ.get("KINTSUGI_BANK_PATH",
+                           os.path.join(ROOT, "study", "practice_bank.jsonl"))
+
+app = FastAPI(title="Kintsugi Console")
+app.mount("/api", control_plane_api)
+
+STYLE = """
+<style>
+  :root { --lacquer:#161311; --panel:#211c18; --line:#3a322a;
+          --gold:#d4a960; --gold-dim:#8a7345; --ink:#e8e0d2;
+          --dim:#9a8f7d; --good:#8fb573; --bad:#c96f5f; --warn:#c9a95f; }
+  * { box-sizing:border-box; }
+  body { background:var(--lacquer); color:var(--ink); margin:0;
+         font:15px/1.55 Georgia, 'Times New Roman', serif; }
+  header { padding:1.4rem 2rem .9rem; border-bottom:1px solid var(--gold-dim); }
+  header h1 { margin:0; font-size:1.5rem; letter-spacing:.14em;
+              color:var(--gold); font-weight:normal; }
+  header h1 span { color:var(--dim); font-size:.9rem; letter-spacing:.04em; }
+  nav { padding:.5rem 2rem; border-bottom:1px solid var(--line); }
+  nav a { color:var(--dim); margin-right:1.6rem; text-decoration:none;
+          letter-spacing:.06em; }
+  nav a:hover, nav a.here { color:var(--gold); }
+  main { padding:1.6rem 2rem 3rem; max-width:1100px; }
+  h2 { color:var(--gold); font-weight:normal; letter-spacing:.08em;
+       border-bottom:1px solid var(--line); padding-bottom:.3rem; }
+  .cards { display:flex; gap:1rem; flex-wrap:wrap; margin:1rem 0; }
+  .card { background:var(--panel); border:1px solid var(--line);
+          border-top:2px solid var(--gold-dim); padding:.8rem 1.1rem;
+          min-width:11rem; }
+  .card b { display:block; font-size:1.6rem; color:var(--gold);
+            font-weight:normal; }
+  .card small { color:var(--dim); letter-spacing:.05em; }
+  table { border-collapse:collapse; width:100%; margin:.8rem 0; }
+  th { text-align:left; color:var(--dim); font-weight:normal;
+       letter-spacing:.07em; border-bottom:1px solid var(--gold-dim);
+       padding:.3rem .6rem; }
+  td { border-bottom:1px solid var(--line); padding:.32rem .6rem; }
+  .ok { color:var(--good); } .fail { color:var(--bad); }
+  .warn { color:var(--warn); } .dim { color:var(--dim); }
+  a { color:var(--gold); }
+  pre { background:#0f0d0b; border:1px solid var(--line); padding:1rem;
+        overflow-x:auto; font:13px/1.5 ui-monospace, Menlo, monospace; }
+  .diff-add { color:var(--good); } .diff-del { color:var(--bad); }
+  .seam { color:var(--gold-dim); }
+</style>
+"""
+
+
+def page(title: str, active: str, body: str) -> HTMLResponse:
+    tabs = [("/", "overview", "Overview"),
+            ("/certificates", "certificates", "Certificates"),
+            ("/practice", "practice", "Practice log"),
+            ("/api/incidents", "incidents", "Incidents (API)")]
+    nav = "".join(
+        f'<a href="{href}" class="{"here" if key == active else ""}">{label}</a>'
+        for href, key, label in tabs)
+    doc = f"""<!doctype html><html><head><meta charset="utf-8">
+<title>{html.escape(title)} — Kintsugi</title>{STYLE}</head><body>
+<header><h1>KINTSUGI <span>— repairs under proof · practises while idle ·
+gets harder to break</span></h1></header>
+<nav>{nav}</nav><main>{body}</main></body></html>"""
+    return HTMLResponse(doc)
+
+
+def load_trials() -> list[dict]:
+    path = os.path.join(STUDY_DIR, "trials.jsonl")
+    if not os.path.exists(path):
+        return []
+    return [json.loads(line) for line in open(path)]
+
+
+OUTCOME_CLASS = {"recovered": "ok", "false_fix": "fail", "refused": "warn",
+                 "escalated": "warn", "unrecovered": "dim",
+                 "harness_error": "fail", "fault_never_fired": "dim"}
+
+
+@app.get("/", response_class=HTMLResponse)
+def overview():
+    trials = load_trials()
+    if not trials:
+        return page("Overview", "overview",
+                    "<h2>Study</h2><p class=dim>No trial data yet. "
+                    "Run <code>python study/run_pilot.py</code>.</p>")
+
+    arms = sorted({t["arm"] for t in trials})
+    cards = []
+    for arm in arms:
+        rows = [t for t in trials if t["arm"] == arm]
+        recovered = sum(1 for r in rows if r["outcome"] == "recovered")
+        false_fix = sum(1 for r in rows if r["outcome"] == "false_fix")
+        mttrs = [r["mttr_seconds"] for r in rows if r["mttr_seconds"]]
+        med = f"{statistics.median(mttrs):.1f}s" if mttrs else "—"
+        cards.append(
+            f'<div class="card"><small>{arm}</small>'
+            f'<b>{recovered}/{len(rows)}</b>'
+            f'<small>recovered · median MTTR {med}<br>'
+            f'{"<span class=fail>" + str(false_fix) + " false fixes</span>" if false_fix else "no false fixes"}'
+            f'</small></div>')
+
+    rows_html = "".join(
+        f'<tr><td>{t["entry"]}</td><td>{t["arm"]}</td>'
+        f'<td class="{OUTCOME_CLASS.get(t["outcome"], "")}">{t["outcome"]}</td>'
+        f'<td>{t["mttr_seconds"] if t["mttr_seconds"] is not None else "—"}</td>'
+        f'<td class=dim>{t.get("expected_c3", "")}</td>'
+        f'<td class=dim>{html.escape(str(t.get("detail", {}).get("heal_reason", ""))[:90])}</td></tr>'
+        for t in trials)
+    body = (f"<h2>Study — {len(trials)} trials</h2>"
+            f'<div class="cards">{"".join(cards)}</div>'
+            "<table><tr><th>Fault</th><th>Arm</th><th>Outcome</th>"
+            "<th>MTTR s</th><th>Expected C3</th><th>Detail</th></tr>"
+            f"{rows_html}</table>")
+    return page("Overview", "overview", body)
+
+
+@app.get("/certificates", response_class=HTMLResponse)
+def certificates():
+    store = CertificateStore(CERT_DIR)
+    try:
+        chain = store.verify_chain()
+        status = ('<p class="ok">Chain verified: every hash, link and '
+                  'signature checks out.</p>')
+    except CertificateError as exc:
+        chain = store.all()
+        status = f'<p class="fail">CHAIN BROKEN: {html.escape(str(exc))}</p>'
+
+    rows = "".join(
+        f'<tr><td><a href="/certificates/{c["sequence"]}">'
+        f'{c["sequence"]:06d}</a></td>'
+        f'<td>{html.escape(c.get("signature") or "")}</td>'
+        f'<td class=dim>{c["issued_at"]}</td>'
+        f'<td class=seam>{c["hash"][:16]}…</td></tr>'
+        for c in chain)
+    body = (f"<h2>Repair certificates — {len(chain)}</h2>{status}"
+            "<table><tr><th>Seq</th><th>Signature</th><th>Issued</th>"
+            f"<th>Hash</th></tr>{rows}</table>")
+    return page("Certificates", "certificates", body)
+
+
+@app.get("/certificates/{seq}", response_class=HTMLResponse)
+def certificate(seq: int):
+    store = CertificateStore(CERT_DIR)
+    certs = {c["sequence"]: c for c in store.all()}
+    cert = certs.get(seq)
+    if cert is None:
+        return page("Certificate", "certificates",
+                    "<h2>No such certificate</h2>")
+
+    diff_html = "".join(
+        f'<span class="{"diff-add" if line.startswith("+") else "diff-del" if line.startswith("-") else ""}">'
+        f"{html.escape(line)}</span>\n"
+        for line in cert["patch"].splitlines())
+    conditions = cert["verification_record"]["payload"]
+    verdicts = cert["reproduction"].get("verdicts") or []
+    body = f"""
+<h2>Certificate {seq:06d} <span class=seam>· {cert['hash'][:20]}…</span></h2>
+<div class="cards">
+  <div class="card"><small>signature</small>
+    <b style="font-size:1rem">{html.escape(cert.get('signature') or '')}</b></div>
+  <div class="card"><small>issued</small>
+    <b style="font-size:1rem">{cert['issued_at']}</b></div>
+  <div class="card"><small>reproduction</small>
+    <b style="font-size:1rem">{html.escape(cert['reproduction']['reason'])}</b>
+    <small>{len(verdicts)} replays</small></div>
+  <div class="card"><small>candidates seen</small>
+    <b style="font-size:1rem">{len(cert['candidates'])}</b></div>
+</div>
+<h2>Admitted patch</h2><pre>{diff_html}</pre>
+<h2>Gate record</h2>
+<pre>{html.escape(json.dumps(conditions, indent=2))}</pre>
+<p class=dim>Replay this repair from the certificate alone:
+<code>replay_certificate(cert, faulty_tree)</code> — reproduces the captured
+failure on the pre-patch tree and proves the embedded patch silences it.</p>
+<p class=seam>prev {cert['prev_hash'][:20]}… → this {cert['hash'][:20]}…</p>"""
+    return page(f"Certificate {seq}", "certificates", body)
+
+
+@app.get("/practice", response_class=HTMLResponse)
+def practice():
+    bank = PracticeBank(BANK_PATH)
+    rows = bank.all()
+    if not rows:
+        return page("Practice", "practice",
+                    "<h2>Practice log</h2><p class=dim>The bank is empty; "
+                    "the platform has not practised yet.</p>")
+    counts = bank.counts()
+    would = sum(1 for r in rows if r["status"] == "would_heal")
+    refused = sum(1 for r in rows if r["status"] == "refused")
+    cards = (f'<div class="cards">'
+             f'<div class="card"><small>rehearsals</small><b>{len(rows)}</b></div>'
+             f'<div class="card"><small>would heal</small><b class=ok>{would}</b></div>'
+             f'<div class="card"><small>refusals banked</small><b>{refused}</b></div>'
+             f'<div class="card"><small>faults covered</small><b>{len(counts)}</b></div>'
+             f'</div>')
+    table = "".join(
+        f'<tr><td>{r["entry_id"]}</td>'
+        f'<td class="{OUTCOME_CLASS.get("recovered" if r["status"] == "would_heal" else "refused", "")}">{r["status"]}</td>'
+        f'<td class=dim>{html.escape(r.get("key") or "")}</td>'
+        f'<td class=dim>{r["rehearsed_at"]}</td>'
+        f'<td class=dim>{html.escape((r.get("reason") or "")[:80])}</td></tr>'
+        for r in reversed(rows))
+    body = (f"<h2>Practice log</h2>{cards}"
+            "<table><tr><th>Fault</th><th>Outcome</th><th>Shape key</th>"
+            f"<th>When</th><th>Reason</th></tr>{table}</table>")
+    return page("Practice", "practice", body)
