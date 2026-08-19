@@ -188,8 +188,13 @@ def test_race_fault_is_refused(fixture_pkg):
             break
         except AssertionError:
             continue
-    result = reproduce(capture, "faulty_service.main:app",
-                       workdir=fixture_pkg, runs=5)
+    # the fault fires on a coin flip, so all five replays CAN fail
+    # identically by luck (~3%); one retry brings the flake to ~0.1%
+    for attempt in range(2):
+        result = reproduce(capture, "faulty_service.main:app",
+                           workdir=fixture_pkg, runs=5)
+        if not result.reproduced:
+            break
     assert not result.reproduced
 
 
