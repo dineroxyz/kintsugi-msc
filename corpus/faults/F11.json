@@ -13,7 +13,7 @@
   "mutations": [
     {
       "file": "alpha/main.py",
-      "find": "import os\nimport threading\n\nfrom fastapi import FastAPI, HTTPException\n",
+      "find": "import os\nimport threading\n\nimport httpx\nfrom fastapi import FastAPI, HTTPException\n",
       "replace": "import os\nimport threading\nimport time\n\nfrom fastapi import FastAPI, HTTPException\n"
     },
     {

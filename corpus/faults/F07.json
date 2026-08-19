@@ -12,8 +12,8 @@
   "mutations": [
     {
       "file": "alpha/main.py",
-      "find": "    if quantity < 1:\n        raise HTTPException(status_code=422, detail=\"quantity must be at least 1\")\n    resp = _pricing.get(f\"{BETA_URL}/price/{sku}\")\n",
-      "replace": "    resp = _pricing.get(f\"{BETA_URL}/price/{sku}\")\n"
+      "find": "    if quantity < 1:\n        raise HTTPException(status_code=422, detail=\"quantity must be at least 1\")\n    try:\n        resp = _pricing.get(f\"{BETA_URL}/price/{sku}\")\n",
+      "replace": "    try:\n        resp = _pricing.get(f\"{BETA_URL}/price/{sku}\")\n"
     }
   ],
   "trigger": {

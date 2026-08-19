@@ -1,0 +1,221 @@
+{
+  "version": 1,
+  "sequence": 9,
+  "issued_at": "2026-08-19T16:20:02",
+  "service_spec": "alpha.main:app",
+  "signature": "KeyError@main.py:132",
+  "capture": {
+    "service": "alpha",
+    "release": "r2",
+    "exception_type": "KeyError",
+    "exception_message": "'UNOBTAINIUM'",
+    "frames": [
+      {
+        "file": "/Users/ssheyii/kintsugi/libs/kintsugi_capture/__init__.py",
+        "line": 158,
+        "function": "__call__",
+        "code": "await self.app(scope, buffering_receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py",
+        "line": 63,
+        "function": "__call__",
+        "code": "await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 53,
+        "function": "wrapped_app",
+        "code": "raise exc"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 42,
+        "function": "wrapped_app",
+        "code": "await app(scope, receive, sender)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py",
+        "line": 18,
+        "function": "__call__",
+        "code": "await self.app(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/routing.py",
+        "line": 670,
+        "function": "__call__",
+        "code": "await self.middleware_stack(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 2734,
+        "function": "app",
+        "code": "await route.handle(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 1281,
+        "function": "handle",
+        "code": "await super().handle(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/routing.py",
+        "line": 280,
+        "function": "handle",
+        "code": "await self.app(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 158,
+        "function": "app",
+        "code": "await wrap_app_handling_exceptions(app, request)(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 53,
+        "function": "wrapped_app",
+        "code": "raise exc"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 42,
+        "function": "wrapped_app",
+        "code": "await app(scope, receive, sender)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 144,
+        "function": "app",
+        "code": "response = await f(request)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 706,
+        "function": "app",
+        "code": "raw_response = await run_endpoint_function("
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 354,
+        "function": "run_endpoint_function",
+        "code": "return await run_in_threadpool(dependant.call, **values)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/concurrency.py",
+        "line": 34,
+        "function": "run_in_threadpool",
+        "code": "return await anyio.to_thread.run_sync(func)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/to_thread.py",
+        "line": 65,
+        "function": "run_sync",
+        "code": "return await get_async_backend().run_sync_in_worker_thread("
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py",
+        "line": 2641,
+        "function": "run_sync_in_worker_thread",
+        "code": "return await future"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py",
+        "line": 1033,
+        "function": "run",
+        "code": "result = context.run(func, *args)"
+      },
+      {
+        "file": "/private/var/folders/mv/mzz_q2mn3q3c827r6pfcby640000gn/T/pilot-F14-C3-e9f_k81l/live_alpha/alpha/main.py",
+        "line": 132,
+        "function": "reserve",
+        "code": "if not STOCK[sku]:"
+      }
+    ],
+    "request": {
+      "method": "POST",
+      "path": "/reserve/UNOBTAINIUM",
+      "query": "",
+      "headers": {
+        "host": "127.0.0.1:49429",
+        "content-length": "0",
+        "accept": "*/*",
+        "accept-encoding": "gzip, deflate, br",
+        "connection": "keep-alive",
+        "user-agent": "python-httpx/0.28.1"
+      },
+      "body": ""
+    },
+    "external_calls": []
+  },
+  "reproduction": {
+    "status": "reproduced",
+    "reason": "failed identically on 5/5 replays",
+    "signature": "KeyError@main.py:132",
+    "verdicts": [
+      {
+        "failed": true,
+        "exception_type": "KeyError",
+        "top_frame": "main.py:132",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "KeyError",
+        "top_frame": "main.py:132",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "KeyError",
+        "top_frame": "main.py:132",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "KeyError",
+        "top_frame": "main.py:132",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "KeyError",
+        "top_frame": "main.py:132",
+        "status_code": 500,
+        "hermetic_violation": false
+      }
+    ]
+  },
+  "candidates": [
+    {
+      "attempt": 1,
+      "diff": "--- a/alpha/main.py\n+++ b/alpha/main.py\n@@ -129,7 +129,9 @@\n @app.post(\"/reserve/{sku}\")\n def reserve(sku: str) -> dict:\n     with _stock_lock:\n-        if not STOCK[sku]:\n+        if sku not in STOCK:\n+            raise HTTPException(status_code=404, detail=f\"no sku {sku}\")\n+        if not STOCK[sku]:\n             raise HTTPException(status_code=409, detail=f\"{sku} out of stock\")\n         unit = STOCK[sku].pop()\n     return {\"sku\": sku, \"unit\": unit}",
+      "conditions": {
+        "structural": true,
+        "applies": true,
+        "reproduction": true,
+        "suite": true
+      }
+    }
+  ],
+  "patch": "--- a/alpha/main.py\n+++ b/alpha/main.py\n@@ -129,7 +129,9 @@\n @app.post(\"/reserve/{sku}\")\n def reserve(sku: str) -> dict:\n     with _stock_lock:\n-        if not STOCK[sku]:\n+        if sku not in STOCK:\n+            raise HTTPException(status_code=404, detail=f\"no sku {sku}\")\n+        if not STOCK[sku]:\n             raise HTTPException(status_code=409, detail=f\"{sku} out of stock\")\n         unit = STOCK[sku].pop()\n     return {\"sku\": sku, \"unit\": unit}",
+  "verification_record": {
+    "payload": {
+      "signature": "KeyError@main.py:132",
+      "diff_sha256": "8fead33083096bb8a25505d8552ad15f1ff22557627524234f2e712dfcb68f95",
+      "conditions": {
+        "structural": true,
+        "applies": true,
+        "reproduction": true,
+        "suite": true
+      }
+    },
+    "hmac": "51a535b001d3bdb5c79d2941929bff8f2accf647bf78fac5f41fbf3115f52d51"
+  },
+  "prev_hash": "1285bfc9f3fdffad5b213c467db14be143bdc14cbfe2eac048222d426a7e713b",
+  "hash": "8ea1301b2d2fea69cd5825fa1bbaadb465dd5f123bbb4cd203277036e962eca1",
+  "hmac": "5b5cc224822e7459a690baeb72143b7e050c1cf95ef822740ad8c3930ed22c18"
+}

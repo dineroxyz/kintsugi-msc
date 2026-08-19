@@ -24,7 +24,8 @@ SERVICES = os.path.join(ROOT, "services")
 ALPHA = "alpha/main.py"
 BETA = "beta/main.py"
 
-ALPHA_IMPORTS = "import os\nimport threading\n\nfrom fastapi import FastAPI, HTTPException\n"
+ALPHA_IMPORTS = ("import os\nimport threading\n\nimport httpx\n"
+                 "from fastapi import FastAPI, HTTPException\n")
 
 ENTRIES = [
     {
@@ -179,8 +180,10 @@ ENTRIES = [
             "file": ALPHA,
             "find": "    if quantity < 1:\n"
                     "        raise HTTPException(status_code=422, detail=\"quantity must be at least 1\")\n"
-                    "    resp = _pricing.get(f\"{BETA_URL}/price/{sku}\")\n",
-            "replace": "    resp = _pricing.get(f\"{BETA_URL}/price/{sku}\")\n"}],
+                    "    try:\n"
+                    "        resp = _pricing.get(f\"{BETA_URL}/price/{sku}\")\n",
+            "replace": "    try:\n"
+                       "        resp = _pricing.get(f\"{BETA_URL}/price/{sku}\")\n"}],
         "trigger": {"method": "GET", "path": "/quote",
                     "params": {"sku": "WIDGET", "quantity": 0}},
         "expected_exception": "ZeroDivisionError",
@@ -220,15 +223,15 @@ ENTRIES = [
         "mutations": [
             {"file": ALPHA,
              "find": ALPHA_IMPORTS,
-             "replace": "import os\nimport random\nimport threading\n\n"
+             "replace": "import os\nimport random\nimport threading\n\nimport httpx\n"
                         "from fastapi import FastAPI, HTTPException\n"},
             {"file": ALPHA,
-             "find": "    resp = _pricing.get(f\"{BETA_URL}/price/{sku}\")\n"
-                     "    if resp.status_code == 404:\n",
+             "find": "    try:\n"
+                     "        resp = _pricing.get(f\"{BETA_URL}/price/{sku}\")\n",
              "replace": "    if random.random() < 0.4:\n"
                         "        raise RuntimeError(\"pricing cache miss\")\n"
-                        "    resp = _pricing.get(f\"{BETA_URL}/price/{sku}\")\n"
-                        "    if resp.status_code == 404:\n"}],
+                        "    try:\n"
+                        "        resp = _pricing.get(f\"{BETA_URL}/price/{sku}\")\n"}],
         "trigger": {"method": "GET", "path": "/quote",
                     "params": {"sku": "WIDGET"}},
         "expected_exception": "RuntimeError",
@@ -420,9 +423,9 @@ ENTRIES = [
             "find": "    for line in lines:\n"
                     "        if \"sku\" not in line:\n"
                     "            raise HTTPException(status_code=422, detail=\"line missing sku\")\n"
-                    "        resp = _pricing.get(f\"{BETA_URL}/price/{line['sku']}\")\n",
+                    "        try:\n",
             "replace": "    for line in lines:\n"
-                       "        resp = _pricing.get(f\"{BETA_URL}/price/{line['sku']}\")\n"}],
+                       "        try:\n"}],
         "trigger": {"method": "POST", "path": "/orders",
                     "json": {"lines": [{"quantity": 2}]}},
         "expected_exception": "KeyError",

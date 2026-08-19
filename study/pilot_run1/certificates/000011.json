@@ -1,0 +1,230 @@
+{
+  "version": 1,
+  "sequence": 11,
+  "issued_at": "2026-08-19T16:21:40",
+  "service_spec": "alpha.main:app",
+  "signature": "KeyError@main.py:59",
+  "capture": {
+    "service": "alpha",
+    "release": "r2",
+    "exception_type": "KeyError",
+    "exception_message": "'sku'",
+    "frames": [
+      {
+        "file": "/Users/ssheyii/kintsugi/libs/kintsugi_capture/__init__.py",
+        "line": 158,
+        "function": "__call__",
+        "code": "await self.app(scope, buffering_receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py",
+        "line": 63,
+        "function": "__call__",
+        "code": "await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 53,
+        "function": "wrapped_app",
+        "code": "raise exc"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 42,
+        "function": "wrapped_app",
+        "code": "await app(scope, receive, sender)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py",
+        "line": 18,
+        "function": "__call__",
+        "code": "await self.app(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/routing.py",
+        "line": 670,
+        "function": "__call__",
+        "code": "await self.middleware_stack(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 2734,
+        "function": "app",
+        "code": "await route.handle(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 1281,
+        "function": "handle",
+        "code": "await super().handle(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/routing.py",
+        "line": 280,
+        "function": "handle",
+        "code": "await self.app(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 158,
+        "function": "app",
+        "code": "await wrap_app_handling_exceptions(app, request)(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 53,
+        "function": "wrapped_app",
+        "code": "raise exc"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 42,
+        "function": "wrapped_app",
+        "code": "await app(scope, receive, sender)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 144,
+        "function": "app",
+        "code": "response = await f(request)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 706,
+        "function": "app",
+        "code": "raw_response = await run_endpoint_function("
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 354,
+        "function": "run_endpoint_function",
+        "code": "return await run_in_threadpool(dependant.call, **values)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/concurrency.py",
+        "line": 34,
+        "function": "run_in_threadpool",
+        "code": "return await anyio.to_thread.run_sync(func)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/to_thread.py",
+        "line": 65,
+        "function": "run_sync",
+        "code": "return await get_async_backend().run_sync_in_worker_thread("
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py",
+        "line": 2641,
+        "function": "run_sync_in_worker_thread",
+        "code": "return await future"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py",
+        "line": 1033,
+        "function": "run",
+        "code": "result = context.run(func, *args)"
+      },
+      {
+        "file": "/private/var/folders/mv/mzz_q2mn3q3c827r6pfcby640000gn/T/pilot-F17-C3-2x7f97gx/live_alpha/alpha/main.py",
+        "line": 59,
+        "function": "create_order",
+        "code": "resp = _pricing.get(f\"{BETA_URL}/price/{line['sku']}\")"
+      }
+    ],
+    "request": {
+      "method": "POST",
+      "path": "/orders",
+      "query": "",
+      "headers": {
+        "host": "127.0.0.1:51243",
+        "accept": "*/*",
+        "accept-encoding": "gzip, deflate, br",
+        "connection": "keep-alive",
+        "user-agent": "python-httpx/0.28.1",
+        "content-length": "26",
+        "content-type": "application/json"
+      },
+      "body": "{\"lines\":[{\"quantity\":2}]}"
+    },
+    "external_calls": []
+  },
+  "reproduction": {
+    "status": "reproduced",
+    "reason": "failed identically on 5/5 replays",
+    "signature": "KeyError@main.py:59",
+    "verdicts": [
+      {
+        "failed": true,
+        "exception_type": "KeyError",
+        "top_frame": "main.py:59",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "KeyError",
+        "top_frame": "main.py:59",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "KeyError",
+        "top_frame": "main.py:59",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "KeyError",
+        "top_frame": "main.py:59",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "KeyError",
+        "top_frame": "main.py:59",
+        "status_code": 500,
+        "hermetic_violation": false
+      }
+    ]
+  },
+  "candidates": [
+    {
+      "attempt": 1,
+      "diff": "--- a/alpha/main.py\n+++ b/alpha/main.py\n@@ -55,6 +55,10 @@\n     if not lines:\n         raise HTTPException(status_code=422, detail=\"order has no lines\")\n     total = 0.0\n     for line in lines:\n+        if not isinstance(line, dict) or \"sku\" not in line:\n+            raise HTTPException(status_code=422,\n+                                detail=\"order line is missing 'sku'\")\n         resp = _pricing.get(f\"{BETA_URL}/price/{line['sku']}\")",
+      "conditions": {
+        "structural": true,
+        "applies": false
+      }
+    },
+    {
+      "attempt": 2,
+      "diff": "--- a/alpha/main.py\n+++ b/alpha/main.py\n@@ -54,6 +54,9 @@\n     lines = order.get(\"lines\", [])\n     if not lines:\n         raise HTTPException(status_code=422, detail=\"order has no lines\")\n     total = 0.0\n     for line in lines:\n+        if not isinstance(line, dict) or not line.get(\"sku\"):\n+            raise HTTPException(status_code=422,\n+                                detail=\"order line is missing 'sku'\")\n         resp = _pricing.get(f\"{BETA_URL}/price/{line['sku']}\")",
+      "conditions": {
+        "structural": true,
+        "applies": true,
+        "reproduction": true,
+        "suite": true
+      }
+    }
+  ],
+  "patch": "--- a/alpha/main.py\n+++ b/alpha/main.py\n@@ -54,6 +54,9 @@\n     lines = order.get(\"lines\", [])\n     if not lines:\n         raise HTTPException(status_code=422, detail=\"order has no lines\")\n     total = 0.0\n     for line in lines:\n+        if not isinstance(line, dict) or not line.get(\"sku\"):\n+            raise HTTPException(status_code=422,\n+                                detail=\"order line is missing 'sku'\")\n         resp = _pricing.get(f\"{BETA_URL}/price/{line['sku']}\")",
+  "verification_record": {
+    "payload": {
+      "signature": "KeyError@main.py:59",
+      "diff_sha256": "4ecf2a520a809a1b87b8df4efc257cb543d6e63f42b5f65496d64c1ee3f6c273",
+      "conditions": {
+        "structural": true,
+        "applies": true,
+        "reproduction": true,
+        "suite": true
+      }
+    },
+    "hmac": "6dddeec07b4791f009597f5aab361f287f74c736b3cac1070aa7e0738899c768"
+  },
+  "prev_hash": "4a312f77d0f20674835aa54929ed8dc027a85159e9ce13588d8eb11ec7b15950",
+  "hash": "6d7f265f2a9d7f77d506d9fa4d623e2c3d3d057ab8ce1bba2a126e69202ba23c",
+  "hmac": "9b6160f7bdfb9e349fc98100c6c03fa37e89d7add7bd91b53c121974b54ec05c"
+}

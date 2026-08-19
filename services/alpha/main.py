@@ -12,6 +12,7 @@ from __future__ import annotations
 import os
 import threading
 
+import httpx
 from fastapi import FastAPI, HTTPException
 
 from libs.kintsugi_capture import CaptureClient, CaptureMiddleware
@@ -58,7 +59,10 @@ def create_order(order: dict) -> dict:
     for line in lines:
         if "sku" not in line:
             raise HTTPException(status_code=422, detail="line missing sku")
-        resp = _pricing.get(f"{BETA_URL}/price/{line['sku']}")
+        try:
+            resp = _pricing.get(f"{BETA_URL}/price/{line['sku']}")
+        except httpx.HTTPError:
+            raise HTTPException(status_code=503, detail="pricing unavailable")
         if resp.status_code == 404:
             raise HTTPException(status_code=422,
                                 detail=f"unknown sku {line['sku']!r}")
@@ -92,7 +96,10 @@ def quote(sku: str, quantity: int = 1, code: str = "") -> dict:
     """Quote a price for a SKU with an optional discount code."""
     if quantity < 1:
         raise HTTPException(status_code=422, detail="quantity must be at least 1")
-    resp = _pricing.get(f"{BETA_URL}/price/{sku}")
+    try:
+        resp = _pricing.get(f"{BETA_URL}/price/{sku}")
+    except httpx.HTTPError:
+        raise HTTPException(status_code=503, detail="pricing unavailable")
     if resp.status_code == 404:
         raise HTTPException(status_code=404, detail=f"unknown sku {sku!r}")
     resp.raise_for_status()
