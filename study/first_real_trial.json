@@ -1,0 +1,22 @@
+{
+  "entry": "F01",
+  "arm": "C3",
+  "outcome": "recovered",
+  "mttr_seconds": 10.994,
+  "timings": {
+    "fault_deployed": 1787146355.377695,
+    "detected": 1787146355.3778071,
+    "first_error": 1787146355.3778071,
+    "heal_finished": 1787146365.856763,
+    "patch_deployed": 1787146366.362564,
+    "recovered": 1787146366.3722959
+  },
+  "detail": {
+    "heal_status": "deployed",
+    "heal_reason": "admitted on candidate 1",
+    "candidates": 1
+  },
+  "wall_seconds": 12.5,
+  "model": "claude-opus-5",
+  "ran_at": "2026-08-19T14:32:46"
+}
