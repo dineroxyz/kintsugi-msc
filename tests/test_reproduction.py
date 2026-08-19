@@ -175,8 +175,13 @@ def test_flaky_fault_is_refused(fixture_pkg):
             break
         except AssertionError:
             continue
-    result = reproduce(capture, "faulty_service.main:app",
-                       workdir=fixture_pkg, runs=5)
+    # a coin-flip fault CAN fail all five replays by luck (~3%); one retry
+    # brings the flake to ~0.1%
+    for attempt in range(2):
+        result = reproduce(capture, "faulty_service.main:app",
+                           workdir=fixture_pkg, runs=5)
+        if not result.reproduced:
+            break
     assert not result.reproduced
     assert "non-deterministic" in result.reason or "did not recur" in result.reason
 

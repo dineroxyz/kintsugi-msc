@@ -199,10 +199,13 @@ class TrialRig:
 
     def deploy_patch(self, record: str, patched_tree: str,
                      service: str | None = None) -> None:
+        from control_plane.gate.verifier import discard_patched_tree
+
         target = self.procs[service or self.entry.trigger_service]
         DeployController(target.tree).deploy(record, patched_tree)
         purge_pycache(target.tree)
         target.restart()
+        discard_patched_tree(patched_tree)   # rsynced into the live tree
 
 
 def run_trial(entry: CorpusEntry, arm: str, workdir: str, *,

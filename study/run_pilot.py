@@ -15,6 +15,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import shutil
 import statistics
 import subprocess
 import sys
@@ -105,6 +106,10 @@ def main() -> int:
                        "mttr_seconds": None, "timings": {},
                        "detail": {"error": f"{type(exc).__name__}: {exc}",
                                   "trace": traceback.format_exc()[-1500:]}}
+            finally:
+                # a trial's workdir holds several full tree copies; the main
+                # study would leak gigabytes without this
+                shutil.rmtree(workdir, ignore_errors=True)
             row["wall_seconds"] = round(time.time() - t0, 1)
             row["expected_c3"] = entry.expected_c3
             trials.append(row)

@@ -8,17 +8,21 @@ from __future__ import annotations
 
 import json
 
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, Request
 from sqlalchemy import select
 
 from control_plane.db import Capture, Incident, get_session, init_db
 
-app = FastAPI(title="Kintsugi Control Plane")
 
-
-@app.on_event("startup")
-def _startup() -> None:
+@asynccontextmanager
+async def _lifespan(_app: FastAPI):
     init_db()
+    yield
+
+
+app = FastAPI(title="Kintsugi Control Plane", lifespan=_lifespan)
 
 
 @app.get("/health")

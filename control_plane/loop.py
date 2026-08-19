@@ -104,6 +104,8 @@ def heal(capture: dict, service_spec: str, workdir: str, *,
         prior_failures.append({"attempt": attempt,
                                "rejected_diff": proposal["diff"][:4000],
                                "failures": verdict.failure_report()})
+        from control_plane.gate.verifier import discard_patched_tree
+        discard_patched_tree(verdict.patched_tree)   # rejected: nothing needs it
 
     return Outcome("escalated",
                    f"no candidate passed the gate in {MAX_CANDIDATES} attempts",

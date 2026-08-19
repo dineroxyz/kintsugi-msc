@@ -31,19 +31,23 @@ CERT_DIR = os.environ.get("KINTSUGI_CERT_DIR",
 BANK_PATH = os.environ.get("KINTSUGI_BANK_PATH",
                            os.path.join(ROOT, "study", "practice_bank.jsonl"))
 
-app = FastAPI(title="Kintsugi Console")
-app.mount("/api", control_plane_api)
+from contextlib import asynccontextmanager
 
 
-@app.on_event("startup")
-def _init_db() -> None:
-    # a mounted sub-app's own startup hooks never fire under Starlette
-    # mounts, so the control plane's table creation must happen here
+@asynccontextmanager
+async def _lifespan(_app: FastAPI):
+    # a mounted sub-app's own lifespan never runs under Starlette mounts,
+    # so the control plane's table creation must happen here
     try:
         from control_plane.db import init_db
         init_db()
     except Exception as exc:      # console must render even without a DB
         print(f"console: init_db failed ({exc}); API ingest will be down")
+    yield
+
+
+app = FastAPI(title="Kintsugi Console", lifespan=_lifespan)
+app.mount("/api", control_plane_api)
 
 STYLE = """
 <style>

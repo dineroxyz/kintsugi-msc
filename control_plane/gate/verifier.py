@@ -88,6 +88,18 @@ def structural_check(diff: str, exception_type: str) -> dict:
 
 # ------------------------------------------------------------------- dynamic
 
+def discard_patched_tree(tree: str | None) -> None:
+    """Remove a tree minted by _apply_patch once nothing references it:
+    rejected candidates immediately, admitted ones after their deploy."""
+    if not tree:
+        return
+    parent = os.path.dirname(tree)
+    target = parent if (os.path.basename(tree) == "tree"
+                        and os.path.basename(parent).startswith(
+                            "kintsugi-patched-")) else tree
+    shutil.rmtree(target, ignore_errors=True)
+
+
 def _apply_patch(workdir: str, diff: str) -> tuple[str | None, str]:
     """Apply the diff to a copy of the tree; the original is never touched."""
     patched = tempfile.mkdtemp(prefix="kintsugi-patched-")
