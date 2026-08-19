@@ -11,6 +11,7 @@ suite-strength claim.
 from __future__ import annotations
 
 import json
+import re
 
 
 TEMPLATE = '''"""Kintsugi regression test, compiled from incident {incident_id}.
@@ -45,6 +46,9 @@ def compile_reproduction(capture: dict, service_spec: str, signature: str,
                          incident_id: int | str) -> str:
     """Render the reproduction as pytest source text."""
     req = capture["request"]
+    # the id lands in a function name; anything non-identifier would be a
+    # SyntaxError in the emitted test
+    incident_id = re.sub(r"\W", "_", str(incident_id))
     return TEMPLATE.format(
         incident_id=incident_id,
         signature=signature,
