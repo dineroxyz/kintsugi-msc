@@ -1,0 +1,29 @@
+{
+  "id": "F08",
+  "title": "PCT discount codes parsed without the digit guard",
+  "pattern": "parse-without-guard",
+  "provenance": {
+    "origin": "seeded",
+    "modeled_on": "int() on user input with the isdigit guard lost; malformed codes raise ValueError"
+  },
+  "service": "alpha",
+  "deterministic": true,
+  "stateful": false,
+  "mutations": [
+    {
+      "file": "alpha/main.py",
+      "find": "    if code.startswith(\"PCT\") and code[3:].isdigit():\n",
+      "replace": "    if code.startswith(\"PCT\"):\n"
+    }
+  ],
+  "trigger": {
+    "method": "GET",
+    "path": "/quote",
+    "params": {
+      "sku": "SPROCKET",
+      "code": "PCTXX"
+    }
+  },
+  "expected_exception": "ValueError",
+  "expected_c3": "healed"
+}

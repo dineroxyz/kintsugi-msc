@@ -1,0 +1,29 @@
+{
+  "id": "F07",
+  "title": "Quantity floor check removed, /quote divides by zero",
+  "pattern": "validation-removal-divzero",
+  "provenance": {
+    "origin": "seeded",
+    "modeled_on": "input validation removed as 'dead code'; the denominator it protected goes to zero"
+  },
+  "service": "alpha",
+  "deterministic": true,
+  "stateful": false,
+  "mutations": [
+    {
+      "file": "alpha/main.py",
+      "find": "    if quantity < 1:\n        raise HTTPException(status_code=422, detail=\"quantity must be at least 1\")\n    resp = _pricing.get(f\"{BETA_URL}/price/{sku}\")\n",
+      "replace": "    resp = _pricing.get(f\"{BETA_URL}/price/{sku}\")\n"
+    }
+  ],
+  "trigger": {
+    "method": "GET",
+    "path": "/quote",
+    "params": {
+      "sku": "WIDGET",
+      "quantity": 0
+    }
+  },
+  "expected_exception": "ZeroDivisionError",
+  "expected_c3": "healed"
+}

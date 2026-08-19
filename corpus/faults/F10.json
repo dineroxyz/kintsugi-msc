@@ -1,0 +1,28 @@
+{
+  "id": "F10",
+  "title": "Empty order accepted then indexed for first_sku",
+  "pattern": "guard-removal-indexerror",
+  "provenance": {
+    "origin": "seeded",
+    "modeled_on": "emptiness guard removed; later code indexes the first element of the empty collection"
+  },
+  "service": "alpha",
+  "deterministic": true,
+  "stateful": false,
+  "mutations": [
+    {
+      "file": "alpha/main.py",
+      "find": "    lines = order.get(\"lines\", [])\n    if not lines:\n        raise HTTPException(status_code=422, detail=\"order has no lines\")\n    total = 0.0\n",
+      "replace": "    lines = order.get(\"lines\", [])\n    total = 0.0\n"
+    }
+  ],
+  "trigger": {
+    "method": "POST",
+    "path": "/orders",
+    "json": {
+      "lines": []
+    }
+  },
+  "expected_exception": "IndexError",
+  "expected_c3": "healed"
+}

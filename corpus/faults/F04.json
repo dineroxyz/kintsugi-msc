@@ -1,0 +1,29 @@
+{
+  "id": "F04",
+  "title": "Upstream price field renamed out from under /quote",
+  "pattern": "contract-drift-keyerror",
+  "provenance": {
+    "origin": "seeded",
+    "modeled_on": "consumer reads a response field the dependency renamed; classic cross-service contract drift"
+  },
+  "service": "alpha",
+  "deterministic": true,
+  "stateful": false,
+  "mutations": [
+    {
+      "file": "alpha/main.py",
+      "find": "    unit = resp.json()[\"price\"]\n",
+      "replace": "    unit = resp.json()[\"unit_price\"]\n"
+    }
+  ],
+  "trigger": {
+    "method": "GET",
+    "path": "/quote",
+    "params": {
+      "sku": "WIDGET"
+    }
+  },
+  "expected_exception": "KeyError",
+  "expected_c3": "healed",
+  "notes": "reproduction depends on the recorded beta response pair"
+}

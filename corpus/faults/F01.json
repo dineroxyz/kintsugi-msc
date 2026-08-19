@@ -1,0 +1,30 @@
+{
+  "id": "F01",
+  "title": "Unknown discount code makes /quote multiply by None",
+  "pattern": "none-from-dict-get",
+  "provenance": {
+    "origin": "seeded",
+    "modeled_on": "regression from a shared helper to a raw dict lookup without default; the sentinel None flows into arithmetic (Yuan et al. 2014's mishandled-error shape)"
+  },
+  "service": "alpha",
+  "deterministic": true,
+  "stateful": false,
+  "mutations": [
+    {
+      "file": "alpha/main.py",
+      "find": "    rate = discount_rate(code)\n    total = unit * quantity * (1 - rate)\n",
+      "replace": "    rate = DISCOUNTS.get(code)\n    total = unit * quantity * (1 - rate)\n"
+    }
+  ],
+  "trigger": {
+    "method": "GET",
+    "path": "/quote",
+    "params": {
+      "sku": "WIDGET",
+      "code": "BOGUS"
+    }
+  },
+  "expected_exception": "TypeError",
+  "expected_c3": "healed",
+  "notes": "the flagship stateless fault; first real heal used this shape"
+}

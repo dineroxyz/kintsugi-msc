@@ -1,0 +1,43 @@
+{
+  "id": "F02",
+  "title": "Unknown discount code crashes /orders/{id}/discounted",
+  "pattern": "none-from-dict-get",
+  "provenance": {
+    "origin": "seeded",
+    "modeled_on": "same family as F01 but the handler reads state a fresh replay does not carry"
+  },
+  "service": "alpha",
+  "deterministic": true,
+  "stateful": true,
+  "mutations": [
+    {
+      "file": "alpha/main.py",
+      "find": "    rate = discount_rate(code)\n    discounted_total = order[\"total\"] * (1 - rate)\n",
+      "replace": "    rate = DISCOUNTS.get(code)\n    discounted_total = order[\"total\"] * (1 - rate)\n"
+    }
+  ],
+  "setup": [
+    {
+      "method": "POST",
+      "path": "/orders",
+      "json": {
+        "lines": [
+          {
+            "sku": "WIDGET",
+            "quantity": 2
+          }
+        ]
+      }
+    }
+  ],
+  "trigger": {
+    "method": "GET",
+    "path": "/orders/1/discounted",
+    "params": {
+      "code": "BOGUS"
+    }
+  },
+  "expected_exception": "TypeError",
+  "expected_c3": "refused",
+  "notes": "expected refusal: capture does not carry the ORDERS state, so the replay cannot reach the captured failure"
+}

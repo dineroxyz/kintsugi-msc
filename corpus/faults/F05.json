@@ -1,0 +1,33 @@
+{
+  "id": "F05",
+  "title": "Order line quantity loses its integer coercion",
+  "pattern": "boundary-type-confusion",
+  "provenance": {
+    "origin": "seeded",
+    "modeled_on": "type coercion dropped at a JSON boundary; a string quantity reaches arithmetic"
+  },
+  "service": "alpha",
+  "deterministic": true,
+  "stateful": false,
+  "mutations": [
+    {
+      "file": "alpha/main.py",
+      "find": "        quantity = int(line.get(\"quantity\", 1))\n",
+      "replace": "        quantity = line.get(\"quantity\", 1)\n"
+    }
+  ],
+  "trigger": {
+    "method": "POST",
+    "path": "/orders",
+    "json": {
+      "lines": [
+        {
+          "sku": "WIDGET",
+          "quantity": "2"
+        }
+      ]
+    }
+  },
+  "expected_exception": "TypeError",
+  "expected_c3": "healed"
+}

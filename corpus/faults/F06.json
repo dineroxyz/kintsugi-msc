@@ -1,0 +1,43 @@
+{
+  "id": "F06",
+  "title": "Order total read as attribute instead of key",
+  "pattern": "dict-attribute-confusion",
+  "provenance": {
+    "origin": "seeded",
+    "modeled_on": "dict record accessed as an object after a model refactor elsewhere in the codebase"
+  },
+  "service": "alpha",
+  "deterministic": true,
+  "stateful": true,
+  "mutations": [
+    {
+      "file": "alpha/main.py",
+      "find": "    discounted_total = order[\"total\"] * (1 - rate)\n",
+      "replace": "    discounted_total = order.total * (1 - rate)\n"
+    }
+  ],
+  "setup": [
+    {
+      "method": "POST",
+      "path": "/orders",
+      "json": {
+        "lines": [
+          {
+            "sku": "GADGET",
+            "quantity": 1
+          }
+        ]
+      }
+    }
+  ],
+  "trigger": {
+    "method": "GET",
+    "path": "/orders/1/discounted",
+    "params": {
+      "code": "SAVE10"
+    }
+  },
+  "expected_exception": "AttributeError",
+  "expected_c3": "refused",
+  "notes": "stateful for the same reason as F02"
+}
