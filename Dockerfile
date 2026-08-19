@@ -15,9 +15,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 ENV PYTHONPATH=/app:/app/services
 
-# host :: because Railway's private network is IPv6-only
 CMD case "$KINTSUGI_ROLE" in \
-      alpha) exec uvicorn alpha.main:app --host :: --port ${PORT:-8080} ;; \
-      beta)  exec uvicorn beta.main:app  --host :: --port ${PORT:-8080} ;; \
-      *)     exec uvicorn console.app:app --host :: --port ${PORT:-8100} ;; \
+      alpha) exec uvicorn alpha.main:app --host 0.0.0.0 --port ${PORT:-8080} ;; \
+      beta)  exec uvicorn beta.main:app  --host 0.0.0.0 --port ${PORT:-8080} ;; \
+      *)     exec uvicorn console.app:app --host 0.0.0.0 --port ${PORT:-8100} ;; \
     esac
