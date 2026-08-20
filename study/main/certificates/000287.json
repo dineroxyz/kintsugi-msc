@@ -1,0 +1,237 @@
+{
+  "version": 1,
+  "sequence": 287,
+  "issued_at": "2026-08-20T17:57:42",
+  "service_spec": "alpha.main:app",
+  "signature": "TypeError@main.py:93",
+  "capture": {
+    "service": "alpha",
+    "release": "r2",
+    "exception_type": "TypeError",
+    "exception_message": "can only concatenate str (not \"float\") to str",
+    "frames": [
+      {
+        "file": "/Users/ssheyii/kintsugi/libs/kintsugi_capture/__init__.py",
+        "line": 158,
+        "function": "__call__",
+        "code": "await self.app(scope, buffering_receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py",
+        "line": 63,
+        "function": "__call__",
+        "code": "await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 53,
+        "function": "wrapped_app",
+        "code": "raise exc"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 42,
+        "function": "wrapped_app",
+        "code": "await app(scope, receive, sender)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py",
+        "line": 18,
+        "function": "__call__",
+        "code": "await self.app(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/routing.py",
+        "line": 670,
+        "function": "__call__",
+        "code": "await self.middleware_stack(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 2734,
+        "function": "app",
+        "code": "await route.handle(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 1281,
+        "function": "handle",
+        "code": "await super().handle(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/routing.py",
+        "line": 280,
+        "function": "handle",
+        "code": "await self.app(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 158,
+        "function": "app",
+        "code": "await wrap_app_handling_exceptions(app, request)(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 53,
+        "function": "wrapped_app",
+        "code": "raise exc"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 42,
+        "function": "wrapped_app",
+        "code": "await app(scope, receive, sender)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 144,
+        "function": "app",
+        "code": "response = await f(request)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 706,
+        "function": "app",
+        "code": "raw_response = await run_endpoint_function("
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 354,
+        "function": "run_endpoint_function",
+        "code": "return await run_in_threadpool(dependant.call, **values)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/concurrency.py",
+        "line": 34,
+        "function": "run_in_threadpool",
+        "code": "return await anyio.to_thread.run_sync(func)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/to_thread.py",
+        "line": 65,
+        "function": "run_sync",
+        "code": "return await get_async_backend().run_sync_in_worker_thread("
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py",
+        "line": 2641,
+        "function": "run_sync_in_worker_thread",
+        "code": "return await future"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py",
+        "line": 1033,
+        "function": "run",
+        "code": "result = context.run(func, *args)"
+      },
+      {
+        "file": "/private/var/folders/mv/mzz_q2mn3q3c827r6pfcby640000gn/T/main-F18-C3-s2-j2b6ster/live_alpha/alpha/main.py",
+        "line": 93,
+        "function": "create_order",
+        "code": "total += price * quantity"
+      }
+    ],
+    "request": {
+      "method": "POST",
+      "path": "/orders",
+      "query": "",
+      "headers": {
+        "host": "127.0.0.1:61400",
+        "accept": "*/*",
+        "accept-encoding": "gzip, deflate, br",
+        "connection": "keep-alive",
+        "user-agent": "python-httpx/0.28.1",
+        "content-length": "41",
+        "content-type": "application/json"
+      },
+      "body": "{\"lines\":[{\"sku\":\"DOODAD\",\"quantity\":1}]}"
+    },
+    "external_calls": [
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:61401/price/DOODAD",
+        "request_headers": {
+          "host": "127.0.0.1:61401",
+          "accept": "*/*",
+          "accept-encoding": "gzip, deflate, br",
+          "connection": "keep-alive",
+          "user-agent": "python-httpx/0.28.1"
+        },
+        "request_body": "",
+        "status": 200,
+        "response_headers": {
+          "date": "Thu, 20 Aug 2026 16:57:36 GMT",
+          "server": "uvicorn",
+          "content-length": "29",
+          "content-type": "application/json"
+        },
+        "response_body": "{\"sku\":\"DOODAD\",\"price\":3.25}"
+      }
+    ]
+  },
+  "reproduction": {
+    "status": "reproduced",
+    "reason": "failed identically on 5/5 replays",
+    "signature": "TypeError@main.py:93",
+    "verdicts": [
+      {
+        "failed": true,
+        "exception_type": "TypeError",
+        "top_frame": "main.py:93",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "TypeError",
+        "top_frame": "main.py:93",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "TypeError",
+        "top_frame": "main.py:93",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "TypeError",
+        "top_frame": "main.py:93",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "TypeError",
+        "top_frame": "main.py:93",
+        "status_code": 500,
+        "hermetic_violation": false
+      }
+    ]
+  },
+  "candidates": [
+    {
+      "attempt": 1,
+      "diff": "--- a/alpha/main.py\n+++ b/alpha/main.py\n@@ -76,7 +76,7 @@\n     lines = order.get(\"lines\", [])\n     if not lines:\n         raise HTTPException(status_code=422, detail=\"order has no lines\")\n-    total = \"\"\n+    total = 0.0\n     for line in lines:\n         if \"sku\" not in line:\n             raise HTTPException(status_code=422, detail=\"line missing sku\")",
+      "conditions": {
+        "suite": true
+      }
+    }
+  ],
+  "patch": "--- a/alpha/main.py\n+++ b/alpha/main.py\n@@ -76,7 +76,7 @@\n     lines = order.get(\"lines\", [])\n     if not lines:\n         raise HTTPException(status_code=422, detail=\"order has no lines\")\n-    total = \"\"\n+    total = 0.0\n     for line in lines:\n         if \"sku\" not in line:\n             raise HTTPException(status_code=422, detail=\"line missing sku\")",
+  "verification_record": {
+    "payload": {
+      "signature": "TypeError@main.py:93",
+      "mode": "ungated",
+      "conditions": {
+        "suite": true
+      }
+    },
+    "hmac": "71d57955f7703c01380566f55ad2e4c229cf002886c5bf906f7041ea1a524740"
+  },
+  "prev_hash": "cc9fbff62f6f4debcb5f1a90080fa02a622afa46193cbd58059cd1c1e70d6077",
+  "hash": "4aa43625351f05e1e3a403716425b1cd523e02935a7c8bd2a747c1b3627fe791",
+  "hmac": "7c32aff1747246eb18027df9e2e538f2fd95d83988a3e60a49cb4cb5fcc300c4"
+}

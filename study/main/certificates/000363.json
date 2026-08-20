@@ -1,0 +1,221 @@
+{
+  "version": 1,
+  "sequence": 363,
+  "issued_at": "2026-08-20T22:51:26",
+  "service_spec": "beta.main:app",
+  "signature": "IndexError@main.py:84",
+  "capture": {
+    "service": "beta",
+    "release": "r2",
+    "exception_type": "IndexError",
+    "exception_message": "string index out of range",
+    "frames": [
+      {
+        "file": "/Users/ssheyii/kintsugi/libs/kintsugi_capture/__init__.py",
+        "line": 158,
+        "function": "__call__",
+        "code": "await self.app(scope, buffering_receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py",
+        "line": 63,
+        "function": "__call__",
+        "code": "await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 53,
+        "function": "wrapped_app",
+        "code": "raise exc"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 42,
+        "function": "wrapped_app",
+        "code": "await app(scope, receive, sender)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py",
+        "line": 18,
+        "function": "__call__",
+        "code": "await self.app(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/routing.py",
+        "line": 670,
+        "function": "__call__",
+        "code": "await self.middleware_stack(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 2734,
+        "function": "app",
+        "code": "await route.handle(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 1281,
+        "function": "handle",
+        "code": "await super().handle(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/routing.py",
+        "line": 280,
+        "function": "handle",
+        "code": "await self.app(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 158,
+        "function": "app",
+        "code": "await wrap_app_handling_exceptions(app, request)(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 53,
+        "function": "wrapped_app",
+        "code": "raise exc"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 42,
+        "function": "wrapped_app",
+        "code": "await app(scope, receive, sender)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 144,
+        "function": "app",
+        "code": "response = await f(request)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 706,
+        "function": "app",
+        "code": "raw_response = await run_endpoint_function("
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 354,
+        "function": "run_endpoint_function",
+        "code": "return await run_in_threadpool(dependant.call, **values)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/concurrency.py",
+        "line": 34,
+        "function": "run_in_threadpool",
+        "code": "return await anyio.to_thread.run_sync(func)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/to_thread.py",
+        "line": 65,
+        "function": "run_sync",
+        "code": "return await get_async_backend().run_sync_in_worker_thread("
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py",
+        "line": 2641,
+        "function": "run_sync_in_worker_thread",
+        "code": "return await future"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py",
+        "line": 1033,
+        "function": "run",
+        "code": "result = context.run(func, *args)"
+      },
+      {
+        "file": "/private/var/folders/mv/mzz_q2mn3q3c827r6pfcby640000gn/T/main-N17-C3-s2-rw88zwp8/live_beta/beta/main.py",
+        "line": 84,
+        "function": "bundle",
+        "code": "return {\"bundle\": name, \"size\": len(members[0][99]),"
+      }
+    ],
+    "request": {
+      "method": "GET",
+      "path": "/bundles/STARTER",
+      "query": "",
+      "headers": {
+        "host": "127.0.0.1:53504",
+        "accept": "*/*",
+        "accept-encoding": "gzip, deflate, br",
+        "connection": "keep-alive",
+        "user-agent": "python-httpx/0.28.1"
+      },
+      "body": ""
+    },
+    "external_calls": []
+  },
+  "reproduction": {
+    "status": "reproduced",
+    "reason": "failed identically on 5/5 replays",
+    "signature": "IndexError@main.py:84",
+    "verdicts": [
+      {
+        "failed": true,
+        "exception_type": "IndexError",
+        "top_frame": "main.py:84",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "IndexError",
+        "top_frame": "main.py:84",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "IndexError",
+        "top_frame": "main.py:84",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "IndexError",
+        "top_frame": "main.py:84",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "IndexError",
+        "top_frame": "main.py:84",
+        "status_code": 500,
+        "hermetic_violation": false
+      }
+    ]
+  },
+  "candidates": [
+    {
+      "attempt": 1,
+      "diff": "--- a/beta/main.py\n+++ b/beta/main.py\n@@ -81,7 +81,7 @@\n     if not members:\n         raise HTTPException(status_code=422, detail=\"bundle is empty\")\n     prices = sorted((PRICES[s] for s in members), reverse=True)\n-    return {\"bundle\": name, \"size\": len(members[0][99]),\n+    return {\"bundle\": name, \"size\": len(members),\n             \"leader_price\": prices[0], \"total\": round(sum(prices), 2)}",
+      "conditions": {
+        "applies": false
+      }
+    },
+    {
+      "attempt": 2,
+      "diff": "--- a/beta/main.py\n+++ b/beta/main.py\n@@ -81,5 +81,5 @@\n     if not members:\n         raise HTTPException(status_code=422, detail=\"bundle is empty\")\n     prices = sorted((PRICES[s] for s in members), reverse=True)\n-    return {\"bundle\": name, \"size\": len(members[0][99]),\n+    return {\"bundle\": name, \"size\": len(members),\n             \"leader_price\": prices[0], \"total\": round(sum(prices), 2)}",
+      "conditions": {
+        "suite": true
+      }
+    }
+  ],
+  "patch": "--- a/beta/main.py\n+++ b/beta/main.py\n@@ -81,5 +81,5 @@\n     if not members:\n         raise HTTPException(status_code=422, detail=\"bundle is empty\")\n     prices = sorted((PRICES[s] for s in members), reverse=True)\n-    return {\"bundle\": name, \"size\": len(members[0][99]),\n+    return {\"bundle\": name, \"size\": len(members),\n             \"leader_price\": prices[0], \"total\": round(sum(prices), 2)}",
+  "verification_record": {
+    "payload": {
+      "signature": "IndexError@main.py:84",
+      "mode": "ungated",
+      "conditions": {
+        "suite": true
+      }
+    },
+    "hmac": "a0c756cbdba01d10f3e5bf24721c271c52c23513ca87e4b93193afea4756c907"
+  },
+  "prev_hash": "4f26e2885101372eabc93a675d7481d319ad1225f648da56aaafc471fcccb85d",
+  "hash": "786347a283c04b5e5a9b17c0f3ffd2bf9c47d07cf5564a3ccb9ae431172d74a8",
+  "hmac": "d863997b06f4f3ac65180bee4e6c3855d62072d8613851b8ccc18023ea1321a9"
+}

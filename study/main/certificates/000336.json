@@ -1,0 +1,221 @@
+{
+  "version": 1,
+  "sequence": 336,
+  "issued_at": "2026-08-20T20:26:01",
+  "service_spec": "alpha.main:app",
+  "signature": "ZeroDivisionError@unreproduced",
+  "capture": {
+    "service": "alpha",
+    "release": "r2",
+    "exception_type": "ZeroDivisionError",
+    "exception_message": "float division by zero",
+    "frames": [
+      {
+        "file": "/Users/ssheyii/kintsugi/libs/kintsugi_capture/__init__.py",
+        "line": 158,
+        "function": "__call__",
+        "code": "await self.app(scope, buffering_receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py",
+        "line": 63,
+        "function": "__call__",
+        "code": "await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 53,
+        "function": "wrapped_app",
+        "code": "raise exc"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 42,
+        "function": "wrapped_app",
+        "code": "await app(scope, receive, sender)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py",
+        "line": 18,
+        "function": "__call__",
+        "code": "await self.app(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/routing.py",
+        "line": 670,
+        "function": "__call__",
+        "code": "await self.middleware_stack(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 2734,
+        "function": "app",
+        "code": "await route.handle(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 1281,
+        "function": "handle",
+        "code": "await super().handle(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/routing.py",
+        "line": 280,
+        "function": "handle",
+        "code": "await self.app(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 158,
+        "function": "app",
+        "code": "await wrap_app_handling_exceptions(app, request)(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 53,
+        "function": "wrapped_app",
+        "code": "raise exc"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 42,
+        "function": "wrapped_app",
+        "code": "await app(scope, receive, sender)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 144,
+        "function": "app",
+        "code": "response = await f(request)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 706,
+        "function": "app",
+        "code": "raw_response = await run_endpoint_function("
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 354,
+        "function": "run_endpoint_function",
+        "code": "return await run_in_threadpool(dependant.call, **values)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/concurrency.py",
+        "line": 34,
+        "function": "run_in_threadpool",
+        "code": "return await anyio.to_thread.run_sync(func)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/to_thread.py",
+        "line": 65,
+        "function": "run_sync",
+        "code": "return await get_async_backend().run_sync_in_worker_thread("
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py",
+        "line": 2641,
+        "function": "run_sync_in_worker_thread",
+        "code": "return await future"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py",
+        "line": 1033,
+        "function": "run",
+        "code": "result = context.run(func, *args)"
+      },
+      {
+        "file": "/private/var/folders/mv/mzz_q2mn3q3c827r6pfcby640000gn/T/main-N01-C3-s2-myymyjnz/live_alpha/alpha/main.py",
+        "line": 246,
+        "function": "cart_tax",
+        "code": "\"per_unit_tax\": round((base * rate_pct / 100) / base, 4)}"
+      }
+    ],
+    "request": {
+      "method": "GET",
+      "path": "/carts/c1/tax",
+      "query": "",
+      "headers": {
+        "host": "127.0.0.1:62412",
+        "accept": "*/*",
+        "accept-encoding": "gzip, deflate, br",
+        "connection": "keep-alive",
+        "user-agent": "python-httpx/0.28.1"
+      },
+      "body": ""
+    },
+    "external_calls": []
+  },
+  "reproduction": {
+    "status": "refused",
+    "reason": "captured failure did not recur under replay",
+    "signature": null,
+    "verdicts": [
+      {
+        "failed": false,
+        "exception_type": null,
+        "top_frame": null,
+        "status_code": 404,
+        "hermetic_violation": false
+      },
+      {
+        "failed": false,
+        "exception_type": null,
+        "top_frame": null,
+        "status_code": 404,
+        "hermetic_violation": false
+      },
+      {
+        "failed": false,
+        "exception_type": null,
+        "top_frame": null,
+        "status_code": 404,
+        "hermetic_violation": false
+      },
+      {
+        "failed": false,
+        "exception_type": null,
+        "top_frame": null,
+        "status_code": 404,
+        "hermetic_violation": false
+      },
+      {
+        "failed": false,
+        "exception_type": null,
+        "top_frame": null,
+        "status_code": 404,
+        "hermetic_violation": false
+      }
+    ]
+  },
+  "candidates": [
+    {
+      "attempt": 1,
+      "diff": "--- a/alpha/main.py\n+++ b/alpha/main.py\n@@\n @app.get(\"/carts/{cart_id}/tax\")\n def cart_tax(cart_id: str, rate_pct: int = 10) -> dict:\n     if cart_id not in CARTS:\n         raise HTTPException(status_code=404, detail=f\"no cart {cart_id}\")\n     if rate_pct < 0 or rate_pct > 100:\n         raise HTTPException(status_code=422, detail=\"rate_pct out of range\")\n     base = sum(item[\"quantity\"] for item in CARTS[cart_id])\n+    # per-unit tax does not depend on the number of units; computing it as\n+    # (base * rate_pct / 100) / base blew up for empty carts (base == 0)\n     return {\"cart\": cart_id, \"units\": base,\n-            \"per_unit_tax\": round((base * rate_pct / 100) / base, 4)}\n+            \"per_unit_tax\": round(rate_pct / 100, 4)}",
+      "conditions": {
+        "applies": false
+      }
+    },
+    {
+      "attempt": 2,
+      "diff": "--- a/alpha/main.py\n+++ b/alpha/main.py\n@@ -238,9 +238,11 @@\n @app.get(\"/carts/{cart_id}/tax\")\n def cart_tax(cart_id: str, rate_pct: int = 10) -> dict:\n     if cart_id not in CARTS:\n         raise HTTPException(status_code=404, detail=f\"no cart {cart_id}\")\n     if rate_pct < 0 or rate_pct > 100:\n         raise HTTPException(status_code=422, detail=\"rate_pct out of range\")\n     base = sum(item[\"quantity\"] for item in CARTS[cart_id])\n+    # per-unit tax is independent of the unit count; the previous form\n+    # (base * rate_pct / 100) / base divided by zero for empty carts\n     return {\"cart\": cart_id, \"units\": base,\n-            \"per_unit_tax\": round((base * rate_pct / 100) / base, 4)}\n+            \"per_unit_tax\": round(rate_pct / 100, 4)}",
+      "conditions": {
+        "suite": true
+      }
+    }
+  ],
+  "patch": "--- a/alpha/main.py\n+++ b/alpha/main.py\n@@ -238,9 +238,11 @@\n @app.get(\"/carts/{cart_id}/tax\")\n def cart_tax(cart_id: str, rate_pct: int = 10) -> dict:\n     if cart_id not in CARTS:\n         raise HTTPException(status_code=404, detail=f\"no cart {cart_id}\")\n     if rate_pct < 0 or rate_pct > 100:\n         raise HTTPException(status_code=422, detail=\"rate_pct out of range\")\n     base = sum(item[\"quantity\"] for item in CARTS[cart_id])\n+    # per-unit tax is independent of the unit count; the previous form\n+    # (base * rate_pct / 100) / base divided by zero for empty carts\n     return {\"cart\": cart_id, \"units\": base,\n-            \"per_unit_tax\": round((base * rate_pct / 100) / base, 4)}\n+            \"per_unit_tax\": round(rate_pct / 100, 4)}",
+  "verification_record": {
+    "payload": {
+      "signature": "ZeroDivisionError@unreproduced",
+      "mode": "ungated",
+      "conditions": {
+        "suite": true
+      }
+    },
+    "hmac": "a48e99b46b8027e34f51755dad8a013bcc38594bb3c5c1c79428e14c06e80869"
+  },
+  "prev_hash": "7aa1eab675b4e8ba01636fe5f3f029878f907298f22a482151e0d9f1ee62ba41",
+  "hash": "7f90cef41e08eab795a356f6ff372da961e794ba617cc1751e674ca655f0050d",
+  "hmac": "fa174c974f5cfb5356d0dcf64e46a7e0da3541bb59bad25376d81e4ca80bb879"
+}

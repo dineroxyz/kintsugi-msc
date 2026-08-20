@@ -1,0 +1,223 @@
+{
+  "version": 1,
+  "sequence": 149,
+  "issued_at": "2026-08-20T17:14:49",
+  "service_spec": "alpha.main:app",
+  "signature": "IndexError@main.py:93",
+  "capture": {
+    "service": "alpha",
+    "release": "r2",
+    "exception_type": "IndexError",
+    "exception_message": "list index out of range",
+    "frames": [
+      {
+        "file": "/Users/ssheyii/kintsugi/libs/kintsugi_capture/__init__.py",
+        "line": 158,
+        "function": "__call__",
+        "code": "await self.app(scope, buffering_receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py",
+        "line": 63,
+        "function": "__call__",
+        "code": "await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 53,
+        "function": "wrapped_app",
+        "code": "raise exc"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 42,
+        "function": "wrapped_app",
+        "code": "await app(scope, receive, sender)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py",
+        "line": 18,
+        "function": "__call__",
+        "code": "await self.app(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/routing.py",
+        "line": 670,
+        "function": "__call__",
+        "code": "await self.middleware_stack(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 2734,
+        "function": "app",
+        "code": "await route.handle(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 1281,
+        "function": "handle",
+        "code": "await super().handle(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/routing.py",
+        "line": 280,
+        "function": "handle",
+        "code": "await self.app(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 158,
+        "function": "app",
+        "code": "await wrap_app_handling_exceptions(app, request)(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 53,
+        "function": "wrapped_app",
+        "code": "raise exc"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 42,
+        "function": "wrapped_app",
+        "code": "await app(scope, receive, sender)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 144,
+        "function": "app",
+        "code": "response = await f(request)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 706,
+        "function": "app",
+        "code": "raw_response = await run_endpoint_function("
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 354,
+        "function": "run_endpoint_function",
+        "code": "return await run_in_threadpool(dependant.call, **values)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/concurrency.py",
+        "line": 34,
+        "function": "run_in_threadpool",
+        "code": "return await anyio.to_thread.run_sync(func)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/to_thread.py",
+        "line": 65,
+        "function": "run_sync",
+        "code": "return await get_async_backend().run_sync_in_worker_thread("
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py",
+        "line": 2641,
+        "function": "run_sync_in_worker_thread",
+        "code": "return await future"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py",
+        "line": 1033,
+        "function": "run",
+        "code": "result = context.run(func, *args)"
+      },
+      {
+        "file": "/private/var/folders/mv/mzz_q2mn3q3c827r6pfcby640000gn/T/main-F10-C3-s1-_1ugl00y/live_alpha/alpha/main.py",
+        "line": 93,
+        "function": "create_order",
+        "code": "ORDERS[oid] = {\"id\": oid, \"first_sku\": lines[0][\"sku\"],"
+      }
+    ],
+    "request": {
+      "method": "POST",
+      "path": "/orders",
+      "query": "",
+      "headers": {
+        "host": "127.0.0.1:64792",
+        "accept": "*/*",
+        "accept-encoding": "gzip, deflate, br",
+        "connection": "keep-alive",
+        "user-agent": "python-httpx/0.28.1",
+        "content-length": "12",
+        "content-type": "application/json"
+      },
+      "body": "{\"lines\":[]}"
+    },
+    "external_calls": []
+  },
+  "reproduction": {
+    "status": "reproduced",
+    "reason": "failed identically on 5/5 replays",
+    "signature": "IndexError@main.py:93",
+    "verdicts": [
+      {
+        "failed": true,
+        "exception_type": "IndexError",
+        "top_frame": "main.py:93",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "IndexError",
+        "top_frame": "main.py:93",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "IndexError",
+        "top_frame": "main.py:93",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "IndexError",
+        "top_frame": "main.py:93",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "IndexError",
+        "top_frame": "main.py:93",
+        "status_code": 500,
+        "hermetic_violation": false
+      }
+    ]
+  },
+  "candidates": [
+    {
+      "attempt": 1,
+      "diff": "--- a/alpha/main.py\n+++ b/alpha/main.py\n@@\n     oid = next(NEXT_ID)\n-    ORDERS[oid] = {\"id\": oid, \"first_sku\": lines[0][\"sku\"],\n-                   \"lines\": lines, \"total\": round(total, 2)}\n+    ORDERS[oid] = {\"id\": oid,\n+                   \"first_sku\": lines[0][\"sku\"] if lines else None,\n+                   \"lines\": lines, \"total\": round(total, 2)}",
+      "conditions": {
+        "applies": false
+      }
+    },
+    {
+      "attempt": 2,
+      "diff": "--- a/alpha/main.py\n+++ b/alpha/main.py\n@@ -90,6 +90,7 @@\n         quantity = int(line.get(\"quantity\", 1))\n         total += price * quantity\n     oid = next(NEXT_ID)\n-    ORDERS[oid] = {\"id\": oid, \"first_sku\": lines[0][\"sku\"],\n-                   \"lines\": lines, \"total\": round(total, 2)}\n+    ORDERS[oid] = {\"id\": oid,\n+                   \"first_sku\": lines[0][\"sku\"] if lines else None,\n+                   \"lines\": lines, \"total\": round(total, 2)}\n     ORDER_EVENTS.append({\"order\": oid, \"total\": ORDERS[oid][\"total\"]})",
+      "conditions": {
+        "suite": true
+      }
+    }
+  ],
+  "patch": "--- a/alpha/main.py\n+++ b/alpha/main.py\n@@ -90,6 +90,7 @@\n         quantity = int(line.get(\"quantity\", 1))\n         total += price * quantity\n     oid = next(NEXT_ID)\n-    ORDERS[oid] = {\"id\": oid, \"first_sku\": lines[0][\"sku\"],\n-                   \"lines\": lines, \"total\": round(total, 2)}\n+    ORDERS[oid] = {\"id\": oid,\n+                   \"first_sku\": lines[0][\"sku\"] if lines else None,\n+                   \"lines\": lines, \"total\": round(total, 2)}\n     ORDER_EVENTS.append({\"order\": oid, \"total\": ORDERS[oid][\"total\"]})",
+  "verification_record": {
+    "payload": {
+      "signature": "IndexError@main.py:93",
+      "mode": "ungated",
+      "conditions": {
+        "suite": true
+      }
+    },
+    "hmac": "dff7e16b75b1a69a9407ecdf8673e9f5188e6f76deb7c1192ab45b82ac0bfe27"
+  },
+  "prev_hash": "9c0c4095431671cb98577b5192fa07db2d3998499de7a20f682017df5f46e99b",
+  "hash": "7212ab25b1c402f6ee84d17ace262abe690ec898f35da8a9084b021dabb4341a",
+  "hmac": "211308a7a0da6e22c28db4ccd095f3325ad74367b7be1dd8323cd671b936f069"
+}

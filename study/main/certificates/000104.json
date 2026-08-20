@@ -1,0 +1,251 @@
+{
+  "version": 1,
+  "sequence": 104,
+  "issued_at": "2026-08-20T16:46:25",
+  "service_spec": "alpha.main:app",
+  "signature": "TypeError@main.py:93",
+  "capture": {
+    "service": "alpha",
+    "release": "r1",
+    "exception_type": "TypeError",
+    "exception_message": "unsupported operand type(s) for +=: 'float' and 'str'",
+    "frames": [
+      {
+        "file": "/Users/ssheyii/kintsugi/libs/kintsugi_capture/__init__.py",
+        "line": 158,
+        "function": "__call__",
+        "code": "await self.app(scope, buffering_receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py",
+        "line": 63,
+        "function": "__call__",
+        "code": "await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 53,
+        "function": "wrapped_app",
+        "code": "raise exc"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 42,
+        "function": "wrapped_app",
+        "code": "await app(scope, receive, sender)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py",
+        "line": 18,
+        "function": "__call__",
+        "code": "await self.app(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/routing.py",
+        "line": 670,
+        "function": "__call__",
+        "code": "await self.middleware_stack(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 2734,
+        "function": "app",
+        "code": "await route.handle(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 1281,
+        "function": "handle",
+        "code": "await super().handle(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/routing.py",
+        "line": 280,
+        "function": "handle",
+        "code": "await self.app(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 158,
+        "function": "app",
+        "code": "await wrap_app_handling_exceptions(app, request)(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 53,
+        "function": "wrapped_app",
+        "code": "raise exc"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 42,
+        "function": "wrapped_app",
+        "code": "await app(scope, receive, sender)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 144,
+        "function": "app",
+        "code": "response = await f(request)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 706,
+        "function": "app",
+        "code": "raw_response = await run_endpoint_function("
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 354,
+        "function": "run_endpoint_function",
+        "code": "return await run_in_threadpool(dependant.call, **values)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/concurrency.py",
+        "line": 34,
+        "function": "run_in_threadpool",
+        "code": "return await anyio.to_thread.run_sync(func)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/to_thread.py",
+        "line": 65,
+        "function": "run_sync",
+        "code": "return await get_async_backend().run_sync_in_worker_thread("
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py",
+        "line": 2641,
+        "function": "run_sync_in_worker_thread",
+        "code": "return await future"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py",
+        "line": 1033,
+        "function": "run",
+        "code": "result = context.run(func, *args)"
+      },
+      {
+        "file": "/private/var/folders/mv/mzz_q2mn3q3c827r6pfcby640000gn/T/main-F21-C3-s3-nbf1flpp/live_alpha/alpha/main.py",
+        "line": 93,
+        "function": "create_order",
+        "code": "total += price * quantity"
+      }
+    ],
+    "request": {
+      "method": "POST",
+      "path": "/orders",
+      "query": "",
+      "headers": {
+        "host": "127.0.0.1:64392",
+        "accept": "*/*",
+        "accept-encoding": "gzip, deflate, br",
+        "connection": "keep-alive",
+        "user-agent": "python-httpx/0.28.1",
+        "content-length": "43",
+        "content-type": "application/json"
+      },
+      "body": "{\"lines\":[{\"sku\":\"SPROCKET\",\"quantity\":3}]}"
+    },
+    "external_calls": [
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:64393/price/SPROCKET",
+        "request_headers": {
+          "host": "127.0.0.1:64393",
+          "accept": "*/*",
+          "accept-encoding": "gzip, deflate, br",
+          "connection": "keep-alive",
+          "user-agent": "python-httpx/0.28.1"
+        },
+        "request_body": "",
+        "status": 200,
+        "response_headers": {
+          "date": "Thu, 20 Aug 2026 15:45:58 GMT",
+          "server": "uvicorn",
+          "content-length": "32",
+          "content-type": "application/json"
+        },
+        "response_body": "{\"sku\":\"SPROCKET\",\"price\":\"9.5\"}"
+      }
+    ]
+  },
+  "reproduction": {
+    "status": "reproduced",
+    "reason": "failed identically on 5/5 replays",
+    "signature": "TypeError@main.py:93",
+    "verdicts": [
+      {
+        "failed": true,
+        "exception_type": "TypeError",
+        "top_frame": "main.py:93",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "TypeError",
+        "top_frame": "main.py:93",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "TypeError",
+        "top_frame": "main.py:93",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "TypeError",
+        "top_frame": "main.py:93",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "TypeError",
+        "top_frame": "main.py:93",
+        "status_code": 500,
+        "hermetic_violation": false
+      }
+    ]
+  },
+  "candidates": [
+    {
+      "attempt": 1,
+      "diff": "--- a/alpha/main.py\n+++ b/alpha/main.py\n@@ -88,7 +88,10 @@\n             raise HTTPException(status_code=422,\n                                 detail=f\"unknown sku {line['sku']!r}\")\n         resp.raise_for_status()\n-        price = resp.json()[\"price\"]\n+        try:\n+            price = float(resp.json()[\"price\"])\n+        except (TypeError, ValueError):\n+            raise HTTPException(status_code=502, detail=\"invalid price from pricing service\")\n         quantity = int(line.get(\"quantity\", 1))\n         total += price * quantity",
+      "conditions": {
+        "structural": true,
+        "applies": false
+      }
+    },
+    {
+      "attempt": 2,
+      "diff": "--- a/alpha/main.py\n+++ b/alpha/main.py\n@@ -88,7 +88,11 @@\n             raise HTTPException(status_code=422,\n                                 detail=f\"unknown sku {line['sku']!r}\")\n         resp.raise_for_status()\n-        price = resp.json()[\"price\"]\n+        try:\n+            price = float(resp.json()[\"price\"])\n+        except (TypeError, ValueError):\n+            raise HTTPException(status_code=502,\n+                                detail=\"invalid price from pricing service\")\n         quantity = int(line.get(\"quantity\", 1))\n         total += price * quantity\n     oid = next(NEXT_ID)",
+      "conditions": {
+        "structural": true,
+        "applies": true,
+        "reproduction": true,
+        "suite": true
+      }
+    }
+  ],
+  "patch": "--- a/alpha/main.py\n+++ b/alpha/main.py\n@@ -88,7 +88,11 @@\n             raise HTTPException(status_code=422,\n                                 detail=f\"unknown sku {line['sku']!r}\")\n         resp.raise_for_status()\n-        price = resp.json()[\"price\"]\n+        try:\n+            price = float(resp.json()[\"price\"])\n+        except (TypeError, ValueError):\n+            raise HTTPException(status_code=502,\n+                                detail=\"invalid price from pricing service\")\n         quantity = int(line.get(\"quantity\", 1))\n         total += price * quantity\n     oid = next(NEXT_ID)",
+  "verification_record": {
+    "payload": {
+      "signature": "TypeError@main.py:93",
+      "diff_sha256": "a75edfcb1758ea42590fa8cccad95e622e1f3097aefce306ec905891974f85e8",
+      "conditions": {
+        "structural": true,
+        "applies": true,
+        "reproduction": true,
+        "suite": true
+      }
+    },
+    "hmac": "e568f0f6874f1ba574e026be81fa071d2e333159f92f98fd02cef4cec35b6a74"
+  },
+  "prev_hash": "6b17ca09804391adbede0ab3baf1a1dd96047f1987b57eb0c73461312eb0b7b8",
+  "hash": "464f411d6cebd6eb1db223704d82f9f2d941d7094074c3947174e757f353fc86",
+  "hmac": "d525a02def9626daf5e8fb76e83f43b6bc12da1f0bf5b8712db865e745373fda"
+}

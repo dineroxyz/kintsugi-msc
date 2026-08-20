@@ -1,0 +1,221 @@
+{
+  "version": 1,
+  "sequence": 177,
+  "issued_at": "2026-08-20T17:23:13",
+  "service_spec": "alpha.main:app",
+  "signature": "TypeError@unreproduced",
+  "capture": {
+    "service": "alpha",
+    "release": "r2",
+    "exception_type": "TypeError",
+    "exception_message": "'>=' not supported between instances of 'float' and 'str'",
+    "frames": [
+      {
+        "file": "/Users/ssheyii/kintsugi/libs/kintsugi_capture/__init__.py",
+        "line": 158,
+        "function": "__call__",
+        "code": "await self.app(scope, buffering_receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py",
+        "line": 63,
+        "function": "__call__",
+        "code": "await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 53,
+        "function": "wrapped_app",
+        "code": "raise exc"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 42,
+        "function": "wrapped_app",
+        "code": "await app(scope, receive, sender)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py",
+        "line": 18,
+        "function": "__call__",
+        "code": "await self.app(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/routing.py",
+        "line": 670,
+        "function": "__call__",
+        "code": "await self.middleware_stack(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 2734,
+        "function": "app",
+        "code": "await route.handle(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 1281,
+        "function": "handle",
+        "code": "await super().handle(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/routing.py",
+        "line": 280,
+        "function": "handle",
+        "code": "await self.app(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 158,
+        "function": "app",
+        "code": "await wrap_app_handling_exceptions(app, request)(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 53,
+        "function": "wrapped_app",
+        "code": "raise exc"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 42,
+        "function": "wrapped_app",
+        "code": "await app(scope, receive, sender)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 144,
+        "function": "app",
+        "code": "response = await f(request)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 706,
+        "function": "app",
+        "code": "raw_response = await run_endpoint_function("
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 354,
+        "function": "run_endpoint_function",
+        "code": "return await run_in_threadpool(dependant.call, **values)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/concurrency.py",
+        "line": 34,
+        "function": "run_in_threadpool",
+        "code": "return await anyio.to_thread.run_sync(func)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/to_thread.py",
+        "line": 65,
+        "function": "run_sync",
+        "code": "return await get_async_backend().run_sync_in_worker_thread("
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py",
+        "line": 2641,
+        "function": "run_sync_in_worker_thread",
+        "code": "return await future"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py",
+        "line": 1033,
+        "function": "run",
+        "code": "result = context.run(func, *args)"
+      },
+      {
+        "file": "/private/var/folders/mv/mzz_q2mn3q3c827r6pfcby640000gn/T/main-M02-C3-s1-tkbvlj3q/live_alpha/alpha/main.py",
+        "line": 179,
+        "function": "orders_summary",
+        "code": "picked = [o for o in ORDERS.values() if o[\"total\"] >= min_total]"
+      }
+    ],
+    "request": {
+      "method": "GET",
+      "path": "/summary",
+      "query": "",
+      "headers": {
+        "host": "127.0.0.1:58931",
+        "accept": "*/*",
+        "accept-encoding": "gzip, deflate, br",
+        "connection": "keep-alive",
+        "user-agent": "python-httpx/0.28.1"
+      },
+      "body": ""
+    },
+    "external_calls": []
+  },
+  "reproduction": {
+    "status": "refused",
+    "reason": "captured failure did not recur under replay",
+    "signature": null,
+    "verdicts": [
+      {
+        "failed": false,
+        "exception_type": null,
+        "top_frame": null,
+        "status_code": 200,
+        "hermetic_violation": false
+      },
+      {
+        "failed": false,
+        "exception_type": null,
+        "top_frame": null,
+        "status_code": 200,
+        "hermetic_violation": false
+      },
+      {
+        "failed": false,
+        "exception_type": null,
+        "top_frame": null,
+        "status_code": 200,
+        "hermetic_violation": false
+      },
+      {
+        "failed": false,
+        "exception_type": null,
+        "top_frame": null,
+        "status_code": 200,
+        "hermetic_violation": false
+      },
+      {
+        "failed": false,
+        "exception_type": null,
+        "top_frame": null,
+        "status_code": 200,
+        "hermetic_violation": false
+      }
+    ]
+  },
+  "candidates": [
+    {
+      "attempt": 1,
+      "diff": "diff --git a/alpha/main.py b/alpha/main.py\n--- a/alpha/main.py\n+++ b/alpha/main.py\n@@ -176,7 +176,7 @@\n         floor = float(min_total)\n     except ValueError:\n         raise HTTPException(status_code=422, detail=\"min_total must be numeric\")\n-    picked = [o for o in ORDERS.values() if o[\"total\"] >= min_total]\n+    picked = [o for o in ORDERS.values() if o[\"total\"] >= floor]\n     grand = round(sum(o[\"total\"] for o in picked), 2)\n     return {\"count\": len(picked), \"grand_total\": grand}",
+      "conditions": {
+        "applies": false
+      }
+    },
+    {
+      "attempt": 2,
+      "diff": "diff --git a/alpha/main.py b/alpha/main.py\n--- a/alpha/main.py\n+++ b/alpha/main.py\n@@ -176,7 +176,7 @@\n         floor = float(min_total)\n     except ValueError:\n         raise HTTPException(status_code=422, detail=\"min_total must be numeric\")\n-    picked = [o for o in ORDERS.values() if o[\"total\"] >= min_total]\n+    picked = [o for o in ORDERS.values() if o[\"total\"] >= floor]\n     grand = round(sum(o[\"total\"] for o in picked), 2)\n     return {\"count\": len(picked), \"grand_total\": grand}\n ",
+      "conditions": {
+        "suite": true
+      }
+    }
+  ],
+  "patch": "diff --git a/alpha/main.py b/alpha/main.py\n--- a/alpha/main.py\n+++ b/alpha/main.py\n@@ -176,7 +176,7 @@\n         floor = float(min_total)\n     except ValueError:\n         raise HTTPException(status_code=422, detail=\"min_total must be numeric\")\n-    picked = [o for o in ORDERS.values() if o[\"total\"] >= min_total]\n+    picked = [o for o in ORDERS.values() if o[\"total\"] >= floor]\n     grand = round(sum(o[\"total\"] for o in picked), 2)\n     return {\"count\": len(picked), \"grand_total\": grand}\n ",
+  "verification_record": {
+    "payload": {
+      "signature": "TypeError@unreproduced",
+      "mode": "ungated",
+      "conditions": {
+        "suite": true
+      }
+    },
+    "hmac": "4f40c6d1ae8b4c492ee3f4460cd768fafb9c5e86faaca23e9e56f0a9427bd93c"
+  },
+  "prev_hash": "a2adfc2a3912be2d925ff2accc0c2b93607d6e6ec6ec7337591f02acd7fa391e",
+  "hash": "f64bf7991ae1f6ef7275d05cd179654a0e1873995a529e90e16ec5911f3edfda",
+  "hmac": "df65b28ba10417c0e59c69ed3edfa0beba618b79a6210473a70b0c3dbcecd246"
+}

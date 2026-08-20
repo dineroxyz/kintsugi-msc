@@ -1,0 +1,220 @@
+{
+  "version": 1,
+  "sequence": 352,
+  "issued_at": "2026-08-20T22:27:10",
+  "service_spec": "alpha.main:app",
+  "signature": "AttributeError@unreproduced",
+  "capture": {
+    "service": "alpha",
+    "release": "r2",
+    "exception_type": "AttributeError",
+    "exception_message": "'dict' object has no attribute 'quantity'",
+    "frames": [
+      {
+        "file": "/Users/ssheyii/kintsugi/libs/kintsugi_capture/__init__.py",
+        "line": 158,
+        "function": "__call__",
+        "code": "await self.app(scope, buffering_receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py",
+        "line": 63,
+        "function": "__call__",
+        "code": "await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 53,
+        "function": "wrapped_app",
+        "code": "raise exc"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 42,
+        "function": "wrapped_app",
+        "code": "await app(scope, receive, sender)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py",
+        "line": 18,
+        "function": "__call__",
+        "code": "await self.app(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/routing.py",
+        "line": 670,
+        "function": "__call__",
+        "code": "await self.middleware_stack(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 2734,
+        "function": "app",
+        "code": "await route.handle(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 1281,
+        "function": "handle",
+        "code": "await super().handle(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/routing.py",
+        "line": 280,
+        "function": "handle",
+        "code": "await self.app(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 158,
+        "function": "app",
+        "code": "await wrap_app_handling_exceptions(app, request)(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 53,
+        "function": "wrapped_app",
+        "code": "raise exc"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 42,
+        "function": "wrapped_app",
+        "code": "await app(scope, receive, sender)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 144,
+        "function": "app",
+        "code": "response = await f(request)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 706,
+        "function": "app",
+        "code": "raw_response = await run_endpoint_function("
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 354,
+        "function": "run_endpoint_function",
+        "code": "return await run_in_threadpool(dependant.call, **values)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/concurrency.py",
+        "line": 34,
+        "function": "run_in_threadpool",
+        "code": "return await anyio.to_thread.run_sync(func)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/to_thread.py",
+        "line": 65,
+        "function": "run_sync",
+        "code": "return await get_async_backend().run_sync_in_worker_thread("
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py",
+        "line": 2641,
+        "function": "run_sync_in_worker_thread",
+        "code": "return await future"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py",
+        "line": 1033,
+        "function": "run",
+        "code": "result = context.run(func, *args)"
+      },
+      {
+        "file": "/private/var/folders/mv/mzz_q2mn3q3c827r6pfcby640000gn/T/main-N11-C3-s2-f7i8wfn1/live_alpha/alpha/main.py",
+        "line": 244,
+        "function": "cart_tax",
+        "code": "base = sum(item.quantity for item in CARTS[cart_id])"
+      },
+      {
+        "file": "/private/var/folders/mv/mzz_q2mn3q3c827r6pfcby640000gn/T/main-N11-C3-s2-f7i8wfn1/live_alpha/alpha/main.py",
+        "line": 244,
+        "function": "<genexpr>",
+        "code": "base = sum(item.quantity for item in CARTS[cart_id])"
+      }
+    ],
+    "request": {
+      "method": "GET",
+      "path": "/carts/t2/tax",
+      "query": "",
+      "headers": {
+        "host": "127.0.0.1:60763",
+        "accept": "*/*",
+        "accept-encoding": "gzip, deflate, br",
+        "connection": "keep-alive",
+        "user-agent": "python-httpx/0.28.1"
+      },
+      "body": ""
+    },
+    "external_calls": []
+  },
+  "reproduction": {
+    "status": "refused",
+    "reason": "captured failure did not recur under replay",
+    "signature": null,
+    "verdicts": [
+      {
+        "failed": false,
+        "exception_type": null,
+        "top_frame": null,
+        "status_code": 404,
+        "hermetic_violation": false
+      },
+      {
+        "failed": false,
+        "exception_type": null,
+        "top_frame": null,
+        "status_code": 404,
+        "hermetic_violation": false
+      },
+      {
+        "failed": false,
+        "exception_type": null,
+        "top_frame": null,
+        "status_code": 404,
+        "hermetic_violation": false
+      },
+      {
+        "failed": false,
+        "exception_type": null,
+        "top_frame": null,
+        "status_code": 404,
+        "hermetic_violation": false
+      },
+      {
+        "failed": false,
+        "exception_type": null,
+        "top_frame": null,
+        "status_code": 404,
+        "hermetic_violation": false
+      }
+    ]
+  },
+  "candidates": [
+    {
+      "attempt": 1,
+      "diff": "--- a/alpha/main.py\n+++ b/alpha/main.py\n@@ -241,6 +241,6 @@\n         raise HTTPException(status_code=404, detail=f\"no cart {cart_id}\")\n     if rate_pct < 0 or rate_pct > 100:\n         raise HTTPException(status_code=422, detail=\"rate_pct out of range\")\n-    base = sum(item.quantity for item in CARTS[cart_id])\n+    base = sum(item[\"quantity\"] for item in CARTS[cart_id])\n     return {\"cart\": cart_id, \"units\": base,\n             \"per_unit_tax\": round(base and (base * rate_pct / 100) / base, 4)}",
+      "conditions": {
+        "suite": true
+      }
+    }
+  ],
+  "patch": "--- a/alpha/main.py\n+++ b/alpha/main.py\n@@ -241,6 +241,6 @@\n         raise HTTPException(status_code=404, detail=f\"no cart {cart_id}\")\n     if rate_pct < 0 or rate_pct > 100:\n         raise HTTPException(status_code=422, detail=\"rate_pct out of range\")\n-    base = sum(item.quantity for item in CARTS[cart_id])\n+    base = sum(item[\"quantity\"] for item in CARTS[cart_id])\n     return {\"cart\": cart_id, \"units\": base,\n             \"per_unit_tax\": round(base and (base * rate_pct / 100) / base, 4)}",
+  "verification_record": {
+    "payload": {
+      "signature": "AttributeError@unreproduced",
+      "mode": "ungated",
+      "conditions": {
+        "suite": true
+      }
+    },
+    "hmac": "10df83567a5211a91e07d1ddcdbe4384ac69b4a5f5730a889fa2d02879a32d6d"
+  },
+  "prev_hash": "3aa5549f4449d77cf4e3d18a48084c607ef3bf9bffeea8a408fee1742a034c32",
+  "hash": "6cb3a4a1cfcc0dacf486202da6f4bd1c0f8c5b58504e684607194daad78b945c",
+  "hmac": "7bda0960dd0ad6e7fb9833b76e2ad300b9b6db6289ec103b2f612e72dc9120de"
+}

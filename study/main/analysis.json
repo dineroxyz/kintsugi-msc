@@ -1,0 +1,175 @@
+{
+  "trials": 720,
+  "trials_including_ablations": 1260,
+  "per_arm": {
+    "C0": {
+      "outcomes": {
+        "unrecovered": 180
+      },
+      "recovery_rate": 0.0,
+      "false_fix_rate": null,
+      "escalation_rate": 0.0,
+      "mttr": null
+    },
+    "C1": {
+      "outcomes": {
+        "recovered": 180
+      },
+      "recovery_rate": 1.0,
+      "false_fix_rate": null,
+      "escalation_rate": 0.0,
+      "mttr": {
+        "median": 1.079,
+        "ci95": [
+          1.068,
+          1.102
+        ],
+        "n": 180
+      }
+    },
+    "C2": {
+      "outcomes": {
+        "recovered": 176,
+        "escalated": 4
+      },
+      "recovery_rate": 0.978,
+      "false_fix_rate": 0.0,
+      "escalation_rate": 0.022,
+      "mttr": {
+        "median": 12.496,
+        "ci95": [
+          10.331,
+          13.62
+        ],
+        "n": 176
+      }
+    },
+    "C3": {
+      "outcomes": {
+        "recovered": 127,
+        "refused": 45,
+        "escalated": 8
+      },
+      "recovery_rate": 0.706,
+      "false_fix_rate": 0.0,
+      "escalation_rate": 0.294,
+      "mttr": {
+        "median": 12.295,
+        "ci95": [
+          9.672,
+          13.793
+        ],
+        "n": 127
+      }
+    }
+  },
+  "comparisons": {
+    "mttr:C3-vs-C1": {
+      "paired_faults": 44,
+      "wilcoxon": {
+        "n": 44,
+        "W": 990.0,
+        "p": 0.0,
+        "method": "normal-approx"
+      },
+      "cliffs_delta": 1.0
+    },
+    "mttr:C3-vs-C2": {
+      "paired_faults": 44,
+      "wilcoxon": {
+        "n": 44,
+        "W": 337.0,
+        "p": 0.06605,
+        "method": "normal-approx"
+      },
+      "cliffs_delta": -0.137
+    },
+    "mttr:C2-vs-C1": {
+      "paired_faults": 59,
+      "wilcoxon": {
+        "n": 59,
+        "W": 1770.0,
+        "p": 0.0,
+        "method": "normal-approx"
+      },
+      "cliffs_delta": 1.0
+    },
+    "recovery:C3-vs-C2": {
+      "table": [
+        [
+          127,
+          53
+        ],
+        [
+          176,
+          4
+        ]
+      ],
+      "fisher_p": 0.0
+    },
+    "false_fix:C3-vs-C2": {
+      "table": [
+        [
+          0,
+          180
+        ],
+        [
+          0,
+          180
+        ]
+      ],
+      "fisher_p": 1.0
+    }
+  },
+  "holm_adjusted_p": {
+    "mttr:C2-vs-C1": 0.0,
+    "mttr:C3-vs-C1": 0.0,
+    "recovery:C3-vs-C2": 0.0,
+    "mttr:C3-vs-C2": 0.1321,
+    "false_fix:C3-vs-C2": 1.0
+  },
+  "ablations": {
+    "C3 (full)": {
+      "n": 180,
+      "recovery_rate": 0.706,
+      "false_fix_rate": 0.0,
+      "median_mttr": 12.29
+    },
+    "C3-noguard": {
+      "n": 180,
+      "recovery_rate": 0.972,
+      "false_fix_rate": 0.0,
+      "median_mttr": 12.29
+    },
+    "C3-nomemory": {
+      "n": 180,
+      "recovery_rate": 0.7,
+      "false_fix_rate": 0.0,
+      "median_mttr": 11.58
+    },
+    "C3-noregen": {
+      "n": 180,
+      "recovery_rate": 0.294,
+      "false_fix_rate": 0.0,
+      "median_mttr": 6.74
+    }
+  },
+  "meta": {
+    "started_at": "2026-08-20T23:32:05",
+    "commit": "99d5ca7",
+    "seeds": [
+      1,
+      2,
+      3
+    ],
+    "arms": [
+      "C0",
+      "C1",
+      "C2",
+      "C3"
+    ],
+    "model": "claude-opus-5",
+    "corpus_size": 60,
+    "ablations": true
+  }
+}

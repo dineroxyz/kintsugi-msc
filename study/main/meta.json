@@ -1,13 +1,18 @@
 {
-  "started_at": "2026-08-20T15:15:10",
-  "commit": "6f0062a",
+  "started_at": "2026-08-20T23:32:05",
+  "commit": "99d5ca7",
   "seeds": [
-    1
+    1,
+    2,
+    3
   ],
   "arms": [
+    "C0",
+    "C1",
+    "C2",
     "C3"
   ],
   "model": "claude-opus-5",
-  "corpus_size": 1,
+  "corpus_size": 60,
   "ablations": true
 }

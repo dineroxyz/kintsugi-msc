@@ -1,0 +1,228 @@
+{
+  "version": 1,
+  "sequence": 424,
+  "issued_at": "2026-08-20T23:11:23",
+  "service_spec": "beta.main:app",
+  "signature": "TypeError@main.py:53",
+  "capture": {
+    "service": "beta",
+    "release": "r2",
+    "exception_type": "TypeError",
+    "exception_message": "object of type 'NoneType' has no len()",
+    "frames": [
+      {
+        "file": "/Users/ssheyii/kintsugi/libs/kintsugi_capture/__init__.py",
+        "line": 158,
+        "function": "__call__",
+        "code": "await self.app(scope, buffering_receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py",
+        "line": 63,
+        "function": "__call__",
+        "code": "await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 53,
+        "function": "wrapped_app",
+        "code": "raise exc"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 42,
+        "function": "wrapped_app",
+        "code": "await app(scope, receive, sender)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py",
+        "line": 18,
+        "function": "__call__",
+        "code": "await self.app(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/routing.py",
+        "line": 670,
+        "function": "__call__",
+        "code": "await self.middleware_stack(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 2734,
+        "function": "app",
+        "code": "await route.handle(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 1281,
+        "function": "handle",
+        "code": "await super().handle(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/routing.py",
+        "line": 280,
+        "function": "handle",
+        "code": "await self.app(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 158,
+        "function": "app",
+        "code": "await wrap_app_handling_exceptions(app, request)(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 53,
+        "function": "wrapped_app",
+        "code": "raise exc"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 42,
+        "function": "wrapped_app",
+        "code": "await app(scope, receive, sender)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 144,
+        "function": "app",
+        "code": "response = await f(request)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 706,
+        "function": "app",
+        "code": "raw_response = await run_endpoint_function("
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 354,
+        "function": "run_endpoint_function",
+        "code": "return await run_in_threadpool(dependant.call, **values)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/concurrency.py",
+        "line": 34,
+        "function": "run_in_threadpool",
+        "code": "return await anyio.to_thread.run_sync(func)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/to_thread.py",
+        "line": 65,
+        "function": "run_sync",
+        "code": "return await get_async_backend().run_sync_in_worker_thread("
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py",
+        "line": 2641,
+        "function": "run_sync_in_worker_thread",
+        "code": "return await future"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py",
+        "line": 1033,
+        "function": "run",
+        "code": "result = context.run(func, *args)"
+      },
+      {
+        "file": "/private/var/folders/mv/mzz_q2mn3q3c827r6pfcby640000gn/T/main-M07-C3-s3-7qhr529d/live_beta/beta/main.py",
+        "line": 53,
+        "function": "catalog",
+        "code": "\"tag_count\": len(tags), \"tags\": tags}"
+      }
+    ],
+    "request": {
+      "method": "GET",
+      "path": "/catalog/DOODAD",
+      "query": "",
+      "headers": {
+        "host": "127.0.0.1:62365",
+        "accept": "*/*",
+        "accept-encoding": "gzip, deflate, br",
+        "connection": "keep-alive",
+        "user-agent": "python-httpx/0.28.1"
+      },
+      "body": ""
+    },
+    "external_calls": []
+  },
+  "reproduction": {
+    "status": "reproduced",
+    "reason": "failed identically on 5/5 replays",
+    "signature": "TypeError@main.py:53",
+    "verdicts": [
+      {
+        "failed": true,
+        "exception_type": "TypeError",
+        "top_frame": "main.py:53",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "TypeError",
+        "top_frame": "main.py:53",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "TypeError",
+        "top_frame": "main.py:53",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "TypeError",
+        "top_frame": "main.py:53",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "TypeError",
+        "top_frame": "main.py:53",
+        "status_code": 500,
+        "hermetic_violation": false
+      }
+    ]
+  },
+  "candidates": [
+    {
+      "attempt": 1,
+      "diff": "--- a/beta/main.py\n+++ b/beta/main.py\n@@\n-    tags = CATALOG_TAGS.get(sku)\n+    tags = CATALOG_TAGS.get(sku) or []\n     return {\"sku\": sku, \"price\": PRICES[sku],\n             \"primary_tag\": tags[0] if tags else None,\n             \"tag_count\": len(tags), \"tags\": tags}",
+      "conditions": {
+        "structural": true,
+        "applies": false
+      }
+    },
+    {
+      "attempt": 2,
+      "diff": "--- a/beta/main.py\n+++ b/beta/main.py\n@@ -47,7 +47,7 @@\n def catalog(sku: str) -> dict:\n     if sku not in PRICES:\n         raise HTTPException(status_code=404, detail=f\"unknown sku {sku!r}\")\n-    tags = CATALOG_TAGS.get(sku)\n+    tags = CATALOG_TAGS.get(sku) or []\n     return {\"sku\": sku, \"price\": PRICES[sku],\n             \"primary_tag\": tags[0] if tags else None,\n             \"tag_count\": len(tags), \"tags\": tags}",
+      "conditions": {
+        "structural": true,
+        "applies": true,
+        "reproduction": true,
+        "suite": true
+      }
+    }
+  ],
+  "patch": "--- a/beta/main.py\n+++ b/beta/main.py\n@@ -47,7 +47,7 @@\n def catalog(sku: str) -> dict:\n     if sku not in PRICES:\n         raise HTTPException(status_code=404, detail=f\"unknown sku {sku!r}\")\n-    tags = CATALOG_TAGS.get(sku)\n+    tags = CATALOG_TAGS.get(sku) or []\n     return {\"sku\": sku, \"price\": PRICES[sku],\n             \"primary_tag\": tags[0] if tags else None,\n             \"tag_count\": len(tags), \"tags\": tags}",
+  "verification_record": {
+    "payload": {
+      "signature": "TypeError@main.py:53",
+      "diff_sha256": "8324ee420610913ae0b09bd28c4260d59ca63abbab183bf6c5e73517241b5f9e",
+      "conditions": {
+        "structural": true,
+        "applies": true,
+        "reproduction": true,
+        "suite": true
+      }
+    },
+    "hmac": "7a9d16741a5ea3e9b005cc914e65c2c5ebcf22afde6a57d12aaefed2cf0aeadd"
+  },
+  "prev_hash": "9986b0e3d0f425d716e49cb991b21534f9c8505bba97e81c42f607322496935d",
+  "hash": "155bf16888f00bd15bfa244ca4da31acb2ee930bff497b69413a37d96cd2a8cd",
+  "hmac": "b98d05b32f6e285a462b5111f976c9f26dc35993e9387b11c036fc2ff5a50cc1"
+}

@@ -1,0 +1,249 @@
+{
+  "version": 1,
+  "sequence": 137,
+  "issued_at": "2026-08-20T17:10:49",
+  "service_spec": "alpha.main:app",
+  "signature": "KeyError@main.py:130",
+  "capture": {
+    "service": "alpha",
+    "release": "r2",
+    "exception_type": "KeyError",
+    "exception_message": "'unit_price'",
+    "frames": [
+      {
+        "file": "/Users/ssheyii/kintsugi/libs/kintsugi_capture/__init__.py",
+        "line": 158,
+        "function": "__call__",
+        "code": "await self.app(scope, buffering_receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py",
+        "line": 63,
+        "function": "__call__",
+        "code": "await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 53,
+        "function": "wrapped_app",
+        "code": "raise exc"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 42,
+        "function": "wrapped_app",
+        "code": "await app(scope, receive, sender)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py",
+        "line": 18,
+        "function": "__call__",
+        "code": "await self.app(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/routing.py",
+        "line": 670,
+        "function": "__call__",
+        "code": "await self.middleware_stack(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 2734,
+        "function": "app",
+        "code": "await route.handle(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 1281,
+        "function": "handle",
+        "code": "await super().handle(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/routing.py",
+        "line": 280,
+        "function": "handle",
+        "code": "await self.app(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 158,
+        "function": "app",
+        "code": "await wrap_app_handling_exceptions(app, request)(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 53,
+        "function": "wrapped_app",
+        "code": "raise exc"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 42,
+        "function": "wrapped_app",
+        "code": "await app(scope, receive, sender)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 144,
+        "function": "app",
+        "code": "response = await f(request)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 706,
+        "function": "app",
+        "code": "raw_response = await run_endpoint_function("
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 354,
+        "function": "run_endpoint_function",
+        "code": "return await run_in_threadpool(dependant.call, **values)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/concurrency.py",
+        "line": 34,
+        "function": "run_in_threadpool",
+        "code": "return await anyio.to_thread.run_sync(func)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/to_thread.py",
+        "line": 65,
+        "function": "run_sync",
+        "code": "return await get_async_backend().run_sync_in_worker_thread("
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py",
+        "line": 2641,
+        "function": "run_sync_in_worker_thread",
+        "code": "return await future"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py",
+        "line": 1033,
+        "function": "run",
+        "code": "result = context.run(func, *args)"
+      },
+      {
+        "file": "/private/var/folders/mv/mzz_q2mn3q3c827r6pfcby640000gn/T/main-F04-C3-s1-5uvj996v/live_alpha/alpha/main.py",
+        "line": 130,
+        "function": "quote",
+        "code": "unit = resp.json()[\"unit_price\"]"
+      }
+    ],
+    "request": {
+      "method": "GET",
+      "path": "/quote",
+      "query": "sku=GADGET&quantity=2",
+      "headers": {
+        "host": "127.0.0.1:59207",
+        "accept": "*/*",
+        "accept-encoding": "gzip, deflate, br",
+        "connection": "keep-alive",
+        "user-agent": "python-httpx/0.28.1"
+      },
+      "body": ""
+    },
+    "external_calls": [
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:59208/price/GADGET",
+        "request_headers": {
+          "host": "127.0.0.1:59208",
+          "accept": "*/*",
+          "accept-encoding": "gzip, deflate, br",
+          "connection": "keep-alive",
+          "user-agent": "python-httpx/0.28.1"
+        },
+        "request_body": "",
+        "status": 200,
+        "response_headers": {
+          "date": "Thu, 20 Aug 2026 16:10:07 GMT",
+          "server": "uvicorn",
+          "content-length": "29",
+          "content-type": "application/json"
+        },
+        "response_body": "{\"sku\":\"GADGET\",\"price\":40.0}"
+      }
+    ]
+  },
+  "reproduction": {
+    "status": "reproduced",
+    "reason": "failed identically on 5/5 replays",
+    "signature": "KeyError@main.py:130",
+    "verdicts": [
+      {
+        "failed": true,
+        "exception_type": "KeyError",
+        "top_frame": "main.py:130",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "KeyError",
+        "top_frame": "main.py:130",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "KeyError",
+        "top_frame": "main.py:130",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "KeyError",
+        "top_frame": "main.py:130",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "KeyError",
+        "top_frame": "main.py:130",
+        "status_code": 500,
+        "hermetic_violation": false
+      }
+    ]
+  },
+  "candidates": [
+    {
+      "attempt": 1,
+      "diff": "--- a/alpha/main.py\n+++ b/alpha/main.py\n@@\n     if resp.status_code == 404:\n         raise HTTPException(status_code=404, detail=f\"unknown sku {sku!r}\")\n     resp.raise_for_status()\n-    unit = resp.json()[\"unit_price\"]\n+    payload = resp.json()\n+    unit = _extract_unit_price(payload)\n     rate = discount_rate(code)\n     total = unit * quantity * (1 - rate)\n     return {\"sku\": sku, \"quantity\": quantity,\n             \"per_unit\": round(total / quantity, 2),\n             \"total\": round(total, 2),\n             \"reference\": \"Q\" + format(quantity, \"03d\")}\n \n \n+def _extract_unit_price(payload: dict) -> float:\n+    \"\"\"Read the unit price from a pricing response.\n+\n+    The pricing service has published the value under several names across\n+    releases (\"unit_price\", \"price\", \"amount\", and the integer-cents\n+    \"unit_price_cents\"/\"price_cents\" variants).  Accept whichever is present\n+    instead of assuming a single key.\n+    \"\"\"\n+    if not isinstance(payload, dict):\n+        raise HTTPException(status_code=502, detail=\"malformed pricing response\")\n+    body = payload\n+    inner = payload.get(\"price\")\n+    if isinstance(inner, dict):\n+        body = inner\n+    for key in (\"unit_price\", \"price\", \"unit_amount\", \"amount\", \"value\"):\n+        value = body.get(key)\n+        if isinstance(value, (int, float)) and not isinstance(value, bool):\n+            return float(value)\n+    for key in (\"unit_price_cents\", \"price_cents\", \"amount_cents\"):\n+        value = body.get(key)\n+        if isinstance(value, (int, float)) and not isinstance(value, bool):\n+            return float(value) / 100.0\n+    raise HTTPException(status_code=502, detail=\"malformed pricing response\")\n+\n+",
+      "conditions": {
+        "structural": true,
+        "applies": false
+      }
+    },
+    {
+      "attempt": 2,
+      "diff": "--- a/alpha/main.py\n+++ b/alpha/main.py\n@@ -116,3 +116,26 @@\n \n \n+def _unit_price(payload: object) -> float:\n+    \"\"\"Extract the unit price from a pricing-service response.\n+\n+    The pricing service reports the value under different keys depending on\n+    its release (\"unit_price\", \"price\", \"amount\", or an integer-cents\n+    variant), so accept whichever field is present instead of assuming one.\n+    \"\"\"\n+    body = payload\n+    if isinstance(body, dict) and isinstance(body.get(\"price\"), dict):\n+        body = body[\"price\"]\n+    if not isinstance(body, dict):\n+        raise HTTPException(status_code=502, detail=\"malformed pricing response\")\n+    for key in (\"unit_price\", \"price\", \"unit_amount\", \"amount\", \"value\"):\n+        value = body.get(key)\n+        if isinstance(value, (int, float)) and not isinstance(value, bool):\n+            return float(value)\n+    for key in (\"unit_price_cents\", \"price_cents\", \"amount_cents\"):\n+        value = body.get(key)\n+        if isinstance(value, (int, float)) and not isinstance(value, bool):\n+            return float(value) / 100.0\n+    raise HTTPException(status_code=502, detail=\"malformed pricing response\")\n+\n+\n @app.get(\"/quote\")\n@@ -127,5 +150,5 @@\n     if resp.status_code == 404:\n         raise HTTPException(status_code=404, detail=f\"unknown sku {sku!r}\")\n     resp.raise_for_status()\n-    unit = resp.json()[\"unit_price\"]\n+    unit = _unit_price(resp.json())\n     rate = discount_rate(code)",
+      "conditions": {
+        "structural": true,
+        "applies": true,
+        "reproduction": true,
+        "suite": true
+      }
+    }
+  ],
+  "patch": "--- a/alpha/main.py\n+++ b/alpha/main.py\n@@ -116,3 +116,26 @@\n \n \n+def _unit_price(payload: object) -> float:\n+    \"\"\"Extract the unit price from a pricing-service response.\n+\n+    The pricing service reports the value under different keys depending on\n+    its release (\"unit_price\", \"price\", \"amount\", or an integer-cents\n+    variant), so accept whichever field is present instead of assuming one.\n+    \"\"\"\n+    body = payload\n+    if isinstance(body, dict) and isinstance(body.get(\"price\"), dict):\n+        body = body[\"price\"]\n+    if not isinstance(body, dict):\n+        raise HTTPException(status_code=502, detail=\"malformed pricing response\")\n+    for key in (\"unit_price\", \"price\", \"unit_amount\", \"amount\", \"value\"):\n+        value = body.get(key)\n+        if isinstance(value, (int, float)) and not isinstance(value, bool):\n+            return float(value)\n+    for key in (\"unit_price_cents\", \"price_cents\", \"amount_cents\"):\n+        value = body.get(key)\n+        if isinstance(value, (int, float)) and not isinstance(value, bool):\n+            return float(value) / 100.0\n+    raise HTTPException(status_code=502, detail=\"malformed pricing response\")\n+\n+\n @app.get(\"/quote\")\n@@ -127,5 +150,5 @@\n     if resp.status_code == 404:\n         raise HTTPException(status_code=404, detail=f\"unknown sku {sku!r}\")\n     resp.raise_for_status()\n-    unit = resp.json()[\"unit_price\"]\n+    unit = _unit_price(resp.json())\n     rate = discount_rate(code)",
+  "verification_record": {
+    "payload": {
+      "signature": "KeyError@main.py:130",
+      "diff_sha256": "225a736e3f9cefa94f57bc2e7954e7e317eb73d16c9c981a6f7ddfc496e945d8",
+      "conditions": {
+        "structural": true,
+        "applies": true,
+        "reproduction": true,
+        "suite": true
+      }
+    },
+    "hmac": "a479517a48b63fd90c97141b7c3b355981dbf7ba6dbcb69c74a552fda68dd7a7"
+  },
+  "prev_hash": "5769ad7d3039d9322d308d1224f0552e5fe6a408f968c362bec46ff97cda98b6",
+  "hash": "98b34bedf776876d6b4e1ec3786aff506129a3778f11d7c977570e70c640bbe7",
+  "hmac": "8ee93d5b9426b183185f93d26b7a29f839e0a98515c989602d2a5a17f26efce2"
+}

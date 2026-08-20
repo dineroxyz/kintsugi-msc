@@ -1,0 +1,223 @@
+{
+  "version": 1,
+  "sequence": 481,
+  "issued_at": "2026-08-20T23:28:50",
+  "service_spec": "alpha.main:app",
+  "signature": "NameError@main.py:209",
+  "capture": {
+    "service": "alpha",
+    "release": "r2",
+    "exception_type": "NameError",
+    "exception_message": "name 'count' is not defined",
+    "frames": [
+      {
+        "file": "/Users/ssheyii/kintsugi/libs/kintsugi_capture/__init__.py",
+        "line": 158,
+        "function": "__call__",
+        "code": "await self.app(scope, buffering_receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py",
+        "line": 63,
+        "function": "__call__",
+        "code": "await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 53,
+        "function": "wrapped_app",
+        "code": "raise exc"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 42,
+        "function": "wrapped_app",
+        "code": "await app(scope, receive, sender)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py",
+        "line": 18,
+        "function": "__call__",
+        "code": "await self.app(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/routing.py",
+        "line": 670,
+        "function": "__call__",
+        "code": "await self.middleware_stack(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 2734,
+        "function": "app",
+        "code": "await route.handle(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 1281,
+        "function": "handle",
+        "code": "await super().handle(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/routing.py",
+        "line": 280,
+        "function": "handle",
+        "code": "await self.app(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 158,
+        "function": "app",
+        "code": "await wrap_app_handling_exceptions(app, request)(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 53,
+        "function": "wrapped_app",
+        "code": "raise exc"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 42,
+        "function": "wrapped_app",
+        "code": "await app(scope, receive, sender)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 144,
+        "function": "app",
+        "code": "response = await f(request)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 706,
+        "function": "app",
+        "code": "raw_response = await run_endpoint_function("
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 354,
+        "function": "run_endpoint_function",
+        "code": "return await run_in_threadpool(dependant.call, **values)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/concurrency.py",
+        "line": 34,
+        "function": "run_in_threadpool",
+        "code": "return await anyio.to_thread.run_sync(func)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/to_thread.py",
+        "line": 65,
+        "function": "run_sync",
+        "code": "return await get_async_backend().run_sync_in_worker_thread("
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py",
+        "line": 2641,
+        "function": "run_sync_in_worker_thread",
+        "code": "return await future"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py",
+        "line": 1033,
+        "function": "run",
+        "code": "result = context.run(func, *args)"
+      },
+      {
+        "file": "/private/var/folders/mv/mzz_q2mn3q3c827r6pfcby640000gn/T/main-N15-C3-s3-jnixx_fr/live_alpha/alpha/main.py",
+        "line": 209,
+        "function": "add_to_cart",
+        "code": "return {\"cart\": cart_id, \"items\": count}"
+      }
+    ],
+    "request": {
+      "method": "POST",
+      "path": "/carts/c15/items",
+      "query": "",
+      "headers": {
+        "host": "127.0.0.1:50890",
+        "accept": "*/*",
+        "accept-encoding": "gzip, deflate, br",
+        "connection": "keep-alive",
+        "user-agent": "python-httpx/0.28.1",
+        "content-length": "29",
+        "content-type": "application/json"
+      },
+      "body": "{\"sku\":\"WIDGET\",\"quantity\":1}"
+    },
+    "external_calls": []
+  },
+  "reproduction": {
+    "status": "reproduced",
+    "reason": "failed identically on 5/5 replays",
+    "signature": "NameError@main.py:209",
+    "verdicts": [
+      {
+        "failed": true,
+        "exception_type": "NameError",
+        "top_frame": "main.py:209",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "NameError",
+        "top_frame": "main.py:209",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "NameError",
+        "top_frame": "main.py:209",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "NameError",
+        "top_frame": "main.py:209",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "NameError",
+        "top_frame": "main.py:209",
+        "status_code": 500,
+        "hermetic_violation": false
+      }
+    ]
+  },
+  "candidates": [
+    {
+      "attempt": 1,
+      "diff": "diff --git a/alpha/main.py b/alpha/main.py\n--- a/alpha/main.py\n+++ b/alpha/main.py\n@@ -206,7 +206,7 @@\n         cart.append({\"sku\": item[\"sku\"],\n                      \"quantity\": int(item.get(\"quantity\", 1))})\n         size = len(cart)\n-    return {\"cart\": cart_id, \"items\": count}\n+    return {\"cart\": cart_id, \"items\": size}",
+      "conditions": {
+        "applies": false
+      }
+    },
+    {
+      "attempt": 2,
+      "diff": "diff --git a/alpha/main.py b/alpha/main.py\n--- a/alpha/main.py\n+++ b/alpha/main.py\n@@ -206,7 +206,7 @@\n         cart.append({\"sku\": item[\"sku\"],\n                      \"quantity\": int(item.get(\"quantity\", 1))})\n         size = len(cart)\n-    return {\"cart\": cart_id, \"items\": count}\n+    return {\"cart\": cart_id, \"items\": size}\n \n \n @app.get(\"/carts/{cart_id}\")",
+      "conditions": {
+        "suite": true
+      }
+    }
+  ],
+  "patch": "diff --git a/alpha/main.py b/alpha/main.py\n--- a/alpha/main.py\n+++ b/alpha/main.py\n@@ -206,7 +206,7 @@\n         cart.append({\"sku\": item[\"sku\"],\n                      \"quantity\": int(item.get(\"quantity\", 1))})\n         size = len(cart)\n-    return {\"cart\": cart_id, \"items\": count}\n+    return {\"cart\": cart_id, \"items\": size}\n \n \n @app.get(\"/carts/{cart_id}\")",
+  "verification_record": {
+    "payload": {
+      "signature": "NameError@main.py:209",
+      "mode": "ungated",
+      "conditions": {
+        "suite": true
+      }
+    },
+    "hmac": "40ed1631a793512fcbbc88e789282950b1493bbd18528800e83cdfd775f7bb57"
+  },
+  "prev_hash": "76c16008f67670f20c6445c7179fc4b5e7685b6fb8f246354bb6e0fa8a90ca95",
+  "hash": "bc955739192e4fd8458dc619ce389c98de854c4d0fd1b35fe4d10934d50f273d",
+  "hmac": "727f86824af9e41ada68439a9a8d79523de9e0d3c046c59817b319c051798354"
+}
