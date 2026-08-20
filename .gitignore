@@ -8,3 +8,5 @@ node_modules/
 .next/
 data/
 *.sqlite
+study/*/correctness/
+study/*/figures/
