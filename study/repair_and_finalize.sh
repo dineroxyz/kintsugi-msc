@@ -39,8 +39,12 @@ find "${TMPDIR:-/tmp}" -maxdepth 1 -name 'main-*' -exec rm -rf {} + 2>/dev/null 
 
 echo "done. Final trial count: $(wc -l < "$TRIALS")"
 echo
-echo "Next, to show the main-study results on the live console:"
+echo "Next, to show the main-study results on the live console."
+echo "The console's verifier key MUST match the key the study certificates"
+echo "were signed with, or the chain reads as forged:"
 echo "  git add study/main && git commit -m 'Main study results' && git push"
-echo "  railway variables set KINTSUGI_STUDY_DIR=/app/study/main \\"
-echo "    KINTSUGI_CERT_DIR=/app/study/main/certificates --service console"
+echo "  railway variables set \\"
+echo "    KINTSUGI_STUDY_DIR=/app/study/main \\"
+echo "    KINTSUGI_CERT_DIR=/app/study/main/certificates \\"
+echo "    KINTSUGI_GATE_KEY=\$(cat study/main/STUDY_GATE_KEY) --service console"
 echo "  railway up --service console --detach"

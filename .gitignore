@@ -10,3 +10,4 @@ data/
 *.sqlite
 study/*/correctness/
 study/*/figures/
+study/*/STUDY_GATE_KEY
