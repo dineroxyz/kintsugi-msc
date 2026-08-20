@@ -184,11 +184,16 @@ def arms_legend(arms: list[str]) -> str:
 
 @app.get("/", response_class=HTMLResponse)
 def overview():
-    trials = load_trials()
-    if not trials:
+    all_trials = load_trials()
+    if not all_trials:
         return page("Overview", "overview",
                     "<h2>Study</h2><p class=lede>No results yet. Once a study "
                     "run has produced results, they appear here.</p>")
+
+    # the four-approach comparison is over base trials only; ablation
+    # variants carry arm "C3" and would otherwise inflate the C3 figures
+    trials = [t for t in all_trials if not t.get("variant")]
+    n_ablation = len(all_trials) - len(trials)
 
     arms = sorted({t["arm"] for t in trials})
     cards = []
@@ -215,7 +220,9 @@ def overview():
         f'<td class=dim>{"should refuse" if t.get("expected_c3") == "refused" else "should fix"}</td>'
         f'<td class=dim>{html.escape(str(t.get("detail", {}).get("heal_reason", ""))[:90])}</td></tr>'
         for t in trials)
-    body = (f"<h2>Study results — {len(trials)} test runs</h2>"
+    ablation_note = (f" (plus {n_ablation} ablation runs, not shown here)"
+                     if n_ablation else "")
+    body = (f"<h2>Study results — {len(trials)} test runs{ablation_note}</h2>"
             '<p class="lede">Each fault was injected into a live service and '
             "handed to four different recovery approaches. A run counts as "
             "<b>fixed</b> only when the failing request works again "
