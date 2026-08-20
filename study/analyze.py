@@ -123,11 +123,16 @@ def holm(named_ps: dict[str, float]) -> dict[str, float]:
 # ------------------------------------------------------------------ analysis
 
 def analyse(trials: list[dict]) -> dict:
-    arms = sorted({t["arm"] for t in trials})
-    result: dict = {"trials": len(trials), "per_arm": {}}
+    # the four-arm comparison is over base trials only; ablation variants
+    # carry arm "C3" too and would otherwise contaminate the C3 figures.
+    base = [t for t in trials if not t.get("variant")]
+    arms = sorted({t["arm"] for t in base})
+    result: dict = {"trials": len(base),
+                    "trials_including_ablations": len(trials),
+                    "per_arm": {}}
 
     def rows(arm):
-        return [t for t in trials if t["arm"] == arm]
+        return [t for t in base if t["arm"] == arm]
 
     for arm in arms:
         rs = rows(arm)
@@ -189,7 +194,32 @@ def analyse(trials: list[dict]) -> dict:
 
     result["comparisons"] = comparisons
     result["holm_adjusted_p"] = holm(ps)
+
+    # ablations: the gated arm with one mechanism disabled, versus full C3.
+    # Reported descriptively (recovery rate, false-fix rate, median MTTR),
+    # since each isolates a single mechanism's contribution.
+    variants = sorted({t["variant"] for t in trials if t.get("variant")})
+    if variants:
+        full = [t for t in base if t["arm"] == "C3"]
+        abl: dict = {"C3 (full)": _arm_summary(full)}
+        for v in variants:
+            abl[v] = _arm_summary([t for t in trials if t.get("variant") == v])
+        result["ablations"] = abl
     return result
+
+
+def _arm_summary(rs: list[dict]) -> dict:
+    n = len(rs) or 1
+    recovered = sum(1 for r in rs if r["outcome"] == "recovered")
+    deployed = [r for r in rs if r["outcome"] in ("recovered", "false_fix")
+                and r.get("detail", {}).get("heal_status") == "deployed"]
+    false_fix = sum(1 for r in rs if r["outcome"] == "false_fix")
+    mttrs = [r["mttr_seconds"] for r in rs if r["mttr_seconds"] is not None]
+    return {"n": len(rs),
+            "recovery_rate": round(recovered / n, 3),
+            "false_fix_rate": round(false_fix / len(deployed), 3)
+            if deployed else None,
+            "median_mttr": round(statistics.median(mttrs), 2) if mttrs else None}
 
 
 def main() -> int:
