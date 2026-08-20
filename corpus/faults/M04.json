@@ -1,0 +1,44 @@
+{
+  "id": "M04",
+  "title": "Order reference concatenates the raw id",
+  "pattern": "key-building-type-confusion",
+  "provenance": {
+    "origin": "mined",
+    "source": "https://github.com/celery/celery/commit/6e0d683085f591de55106b0de698de93d6638af0",
+    "upstream_repo": "celery/celery",
+    "upstream_commit": "Handle UUID task ids in key-value store backend key generation (#10406)",
+    "failure_class_upstream": "TypeError",
+    "modeled_on": "identifier of an unexpected type reaches string key construction"
+  },
+  "service": "alpha",
+  "deterministic": true,
+  "stateful": true,
+  "mutations": [
+    {
+      "file": "alpha/main.py",
+      "find": "def order_reference(order_id: int) -> str:\n    return \"ORD-\" + format(order_id, \"06d\")\n",
+      "replace": "def order_reference(order_id: int) -> str:\n    return \"ORD-\" + order_id\n"
+    }
+  ],
+  "setup": [
+    {
+      "method": "POST",
+      "path": "/orders",
+      "json": {
+        "lines": [
+          {
+            "sku": "WIDGET",
+            "quantity": 2
+          }
+        ]
+      }
+    }
+  ],
+  "trigger": {
+    "method": "GET",
+    "path": "/orders/1/receipt"
+  },
+  "expected_exception": "TypeError",
+  "expected_c3": "refused",
+  "notes": "stateful: the receipt guard 404s in a fresh replay"
+}

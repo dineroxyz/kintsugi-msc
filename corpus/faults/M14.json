@@ -1,0 +1,37 @@
+{
+  "id": "M14",
+  "title": "Order total rounded with a string precision",
+  "pattern": "wrong-argument-type",
+  "provenance": {
+    "origin": "mined",
+    "source": "https://github.com/celery/celery/commit/9c8145fc0d97b7304786c77cf16852abc8876d30",
+    "upstream_repo": "celery/celery",
+    "upstream_commit": "Deferred ack synloop bug (#10263)",
+    "failure_class_upstream": "TypeError",
+    "modeled_on": "call assembled with an argument of the wrong type on one code path (loose mapping)"
+  },
+  "service": "alpha",
+  "deterministic": true,
+  "stateful": false,
+  "mutations": [
+    {
+      "file": "alpha/main.py",
+      "find": "                   \"lines\": lines, \"total\": round(total, 2)}\n",
+      "replace": "                   \"lines\": lines, \"total\": round(total, \"2\")}\n"
+    }
+  ],
+  "trigger": {
+    "method": "POST",
+    "path": "/orders",
+    "json": {
+      "lines": [
+        {
+          "sku": "WIDGET",
+          "quantity": 2
+        }
+      ]
+    }
+  },
+  "expected_exception": "TypeError",
+  "expected_c3": "healed"
+}

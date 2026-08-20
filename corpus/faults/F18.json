@@ -12,8 +12,8 @@
   "mutations": [
     {
       "file": "alpha/main.py",
-      "find": "    total = 0.0\n",
-      "replace": "    total = \"\"\n"
+      "find": "        raise HTTPException(status_code=422, detail=\"order has no lines\")\n    total = 0.0\n",
+      "replace": "        raise HTTPException(status_code=422, detail=\"order has no lines\")\n    total = \"\"\n"
     }
   ],
   "trigger": {

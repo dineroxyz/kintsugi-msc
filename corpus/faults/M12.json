@@ -1,0 +1,32 @@
+{
+  "id": "M12",
+  "title": "Restock raises a bare ValueError instead of its HTTP error",
+  "pattern": "wrong-error-surface",
+  "provenance": {
+    "origin": "mined",
+    "source": "https://github.com/celery/celery/commit/3f2cf57d395a105dda9179b203040a1471d40a78",
+    "upstream_repo": "celery/celery",
+    "upstream_commit": "Raise a clear error instead of a bare ValueError when fast_trace_task's worker registry is empty (#10397)",
+    "failure_class_upstream": "ValueError",
+    "modeled_on": "failure path raises a bare builtin instead of the intended clear error"
+  },
+  "service": "alpha",
+  "deterministic": true,
+  "stateful": false,
+  "mutations": [
+    {
+      "file": "alpha/main.py",
+      "find": "        raise HTTPException(status_code=422, detail=\"count must be at least 1\")\n",
+      "replace": "        raise ValueError(\"count must be at least 1\")\n"
+    }
+  ],
+  "trigger": {
+    "method": "POST",
+    "path": "/restock/WIDGET",
+    "json": {
+      "count": 0
+    }
+  },
+  "expected_exception": "ValueError",
+  "expected_c3": "healed"
+}

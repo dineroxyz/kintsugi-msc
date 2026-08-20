@@ -1,0 +1,30 @@
+{
+  "id": "M07",
+  "title": "Catalog tag lookup loses its default, len sees None",
+  "pattern": "misidentified-absent-value",
+  "provenance": {
+    "origin": "mined",
+    "source": "https://github.com/sqlalchemy/sqlalchemy/commit/7a823b5f81c05407513efb84d13b67731635154d",
+    "upstream_repo": "sqlalchemy/sqlalchemy",
+    "upstream_commit": "Fix is_pep695 misidentifying Annotated[TypeAliasType] as PEP 695",
+    "failure_class_upstream": "AttributeError",
+    "modeled_on": "a lookup that can miss is treated as if it always yields the expected type"
+  },
+  "service": "beta",
+  "deterministic": true,
+  "stateful": false,
+  "mutations": [
+    {
+      "file": "beta/main.py",
+      "find": "    tags = CATALOG_TAGS.get(sku, [])\n",
+      "replace": "    tags = CATALOG_TAGS.get(sku)\n"
+    }
+  ],
+  "trigger": {
+    "method": "GET",
+    "path": "/catalog/DOODAD"
+  },
+  "expected_exception": "TypeError",
+  "expected_c3": "healed",
+  "notes": "DOODAD is priced but has no catalog entry, so the lookup yields None and len(None) raises"
+}

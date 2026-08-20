@@ -1,0 +1,37 @@
+{
+  "id": "M13",
+  "title": "Event append consumes the order it reports",
+  "pattern": "lifecycle-state-consumed",
+  "provenance": {
+    "origin": "mined",
+    "source": "https://github.com/celery/celery/commit/4a11650b11504c78f8351be836890c04c6e7a413",
+    "upstream_repo": "celery/celery",
+    "upstream_commit": "Redis ResultConsumer: clean up leaked _pending_messages after on_wait_for_pending (#10366)",
+    "failure_class_upstream": "KeyError",
+    "modeled_on": "bookkeeping on one path mutates state another path still needs"
+  },
+  "service": "alpha",
+  "deterministic": true,
+  "stateful": false,
+  "mutations": [
+    {
+      "file": "alpha/main.py",
+      "find": "    ORDER_EVENTS.append({\"order\": oid, \"total\": ORDERS[oid][\"total\"]})\n",
+      "replace": "    ORDER_EVENTS.append({\"order\": oid, \"total\": ORDERS.pop(oid)[\"total\"]})\n"
+    }
+  ],
+  "trigger": {
+    "method": "POST",
+    "path": "/orders",
+    "json": {
+      "lines": [
+        {
+          "sku": "WIDGET",
+          "quantity": 2
+        }
+      ]
+    }
+  },
+  "expected_exception": "KeyError",
+  "expected_c3": "healed"
+}

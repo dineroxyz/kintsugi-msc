@@ -1,0 +1,29 @@
+{
+  "id": "N04",
+  "title": "Bundle leader read before the empty check",
+  "pattern": "reordered-guard-indexerror",
+  "provenance": {
+    "origin": "mined",
+    "source": "https://github.com/aio-libs/aiohttp/commit/199628943cb6eab8032ce57fb163c98f10d8c53b",
+    "upstream_repo": "aio-libs/aiohttp",
+    "upstream_commit": "[PR #13001/fe353185 backport][3.14] Fix IndexError in parser on edge case (#13094)",
+    "failure_class_upstream": "IndexError",
+    "modeled_on": "an index into possibly-empty content moved ahead of the guard that protected it"
+  },
+  "service": "beta",
+  "deterministic": true,
+  "stateful": false,
+  "mutations": [
+    {
+      "file": "beta/main.py",
+      "find": "    if not members:\n        raise HTTPException(status_code=422, detail=\"bundle is empty\")\n    prices = sorted((PRICES[s] for s in members), reverse=True)\n    return {\"bundle\": name, \"size\": len(members),\n            \"leader_price\": prices[0], \"total\": round(sum(prices), 2)}\n",
+      "replace": "    prices = sorted((PRICES[s] for s in members), reverse=True)\n    return {\"bundle\": name, \"size\": len(members),\n            \"leader_price\": prices[0], \"total\": round(sum(prices), 2)}\n"
+    }
+  ],
+  "trigger": {
+    "method": "GET",
+    "path": "/bundles/EMPTY"
+  },
+  "expected_exception": "IndexError",
+  "expected_c3": "healed"
+}

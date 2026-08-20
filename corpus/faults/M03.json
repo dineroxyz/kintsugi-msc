@@ -1,0 +1,37 @@
+{
+  "id": "M03",
+  "title": "Order notifier called without its None guard",
+  "pattern": "optional-component-none",
+  "provenance": {
+    "origin": "mined",
+    "source": "https://github.com/celery/celery/commit/acce2acc7a7cbc17c681dc53178c8ba429d59318",
+    "upstream_repo": "celery/celery",
+    "upstream_commit": "fix(events): skip publish when producer is None to stop memory leak after broker reconnect (#10277)",
+    "failure_class_upstream": "AttributeError",
+    "modeled_on": "publish path stopped checking whether the producer exists before using it"
+  },
+  "service": "alpha",
+  "deterministic": true,
+  "stateful": false,
+  "mutations": [
+    {
+      "file": "alpha/main.py",
+      "find": "    ORDER_EVENTS.append({\"order\": oid, \"total\": ORDERS[oid][\"total\"]})\n    if _notifier is not None:\n        _notifier.send(ORDER_EVENTS[-1])\n",
+      "replace": "    ORDER_EVENTS.append({\"order\": oid, \"total\": ORDERS[oid][\"total\"]})\n    _notifier.send(ORDER_EVENTS[-1])\n"
+    }
+  ],
+  "trigger": {
+    "method": "POST",
+    "path": "/orders",
+    "json": {
+      "lines": [
+        {
+          "sku": "WIDGET",
+          "quantity": 2
+        }
+      ]
+    }
+  },
+  "expected_exception": "AttributeError",
+  "expected_c3": "healed"
+}

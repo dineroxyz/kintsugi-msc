@@ -1,0 +1,33 @@
+{
+  "id": "N15",
+  "title": "Cart items counter reads a renamed local",
+  "pattern": "rename-nameerror",
+  "provenance": {
+    "origin": "mined",
+    "source": "https://github.com/redis/redis-py/commit/dd8a13daac0c75c85f994b2c7eb759b4f55c9eaa",
+    "upstream_repo": "redis/redis-py",
+    "upstream_commit": "Fix Sync ClusterPubSub.disconnect() \u2014 Potential AttributeError (#4036)",
+    "failure_class_upstream": "AttributeError",
+    "modeled_on": "a symbol renamed at one site but still referenced under its old name elsewhere"
+  },
+  "service": "alpha",
+  "deterministic": true,
+  "stateful": false,
+  "mutations": [
+    {
+      "file": "alpha/main.py",
+      "find": "        size = len(cart)\n    return {\"cart\": cart_id, \"items\": size}\n",
+      "replace": "        size = len(cart)\n    return {\"cart\": cart_id, \"items\": count}\n"
+    }
+  ],
+  "trigger": {
+    "method": "POST",
+    "path": "/carts/c15/items",
+    "json": {
+      "sku": "WIDGET",
+      "quantity": 1
+    }
+  },
+  "expected_exception": "NameError",
+  "expected_c3": "healed"
+}

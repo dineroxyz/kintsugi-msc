@@ -1,0 +1,33 @@
+{
+  "id": "N19",
+  "title": "Converted price parses scientific notation with int()",
+  "pattern": "parse-without-guard",
+  "provenance": {
+    "origin": "mined",
+    "source": "https://github.com/redis/redis-py/commit/f83f8413af66f5b46ee306f635d5086a007ea2b3",
+    "upstream_repo": "redis/redis-py",
+    "upstream_commit": "fix: handle scientific notation in score_cast_func for RESP2 (#4016)",
+    "failure_class_upstream": "ValueError",
+    "modeled_on": "a numeric string in an unexpected format reaches a strict parser"
+  },
+  "service": "beta",
+  "deterministic": true,
+  "stateful": false,
+  "mutations": [
+    {
+      "file": "beta/main.py",
+      "find": "    return {\"sku\": sku, \"currency\": currency,\n            \"price\": round(PRICES[sku] * rate, 2)}\n",
+      "replace": "    return {\"sku\": sku, \"currency\": currency,\n            \"price\": int(str(PRICES[sku] * rate))}\n"
+    }
+  ],
+  "trigger": {
+    "method": "GET",
+    "path": "/price/DOODAD/converted",
+    "params": {
+      "currency": "EUR"
+    }
+  },
+  "expected_exception": "ValueError",
+  "expected_c3": "healed",
+  "notes": "DOODAD*0.92 is a fractional string; int() of it raises"
+}

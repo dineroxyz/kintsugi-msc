@@ -1,0 +1,32 @@
+{
+  "id": "M05",
+  "title": "Currency conversion loses its unsupported-currency check",
+  "pattern": "validation-removal-none-flow",
+  "provenance": {
+    "origin": "mined",
+    "source": "https://github.com/encode/httpx/commit/bddd774ce065f3442c1f46af1db5b85b1bfb7613",
+    "upstream_repo": "encode/httpx",
+    "upstream_commit": "Revert \"Raise `TypeError` on invalid query params. (#2523)\" (#2539)",
+    "failure_class_upstream": "TypeError",
+    "modeled_on": "reverting boundary validation lets an unhandled value flow into arithmetic"
+  },
+  "service": "beta",
+  "deterministic": true,
+  "stateful": false,
+  "mutations": [
+    {
+      "file": "beta/main.py",
+      "find": "    rate = FX_RATES.get(currency)\n    if rate is None:\n        raise HTTPException(status_code=422,\n                            detail=f\"unsupported currency {currency!r}\")\n",
+      "replace": "    rate = FX_RATES.get(currency)\n"
+    }
+  ],
+  "trigger": {
+    "method": "GET",
+    "path": "/price/WIDGET/converted",
+    "params": {
+      "currency": "GBP"
+    }
+  },
+  "expected_exception": "TypeError",
+  "expected_c3": "healed"
+}

@@ -1,0 +1,40 @@
+{
+  "id": "N13",
+  "title": "Cart checkout builds price URL from the whole item dict",
+  "pattern": "key-building-type-confusion",
+  "provenance": {
+    "origin": "mined",
+    "source": "https://github.com/agronholm/anyio/commit/26ab19baf7dc5f7ce39cbcd6ce2d1058fc6d2796",
+    "upstream_repo": "agronholm/anyio",
+    "upstream_commit": "Fix CapacityLimiter(math.inf) raising TypeError outside an event loop (#1189)",
+    "failure_class_upstream": "TypeError",
+    "modeled_on": "a value of the wrong type reaches string /key construction outside its expected scope"
+  },
+  "service": "alpha",
+  "deterministic": true,
+  "stateful": true,
+  "mutations": [
+    {
+      "file": "alpha/main.py",
+      "find": "        total += resp.json()[\"price\"] * item[\"quantity\"]\n",
+      "replace": "        total += resp.json()[\"price\"] * item[\"qty\"]\n"
+    }
+  ],
+  "setup": [
+    {
+      "method": "POST",
+      "path": "/carts/u1/items",
+      "json": {
+        "sku": "WIDGET",
+        "quantity": 1
+      }
+    }
+  ],
+  "trigger": {
+    "method": "POST",
+    "path": "/carts/u1/checkout"
+  },
+  "expected_exception": "KeyError",
+  "expected_c3": "refused",
+  "notes": "stateful: checkout reads a wrong key on the cart items a fresh replay cannot rebuild"
+}

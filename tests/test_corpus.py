@@ -179,10 +179,15 @@ def test_diffs_are_emitted_both_ways(entry, tmp_path):
 
 
 def test_corpus_shape():
-    assert len(CORPUS) >= 21
-    assert sum(1 for e in CORPUS if e.expected_c3 == "refused") >= 5
+    assert len(CORPUS) >= 60
+    assert sum(1 for e in CORPUS if e.expected_c3 == "refused") >= 12
     assert sum(1 for e in CORPUS if not e.deterministic) >= 2
     assert sum(1 for e in CORPUS if e.requires_concurrency) >= 1
-    assert sum(1 for e in CORPUS if e.service == "beta") >= 2
+    assert sum(1 for e in CORPUS if e.service == "beta") >= 5
+    assert sum(1 for e in CORPUS
+               if e.provenance.get("origin") == "mined") >= 30
+    # every mined entry cites its upstream commit
+    assert all(e.provenance.get("source")
+               for e in CORPUS if e.provenance.get("origin") == "mined")
     assert all(e.provenance.get("origin") for e in CORPUS)
     assert all(e.expected_exception for e in CORPUS)

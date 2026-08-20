@@ -1,0 +1,40 @@
+{
+  "id": "N07",
+  "title": "Tax range check compares string rate to integers",
+  "pattern": "boundary-type-confusion",
+  "provenance": {
+    "origin": "mined",
+    "source": "https://github.com/urllib3/urllib3/commit/62c9d1b0a4394216b93153b37f4451be3e94bd61",
+    "upstream_repo": "urllib3/urllib3",
+    "upstream_commit": "Fix `HTTPConnectionPool` when used in Emscripten with no explicit port (#3664)",
+    "failure_class_upstream": "TypeError",
+    "modeled_on": "an unset/typed default reaches a comparison expecting another type"
+  },
+  "service": "alpha",
+  "deterministic": true,
+  "stateful": true,
+  "mutations": [
+    {
+      "file": "alpha/main.py",
+      "find": "def cart_tax(cart_id: str, rate_pct: int = 10) -> dict:\n",
+      "replace": "def cart_tax(cart_id: str, rate_pct: str = \"10\") -> dict:\n"
+    }
+  ],
+  "setup": [
+    {
+      "method": "POST",
+      "path": "/carts/t1/items",
+      "json": {
+        "sku": "WIDGET",
+        "quantity": 1
+      }
+    }
+  ],
+  "trigger": {
+    "method": "GET",
+    "path": "/carts/t1/tax"
+  },
+  "expected_exception": "TypeError",
+  "expected_c3": "refused",
+  "notes": "stateful: the tax read needs an existing cart"
+}

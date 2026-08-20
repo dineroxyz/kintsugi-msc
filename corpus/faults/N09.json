@@ -1,0 +1,29 @@
+{
+  "id": "N09",
+  "title": "Bundle price lookup loses its membership guard",
+  "pattern": "guard-removal-keyerror",
+  "provenance": {
+    "origin": "mined",
+    "source": "https://github.com/django/django/commit/09434486302078c3649e034dfa74cf3f102db20b",
+    "upstream_repo": "django/django",
+    "upstream_commit": "Fixed #37152 -- Raised ValueError when Bcc is used in EmailMessage headers.",
+    "failure_class_upstream": "ValueError",
+    "modeled_on": "a lookup performed without first checking the key is present"
+  },
+  "service": "beta",
+  "deterministic": true,
+  "stateful": false,
+  "mutations": [
+    {
+      "file": "beta/main.py",
+      "find": "    table = {\"bronze\": 100, \"silver\": 250, \"gold\": 500}\n    if tier not in table:\n        raise HTTPException(status_code=404, detail=f\"unknown tier {tier!r}\")\n",
+      "replace": "    table = {\"bronze\": 100, \"silver\": 250, \"gold\": 500}\n"
+    }
+  ],
+  "trigger": {
+    "method": "GET",
+    "path": "/discounts/platinum"
+  },
+  "expected_exception": "KeyError",
+  "expected_c3": "healed"
+}

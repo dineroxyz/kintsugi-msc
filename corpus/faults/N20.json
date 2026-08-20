@@ -1,0 +1,37 @@
+{
+  "id": "N20",
+  "title": "Heartbeat guard against a None dispatcher removed",
+  "pattern": "optional-component-none",
+  "provenance": {
+    "origin": "mined",
+    "source": "https://github.com/redis/redis-py/commit/18b53522d67ded549bd4d6e2977ab8d8b67e879b",
+    "upstream_repo": "redis/redis-py",
+    "upstream_commit": "Fix AttributeError in cluster metrics recording when connection is None or ClusterNode object instance is used to extract the connection info (#3999)",
+    "failure_class_upstream": "AttributeError",
+    "modeled_on": "a control command used a component without guarding against its None state"
+  },
+  "service": "alpha",
+  "deterministic": true,
+  "stateful": false,
+  "mutations": [
+    {
+      "file": "alpha/main.py",
+      "find": "    if _notifier is not None:\n        _notifier.send(ORDER_EVENTS[-1])\n",
+      "replace": "    _notifier.send(ORDER_EVENTS[-1]) if _notifier else _notifier.ping()\n"
+    }
+  ],
+  "trigger": {
+    "method": "POST",
+    "path": "/orders",
+    "json": {
+      "lines": [
+        {
+          "sku": "GADGET",
+          "quantity": 1
+        }
+      ]
+    }
+  },
+  "expected_exception": "AttributeError",
+  "expected_c3": "healed"
+}

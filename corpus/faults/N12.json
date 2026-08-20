@@ -1,0 +1,29 @@
+{
+  "id": "N12",
+  "title": "Bundle total sums prices of a missing member",
+  "pattern": "contract-drift-keyerror",
+  "provenance": {
+    "origin": "mined",
+    "source": "https://github.com/tornadoweb/tornado/commit/5f41931e637627ebc9212b54910faab3407b6123",
+    "upstream_repo": "tornadoweb/tornado",
+    "upstream_commit": "Merge pull request #3523 from killerdevildog/fix-file-uploader-coroutine-issue-3182",
+    "failure_class_upstream": "ValueError",
+    "modeled_on": "code reads a field/member the data no longer guarantees"
+  },
+  "service": "beta",
+  "deterministic": true,
+  "stateful": false,
+  "mutations": [
+    {
+      "file": "beta/main.py",
+      "find": "    \"PRO\": [\"GADGET\", \"WIDGET\", \"DOODAD\"],\n",
+      "replace": "    \"PRO\": [\"GADGET\", \"WIDGET\", \"PHANTOM\"],\n"
+    }
+  ],
+  "trigger": {
+    "method": "GET",
+    "path": "/bundles/PRO"
+  },
+  "expected_exception": "KeyError",
+  "expected_c3": "healed"
+}

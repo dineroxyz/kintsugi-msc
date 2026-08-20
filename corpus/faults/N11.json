@@ -1,0 +1,39 @@
+{
+  "id": "N11",
+  "title": "Cart tax reads a renamed lock attribute",
+  "pattern": "api-attribute-drift",
+  "provenance": {
+    "origin": "mined",
+    "source": "https://github.com/redis/redis-py/commit/ef83cd8aac814481f18e30921736a7222daa6b7d",
+    "upstream_repo": "redis/redis-py",
+    "upstream_commit": "fix(hiredis): raise ConnectionError instead of AttributeError on concurrent disconnect (#4136)",
+    "failure_class_upstream": "AttributeError",
+    "modeled_on": "attribute access on a connection object whose API changed across versions"
+  },
+  "service": "alpha",
+  "deterministic": true,
+  "stateful": true,
+  "mutations": [
+    {
+      "file": "alpha/main.py",
+      "find": "    base = sum(item[\"quantity\"] for item in CARTS[cart_id])\n",
+      "replace": "    base = sum(item.quantity for item in CARTS[cart_id])\n"
+    }
+  ],
+  "setup": [
+    {
+      "method": "POST",
+      "path": "/carts/t2/items",
+      "json": {
+        "sku": "WIDGET",
+        "quantity": 1
+      }
+    }
+  ],
+  "trigger": {
+    "method": "GET",
+    "path": "/carts/t2/tax"
+  },
+  "expected_exception": "AttributeError",
+  "expected_c3": "refused"
+}

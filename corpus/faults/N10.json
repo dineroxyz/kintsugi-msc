@@ -1,0 +1,41 @@
+{
+  "id": "N10",
+  "title": "Checkout pop without default on a concurrent double-submit",
+  "pattern": "toctou-race",
+  "provenance": {
+    "origin": "mined",
+    "source": "https://github.com/agronholm/anyio/commit/97827b0f65626dee0b9d86575f90c4deef58458b",
+    "upstream_repo": "agronholm/anyio",
+    "upstream_commit": "Fixed UNIX socket close race with cancelled I/O (#1269)",
+    "failure_class_upstream": "race",
+    "modeled_on": "socket/resource close races a cancelled operation on the same object"
+  },
+  "service": "alpha",
+  "deterministic": false,
+  "stateful": true,
+  "requires_concurrency": true,
+  "mutations": [
+    {
+      "file": "alpha/main.py",
+      "find": "    if cart_id not in CARTS:\n        raise HTTPException(status_code=404, detail=f\"no cart {cart_id}\")\n    items = CARTS.pop(cart_id)\n",
+      "replace": "    if cart_id not in CARTS:\n        raise HTTPException(status_code=404, detail=f\"no cart {cart_id}\")\n    import time as _t; _t.sleep(0.003)\n    items = CARTS.pop(cart_id)\n"
+    }
+  ],
+  "setup": [
+    {
+      "method": "POST",
+      "path": "/carts/dbl/items",
+      "json": {
+        "sku": "WIDGET",
+        "quantity": 1
+      }
+    }
+  ],
+  "trigger": {
+    "method": "POST",
+    "path": "/carts/dbl/checkout"
+  },
+  "expected_exception": "KeyError",
+  "expected_c3": "refused",
+  "notes": "two concurrent checkouts both pass the membership check; the second pop raises"
+}

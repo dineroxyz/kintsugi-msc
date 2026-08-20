@@ -1,0 +1,32 @@
+{
+  "id": "M16",
+  "title": "Quote reference formats the SKU with an integer code",
+  "pattern": "introspects-wrong-object",
+  "provenance": {
+    "origin": "mined",
+    "source": "https://github.com/celery/celery/commit/4369baf040bff0ff8d9f645fd1d5646a783998e1",
+    "upstream_repo": "celery/celery",
+    "upstream_commit": "Fix head_from_fun following __wrapped__ on Python 3.14+",
+    "failure_class_upstream": "TypeError",
+    "modeled_on": "code follows the wrong attribute of an object and operates on the wrong value"
+  },
+  "service": "alpha",
+  "deterministic": true,
+  "stateful": false,
+  "mutations": [
+    {
+      "file": "alpha/main.py",
+      "find": "            \"reference\": \"Q\" + format(quantity, \"03d\")}\n",
+      "replace": "            \"reference\": \"Q\" + format(sku, \"03d\")}\n"
+    }
+  ],
+  "trigger": {
+    "method": "GET",
+    "path": "/quote",
+    "params": {
+      "sku": "WIDGET"
+    }
+  },
+  "expected_exception": "ValueError",
+  "expected_c3": "healed"
+}

@@ -1,0 +1,40 @@
+{
+  "id": "N08",
+  "title": "Cart item quantity coercion dropped",
+  "pattern": "boundary-type-confusion",
+  "provenance": {
+    "origin": "mined",
+    "source": "https://github.com/redis/redis-py/commit/fbcd2932250804c475ba1a6f3fc1586aa0d958de",
+    "upstream_repo": "redis/redis-py",
+    "upstream_commit": "Fix TypeError in CacheProxyConnection when cached response is non-bytes (#4017)",
+    "failure_class_upstream": "TypeError",
+    "modeled_on": "a cached/received value of an unexpected type is used without coercion"
+  },
+  "service": "alpha",
+  "deterministic": true,
+  "stateful": true,
+  "mutations": [
+    {
+      "file": "alpha/main.py",
+      "find": "        cart.append({\"sku\": item[\"sku\"],\n                     \"quantity\": int(item.get(\"quantity\", 1))})\n",
+      "replace": "        cart.append({\"sku\": item[\"sku\"],\n                     \"quantity\": item.get(\"quantity\", 1)})\n"
+    }
+  ],
+  "setup": [
+    {
+      "method": "POST",
+      "path": "/carts/c9/items",
+      "json": {
+        "sku": "WIDGET",
+        "quantity": "3"
+      }
+    }
+  ],
+  "trigger": {
+    "method": "POST",
+    "path": "/carts/c9/checkout"
+  },
+  "expected_exception": "TypeError",
+  "expected_c3": "refused",
+  "notes": "stateful: the string quantity is stored on add and only raises when summed at checkout, which a fresh replay of the checkout cannot reach"
+}

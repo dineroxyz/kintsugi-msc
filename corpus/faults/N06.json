@@ -1,0 +1,30 @@
+{
+  "id": "N06",
+  "title": "Checkout empty-cart guard removed, sum over nothing then index",
+  "pattern": "validation-removal-keyerror",
+  "provenance": {
+    "origin": "mined",
+    "source": "https://github.com/django/django/commit/616e8c52ded7f4c7b00cae5a95f5a5d12a6a39b9",
+    "upstream_repo": "django/django",
+    "upstream_commit": "Fixed #37264 -- Handled further malformed _source_model values in admin popups.",
+    "failure_class_upstream": "ValueError",
+    "modeled_on": "handling of a malformed/empty value removed, later code assumes it was well formed"
+  },
+  "service": "alpha",
+  "deterministic": true,
+  "stateful": false,
+  "mutations": [
+    {
+      "file": "alpha/main.py",
+      "find": "    if cart_id not in CARTS:\n        raise HTTPException(status_code=404, detail=f\"no cart {cart_id}\")\n    items = CARTS.pop(cart_id)\n",
+      "replace": "    items = CARTS.pop(cart_id)\n"
+    }
+  ],
+  "trigger": {
+    "method": "POST",
+    "path": "/carts/ghost/checkout"
+  },
+  "expected_exception": "KeyError",
+  "expected_c3": "healed",
+  "notes": "checkout of an unknown cart pops a missing key"
+}

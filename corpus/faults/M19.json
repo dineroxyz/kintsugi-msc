@@ -1,0 +1,37 @@
+{
+  "id": "M19",
+  "title": "Order id source left uninitialised",
+  "pattern": "incomplete-initialisation",
+  "provenance": {
+    "origin": "mined",
+    "source": "https://github.com/sqlalchemy/sqlalchemy/commit/e4a802f99a0bca813dd29e8dc88bb5e5aaddff93",
+    "upstream_repo": "sqlalchemy/sqlalchemy",
+    "upstream_commit": "Fix adding property to mapper before mapping is complete",
+    "failure_class_upstream": "AttributeError",
+    "modeled_on": "component used before its initialisation sequence completed"
+  },
+  "service": "alpha",
+  "deterministic": true,
+  "stateful": false,
+  "mutations": [
+    {
+      "file": "alpha/main.py",
+      "find": "NEXT_ID = iter(range(1, 10**6))\n",
+      "replace": "NEXT_ID = None\n"
+    }
+  ],
+  "trigger": {
+    "method": "POST",
+    "path": "/orders",
+    "json": {
+      "lines": [
+        {
+          "sku": "WIDGET",
+          "quantity": 2
+        }
+      ]
+    }
+  },
+  "expected_exception": "TypeError",
+  "expected_c3": "healed"
+}

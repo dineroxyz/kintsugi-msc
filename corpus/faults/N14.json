@@ -1,0 +1,29 @@
+{
+  "id": "N14",
+  "title": "Tier fraction formatted with a string width",
+  "pattern": "wrong-argument-type",
+  "provenance": {
+    "origin": "mined",
+    "source": "https://github.com/agronholm/anyio/commit/3ceb6ffbfa89be715f444550883356fbfbc13154",
+    "upstream_repo": "agronholm/anyio",
+    "upstream_commit": "Allow 0 tokens in a CapacityLimiter instantiated outside an event loop (#1183)",
+    "failure_class_upstream": "ValueError",
+    "modeled_on": "a boundary value of the wrong type reaches a call that rejects it"
+  },
+  "service": "beta",
+  "deterministic": true,
+  "stateful": false,
+  "mutations": [
+    {
+      "file": "beta/main.py",
+      "find": "    bps = table[tier]\n",
+      "replace": "    bps = table[tier]\n    _ = round(bps, \"2\")\n"
+    }
+  ],
+  "trigger": {
+    "method": "GET",
+    "path": "/discounts/bronze"
+  },
+  "expected_exception": "TypeError",
+  "expected_c3": "healed"
+}

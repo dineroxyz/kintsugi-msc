@@ -1,0 +1,32 @@
+{
+  "id": "M08",
+  "title": "Quote calls a renamed response method",
+  "pattern": "api-attribute-drift",
+  "provenance": {
+    "origin": "mined",
+    "source": "https://github.com/sqlalchemy/sqlalchemy/commit/afa94c32a91711b81e4e663cc328837354491315",
+    "upstream_repo": "sqlalchemy/sqlalchemy",
+    "upstream_commit": "implement _post_inspect for AliasedInsp",
+    "failure_class_upstream": "AttributeError",
+    "modeled_on": "call site not updated when the object's inspection API changed"
+  },
+  "service": "alpha",
+  "deterministic": true,
+  "stateful": false,
+  "mutations": [
+    {
+      "file": "alpha/main.py",
+      "find": "    resp.raise_for_status()\n    unit = resp.json()[\"price\"]\n",
+      "replace": "    resp.raise_status()\n    unit = resp.json()[\"price\"]\n"
+    }
+  ],
+  "trigger": {
+    "method": "GET",
+    "path": "/quote",
+    "params": {
+      "sku": "WIDGET"
+    }
+  },
+  "expected_exception": "AttributeError",
+  "expected_c3": "healed"
+}

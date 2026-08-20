@@ -1,0 +1,29 @@
+{
+  "id": "N05",
+  "title": "Tier discount divides bps by a string",
+  "pattern": "wrong-argument-type",
+  "provenance": {
+    "origin": "mined",
+    "source": "https://github.com/pydantic/pydantic/commit/35b8d94c1435a3e78fc919cfdb439a1ef85a8d6f",
+    "upstream_repo": "pydantic/pydantic",
+    "upstream_commit": "Fix `SecretStr` equality comparison raising `TypeError` on non-ASCII values (#13537)",
+    "failure_class_upstream": "TypeError",
+    "modeled_on": "a value of the wrong type reaches an arithmetic operation on one path"
+  },
+  "service": "beta",
+  "deterministic": true,
+  "stateful": false,
+  "mutations": [
+    {
+      "file": "beta/main.py",
+      "find": "    return {\"tier\": tier, \"bps\": bps, \"fraction\": round(bps / 10000, 4)}\n",
+      "replace": "    return {\"tier\": tier, \"bps\": bps, \"fraction\": round(bps / \"10000\", 4)}\n"
+    }
+  ],
+  "trigger": {
+    "method": "GET",
+    "path": "/discounts/silver"
+  },
+  "expected_exception": "TypeError",
+  "expected_c3": "healed"
+}

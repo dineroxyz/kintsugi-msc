@@ -444,8 +444,10 @@ ENTRIES = [
         "stateful": False,
         "mutations": [{
             "file": ALPHA,
-            "find": "    total = 0.0\n",
-            "replace": "    total = \"\"\n"}],
+            "find": "        raise HTTPException(status_code=422, detail=\"order has no lines\")\n"
+                    "    total = 0.0\n",
+            "replace": "        raise HTTPException(status_code=422, detail=\"order has no lines\")\n"
+                       "    total = \"\"\n"}],
         "trigger": {"method": "POST", "path": "/orders",
                     "json": {"lines": [{"sku": "DOODAD", "quantity": 1}]}},
         "expected_exception": "TypeError",
@@ -526,10 +528,15 @@ ENTRIES = [
 ]
 
 
-def main() -> int:
+def verify_and_write(entries: list[dict], prefix: str) -> int:
+    """Verify every mutation is unique in the clean tree (both directions)
+    and rewrite this generator's slice of the corpus (`prefix`*.json only,
+    so the seeded and mined generators never clobber each other)."""
     problems = []
     sources = {}
-    for entry in ENTRIES:
+    for entry in entries:
+        if not entry["id"].startswith(prefix):
+            problems.append(f"{entry['id']}: id must start with {prefix!r}")
         for m in entry["mutations"]:
             path = os.path.join(SERVICES, m["file"])
             if path not in sources:
@@ -551,14 +558,18 @@ def main() -> int:
 
     os.makedirs(FAULTS, exist_ok=True)
     for stale in os.listdir(FAULTS):
-        if stale.endswith(".json"):
+        if stale.startswith(prefix) and stale.endswith(".json"):
             os.remove(os.path.join(FAULTS, stale))
-    for entry in ENTRIES:
+    for entry in entries:
         with open(os.path.join(FAULTS, f"{entry['id']}.json"), "w") as fh:
             json.dump(entry, fh, indent=2)
             fh.write("\n")
-    print(f"wrote {len(ENTRIES)} entries")
+    print(f"wrote {len(entries)} entries with prefix {prefix!r}")
     return 0
+
+
+def main() -> int:
+    return verify_and_write(ENTRIES, "F")
 
 
 if __name__ == "__main__":

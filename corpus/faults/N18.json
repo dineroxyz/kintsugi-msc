@@ -1,0 +1,33 @@
+{
+  "id": "N18",
+  "title": "Cart add guard checks the wrong membership",
+  "pattern": "wrong-condition-keyerror",
+  "provenance": {
+    "origin": "mined",
+    "source": "https://github.com/redis/redis-py/commit/18b53522d67ded549bd4d6e2977ab8d8b67e879b",
+    "upstream_repo": "redis/redis-py",
+    "upstream_commit": "Fix AttributeError in cluster metrics recording when connection is None or ClusterNode object instance is used to extract the connection info (#3999)",
+    "failure_class_upstream": "AttributeError",
+    "modeled_on": "a guard condition inverted or pointed at the wrong object, leaving the real case open"
+  },
+  "service": "alpha",
+  "deterministic": true,
+  "stateful": false,
+  "mutations": [
+    {
+      "file": "alpha/main.py",
+      "find": "    if \"sku\" not in item:\n        raise HTTPException(status_code=422, detail=\"item missing sku\")\n    with _cart_lock:\n",
+      "replace": "    with _cart_lock:\n"
+    }
+  ],
+  "trigger": {
+    "method": "POST",
+    "path": "/carts/c18/items",
+    "json": {
+      "quantity": 2
+    }
+  },
+  "expected_exception": "KeyError",
+  "expected_c3": "healed",
+  "notes": "the missing-sku guard removed; item['sku'] then raises"
+}

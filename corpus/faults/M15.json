@@ -1,0 +1,29 @@
+{
+  "id": "M15",
+  "title": "Receipt fetches its order without the existence guard",
+  "pattern": "optional-component-none",
+  "provenance": {
+    "origin": "mined",
+    "source": "https://github.com/celery/celery/commit/03c79ac140b2098520011a94d2e9a52f83571260",
+    "upstream_repo": "celery/celery",
+    "upstream_commit": "fix(worker): guard heartbeat control command against None event_dispatcher (#10295)",
+    "failure_class_upstream": "AttributeError",
+    "modeled_on": "control path stopped guarding an object that can legitimately be absent"
+  },
+  "service": "alpha",
+  "deterministic": true,
+  "stateful": false,
+  "mutations": [
+    {
+      "file": "alpha/main.py",
+      "find": "    if order_id not in ORDERS:\n        raise HTTPException(status_code=404, detail=f\"no order {order_id}\")\n    order = ORDERS[order_id]\n    parts = [f\"{line['sku']} x{int(line.get('quantity', 1))}\"\n",
+      "replace": "    order = ORDERS.get(order_id)\n    parts = [f\"{line['sku']} x{int(line.get('quantity', 1))}\"\n"
+    }
+  ],
+  "trigger": {
+    "method": "GET",
+    "path": "/orders/999999/receipt"
+  },
+  "expected_exception": "TypeError",
+  "expected_c3": "healed"
+}

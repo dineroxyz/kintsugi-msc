@@ -1,0 +1,32 @@
+{
+  "id": "M10",
+  "title": "Summary guard catches the wrong exception class",
+  "pattern": "wrong-exception-caught",
+  "provenance": {
+    "origin": "mined",
+    "source": "https://github.com/sqlalchemy/sqlalchemy/commit/0f74af5c339d7f3a6412537571aa60c0180be426",
+    "upstream_repo": "sqlalchemy/sqlalchemy",
+    "upstream_commit": "Fix WeakSequence.__getitem__ catching KeyError instead of IndexError",
+    "failure_class_upstream": "KeyError",
+    "modeled_on": "except clause names a different exception class than the operation actually raises"
+  },
+  "service": "alpha",
+  "deterministic": true,
+  "stateful": false,
+  "mutations": [
+    {
+      "file": "alpha/main.py",
+      "find": "    except ValueError:\n",
+      "replace": "    except TypeError:\n"
+    }
+  ],
+  "trigger": {
+    "method": "GET",
+    "path": "/summary",
+    "params": {
+      "min_total": "abc"
+    }
+  },
+  "expected_exception": "ValueError",
+  "expected_c3": "healed"
+}

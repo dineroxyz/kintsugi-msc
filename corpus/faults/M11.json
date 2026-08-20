@@ -1,0 +1,29 @@
+{
+  "id": "M11",
+  "title": "Catalog indexes the first tag of a tagless SKU",
+  "pattern": "truncated-input-indexerror",
+  "provenance": {
+    "origin": "mined",
+    "source": "https://github.com/python-pillow/Pillow/commit/e5cada535b10bd4a926851ef9e09686574298194",
+    "upstream_repo": "python-pillow/Pillow",
+    "upstream_commit": "Fix QoiDecoder crash on truncated QOI files",
+    "failure_class_upstream": "IndexError",
+    "modeled_on": "decoder indexes into input shorter than the code assumes"
+  },
+  "service": "beta",
+  "deterministic": true,
+  "stateful": false,
+  "mutations": [
+    {
+      "file": "beta/main.py",
+      "find": "            \"primary_tag\": tags[0] if tags else None,\n",
+      "replace": "            \"primary_tag\": tags[0],\n"
+    }
+  ],
+  "trigger": {
+    "method": "GET",
+    "path": "/catalog/SPROCKET"
+  },
+  "expected_exception": "IndexError",
+  "expected_c3": "healed"
+}

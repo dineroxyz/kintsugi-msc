@@ -1,0 +1,44 @@
+{
+  "id": "M02",
+  "title": "Summary compares totals against the raw query string",
+  "pattern": "boundary-type-confusion",
+  "provenance": {
+    "origin": "mined",
+    "source": "https://github.com/encode/httpx/commit/4cbf13ece2e584b45b935df0a0c670e1863c4569",
+    "upstream_repo": "encode/httpx",
+    "upstream_commit": "Raise `TypeError` on invalid query params. (#2523)",
+    "failure_class_upstream": "TypeError",
+    "modeled_on": "unvalidated query parameter type flows into a typed operation"
+  },
+  "service": "alpha",
+  "deterministic": true,
+  "stateful": true,
+  "mutations": [
+    {
+      "file": "alpha/main.py",
+      "find": "    picked = [o for o in ORDERS.values() if o[\"total\"] >= floor]\n",
+      "replace": "    picked = [o for o in ORDERS.values() if o[\"total\"] >= min_total]\n"
+    }
+  ],
+  "setup": [
+    {
+      "method": "POST",
+      "path": "/orders",
+      "json": {
+        "lines": [
+          {
+            "sku": "WIDGET",
+            "quantity": 2
+          }
+        ]
+      }
+    }
+  ],
+  "trigger": {
+    "method": "GET",
+    "path": "/summary"
+  },
+  "expected_exception": "TypeError",
+  "expected_c3": "refused",
+  "notes": "stateful: the comparison only runs once an order exists"
+}

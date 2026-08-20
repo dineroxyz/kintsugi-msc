@@ -1,0 +1,40 @@
+{
+  "id": "N16",
+  "title": "Checkout accumulator initialised as None",
+  "pattern": "wrong-initialiser-type",
+  "provenance": {
+    "origin": "mined",
+    "source": "https://github.com/django/django/commit/9f790ef1a0f356cf6342b5d57bbaeac35aed0d9f",
+    "upstream_repo": "django/django",
+    "upstream_commit": "Fixed #37075 -- Allowed overriding the PostgreSQL pool's \"check\" callable.",
+    "failure_class_upstream": "TypeError",
+    "modeled_on": "an accumulator/option left as None reaches an operation expecting a value"
+  },
+  "service": "alpha",
+  "deterministic": true,
+  "stateful": true,
+  "mutations": [
+    {
+      "file": "alpha/main.py",
+      "find": "    items = CARTS.pop(cart_id)\n    if not items:\n        raise HTTPException(status_code=422, detail=\"cart is empty\")\n    total = 0.0\n",
+      "replace": "    items = CARTS.pop(cart_id)\n    if not items:\n        raise HTTPException(status_code=422, detail=\"cart is empty\")\n    total = None\n"
+    }
+  ],
+  "setup": [
+    {
+      "method": "POST",
+      "path": "/carts/acc/items",
+      "json": {
+        "sku": "WIDGET",
+        "quantity": 1
+      }
+    }
+  ],
+  "trigger": {
+    "method": "POST",
+    "path": "/carts/acc/checkout"
+  },
+  "expected_exception": "TypeError",
+  "expected_c3": "refused",
+  "notes": "stateful: needs a populated cart to reach the accumulation"
+}

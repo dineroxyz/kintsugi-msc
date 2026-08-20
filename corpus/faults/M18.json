@@ -1,0 +1,29 @@
+{
+  "id": "M18",
+  "title": "Beta raises a bare KeyError for unknown SKUs",
+  "pattern": "wrong-error-surface",
+  "provenance": {
+    "origin": "mined",
+    "source": "https://github.com/psf/requests/commit/2d5517682b3b38547634d153cea43d48fbc8cdb5",
+    "upstream_repo": "psf/requests",
+    "upstream_commit": "Fix inconsistent exception for JSONDecode error (#6097)",
+    "failure_class_upstream": "ValueError",
+    "modeled_on": "error path raises an inconsistent exception class instead of the documented one"
+  },
+  "service": "beta",
+  "deterministic": true,
+  "stateful": false,
+  "mutations": [
+    {
+      "file": "beta/main.py",
+      "find": "def price(sku: str) -> dict:\n    if sku not in PRICES:\n        raise HTTPException(status_code=404, detail=f\"unknown sku {sku!r}\")\n",
+      "replace": "def price(sku: str) -> dict:\n    if sku not in PRICES:\n        raise KeyError(sku)\n"
+    }
+  ],
+  "trigger": {
+    "method": "GET",
+    "path": "/price/UNOBTAINIUM"
+  },
+  "expected_exception": "KeyError",
+  "expected_c3": "healed"
+}

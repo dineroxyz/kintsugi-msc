@@ -1,0 +1,43 @@
+{
+  "id": "M06",
+  "title": "Summary reads order totals as attributes",
+  "pattern": "dict-attribute-confusion",
+  "provenance": {
+    "origin": "mined",
+    "source": "https://github.com/sqlalchemy/sqlalchemy/commit/16177b8c73e492e5adaad8f51095f9981831da41",
+    "upstream_repo": "sqlalchemy/sqlalchemy",
+    "upstream_commit": "Use coercion rules for aliased() against select/union constructs",
+    "failure_class_upstream": "AttributeError",
+    "modeled_on": "value of one kind handled with the access pattern of another after a coercion change"
+  },
+  "service": "alpha",
+  "deterministic": true,
+  "stateful": true,
+  "mutations": [
+    {
+      "file": "alpha/main.py",
+      "find": "    picked = [o for o in ORDERS.values() if o[\"total\"] >= floor]\n",
+      "replace": "    picked = [o for o in ORDERS.values() if o.total >= floor]\n"
+    }
+  ],
+  "setup": [
+    {
+      "method": "POST",
+      "path": "/orders",
+      "json": {
+        "lines": [
+          {
+            "sku": "WIDGET",
+            "quantity": 2
+          }
+        ]
+      }
+    }
+  ],
+  "trigger": {
+    "method": "GET",
+    "path": "/summary"
+  },
+  "expected_exception": "AttributeError",
+  "expected_c3": "refused"
+}

@@ -1,0 +1,33 @@
+{
+  "id": "N03",
+  "title": "Cart append assumes the cart already exists",
+  "pattern": "missing-initialisation-keyerror",
+  "provenance": {
+    "origin": "mined",
+    "source": "https://github.com/redis/redis-py/commit/3972275826c4c2a40c05c999e55d682ffbd33a48",
+    "upstream_repo": "redis/redis-py",
+    "upstream_commit": "Fix async cluster release race for closed connections (#4256)",
+    "failure_class_upstream": "race",
+    "modeled_on": "state accessed on a code path that no longer creates it first"
+  },
+  "service": "alpha",
+  "deterministic": true,
+  "stateful": false,
+  "mutations": [
+    {
+      "file": "alpha/main.py",
+      "find": "        cart = CARTS.setdefault(cart_id, [])\n",
+      "replace": "        cart = CARTS[cart_id]\n"
+    }
+  ],
+  "trigger": {
+    "method": "POST",
+    "path": "/carts/fresh/items",
+    "json": {
+      "sku": "WIDGET",
+      "quantity": 1
+    }
+  },
+  "expected_exception": "KeyError",
+  "expected_c3": "healed"
+}

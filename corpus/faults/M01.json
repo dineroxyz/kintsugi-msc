@@ -1,0 +1,32 @@
+{
+  "id": "M01",
+  "title": "Summary loses the guard around its numeric conversion",
+  "pattern": "unguarded-conversion",
+  "provenance": {
+    "origin": "mined",
+    "source": "https://github.com/pallets/werkzeug/commit/f516c4005c7c4510b61ae07969450771b929809d",
+    "upstream_repo": "pallets/werkzeug",
+    "upstream_commit": "Handle TypeError in TypeConversionDict",
+    "failure_class_upstream": "TypeError",
+    "modeled_on": "a type conversion of untrusted input had its failure handling removed"
+  },
+  "service": "alpha",
+  "deterministic": true,
+  "stateful": false,
+  "mutations": [
+    {
+      "file": "alpha/main.py",
+      "find": "    try:\n        floor = float(min_total)\n    except ValueError:\n        raise HTTPException(status_code=422, detail=\"min_total must be numeric\")\n",
+      "replace": "    floor = float(min_total)\n"
+    }
+  ],
+  "trigger": {
+    "method": "GET",
+    "path": "/summary",
+    "params": {
+      "min_total": "abc"
+    }
+  },
+  "expected_exception": "ValueError",
+  "expected_c3": "healed"
+}

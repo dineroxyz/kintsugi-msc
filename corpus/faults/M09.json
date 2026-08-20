@@ -1,0 +1,32 @@
+{
+  "id": "M09",
+  "title": "Currency conversion indexes the rate table blindly",
+  "pattern": "guard-removal-keyerror",
+  "provenance": {
+    "origin": "mined",
+    "source": "https://github.com/sqlalchemy/sqlalchemy/commit/530e1f71e74263ee9e23245071af2557aa65d425",
+    "upstream_repo": "sqlalchemy/sqlalchemy",
+    "upstream_commit": "narrow scope of _correct_for_mysql_bugs_88718_96365",
+    "failure_class_upstream": "KeyError",
+    "modeled_on": "a keyed lookup ran outside the narrow case its guard was written for"
+  },
+  "service": "beta",
+  "deterministic": true,
+  "stateful": false,
+  "mutations": [
+    {
+      "file": "beta/main.py",
+      "find": "    rate = FX_RATES.get(currency)\n    if rate is None:\n        raise HTTPException(status_code=422,\n                            detail=f\"unsupported currency {currency!r}\")\n",
+      "replace": "    rate = FX_RATES[currency]\n"
+    }
+  ],
+  "trigger": {
+    "method": "GET",
+    "path": "/price/GADGET/converted",
+    "params": {
+      "currency": "GBP"
+    }
+  },
+  "expected_exception": "KeyError",
+  "expected_c3": "healed"
+}

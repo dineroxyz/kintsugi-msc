@@ -1,0 +1,29 @@
+{
+  "id": "N17",
+  "title": "Bundle size reads len of a member string, not the list",
+  "pattern": "introspects-wrong-object",
+  "provenance": {
+    "origin": "mined",
+    "source": "https://github.com/redis/redis-py/commit/f83f8413af66f5b46ee306f635d5086a007ea2b3",
+    "upstream_repo": "redis/redis-py",
+    "upstream_commit": "fix: handle scientific notation in score_cast_func for RESP2 (#4016)",
+    "failure_class_upstream": "ValueError",
+    "modeled_on": "code operates on a differently-shaped value than intended after a representation change"
+  },
+  "service": "beta",
+  "deterministic": true,
+  "stateful": false,
+  "mutations": [
+    {
+      "file": "beta/main.py",
+      "find": "    return {\"bundle\": name, \"size\": len(members),\n            \"leader_price\": prices[0], \"total\": round(sum(prices), 2)}\n",
+      "replace": "    return {\"bundle\": name, \"size\": len(members[0][99]),\n            \"leader_price\": prices[0], \"total\": round(sum(prices), 2)}\n"
+    }
+  ],
+  "trigger": {
+    "method": "GET",
+    "path": "/bundles/STARTER"
+  },
+  "expected_exception": "IndexError",
+  "expected_c3": "healed"
+}
