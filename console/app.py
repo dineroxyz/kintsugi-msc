@@ -56,7 +56,11 @@ STYLE = """
           --dim:#9a8f7d; --good:#8fb573; --bad:#c96f5f; --warn:#c9a95f; }
   * { box-sizing:border-box; }
   body { background:var(--lacquer); color:var(--ink); margin:0;
-         font:15px/1.55 Georgia, 'Times New Roman', serif; }
+         font:15px/1.55 Georgia, 'Times New Roman', serif;
+         /* Georgia defaults to old-style figures, which render "C0" as
+            "Co" and "C1" oddly; force full-height lining numerals. */
+         font-variant-numeric: lining-nums tabular-nums;
+         font-feature-settings: "lnum" 1, "tnum" 1; }
   header { padding:1.4rem 2rem .9rem; border-bottom:1px solid var(--gold-dim); }
   header h1 { margin:0; font-size:1.5rem; letter-spacing:.14em;
               color:var(--gold); font-weight:normal; }
@@ -87,6 +91,18 @@ STYLE = """
         overflow-x:auto; font:13px/1.5 ui-monospace, Menlo, monospace; }
   .diff-add { color:var(--good); } .diff-del { color:var(--bad); }
   .seam { color:var(--gold-dim); }
+  .lede { color:var(--ink); max-width:60rem; margin:.4rem 0 1.2rem; }
+  .legend { background:var(--panel); border:1px solid var(--line);
+            padding:.7rem 1.1rem; margin:0 0 1.3rem; max-width:60rem; }
+  .legend h3 { color:var(--gold-dim); font-weight:normal; margin:.1rem 0 .5rem;
+               font-size:.85rem; letter-spacing:.1em; text-transform:uppercase; }
+  .legend dl { display:grid; grid-template-columns:auto 1fr; gap:.2rem .8rem;
+               margin:0; }
+  .legend dt { color:var(--gold); white-space:nowrap; }
+  .legend dd { margin:0; color:var(--dim); }
+  .card .armname { color:var(--ink); font-size:.95rem; letter-spacing:0;
+                   display:block; margin-top:.1rem; }
+  .help { color:var(--gold-dim); cursor:help; border-bottom:1px dotted var(--gold-dim); }
 </style>
 """
 
@@ -95,7 +111,7 @@ def page(title: str, active: str, body: str) -> HTMLResponse:
     tabs = [("/", "overview", "Overview"),
             ("/certificates", "certificates", "Certificates"),
             ("/practice", "practice", "Practice log"),
-            ("/api/incidents", "incidents", "Incidents (API)")]
+            ("/api/incidents", "incidents", "Live incidents")]
     nav = "".join(
         f'<a href="{href}" class="{"here" if key == active else ""}">{label}</a>'
         for href, key, label in tabs)
@@ -118,14 +134,61 @@ OUTCOME_CLASS = {"recovered": "ok", "false_fix": "fail", "refused": "warn",
                  "escalated": "warn", "unrecovered": "dim",
                  "harness_error": "fail", "fault_never_fired": "dim"}
 
+# plain-language names, shown next to the study codes
+ARM_NAME = {
+    "C0": "No recovery (baseline)",
+    "C1": "Restart, then roll back",
+    "C2": "AI repair, no safety check",
+    "C3": "AI repair behind the gate",
+}
+ARM_BLURB = {
+    "C0": "Watches the failure and does nothing. The yardstick.",
+    "C1": "The traditional runbook: restart the service, and if that fails, "
+          "roll back to the previous version.",
+    "C2": "Lets the model write a patch and ships it once tests pass, with no "
+          "requirement to reproduce the failure first.",
+    "C3": "Kintsugi. Reproduces the failure, has the model write a patch, and "
+          "ships only what passes the reproduction, the tests and a structural "
+          "check.",
+}
+# plain words for the outcomes, with the technical term on hover
+OUTCOME_LABEL = {
+    "recovered": ("fixed", "the failing request works again afterwards"),
+    "false_fix": ("bad fix shipped", "a patch was deployed but the failure "
+                  "is still there"),
+    "refused": ("declined", "the platform would not act because it could not "
+                "reproduce the failure reliably"),
+    "escalated": ("gave up", "no safe patch was found; handed back to a human"),
+    "unrecovered": ("still broken", "the failure was left live"),
+    "harness_error": ("run error", "the test harness itself errored"),
+    "fault_never_fired": ("did not trigger", "the injected fault never "
+                          "surfaced under load"),
+}
+
+
+def outcome_cell(outcome: str) -> str:
+    label, tip = OUTCOME_LABEL.get(outcome, (outcome, ""))
+    cls = OUTCOME_CLASS.get(outcome, "")
+    return (f'<td class="{cls}"><span class="help" title="{html.escape(tip)} '
+            f'(technical term: {outcome})">{label}</span></td>')
+
+
+def arms_legend(arms: list[str]) -> str:
+    rows = "".join(
+        f'<dt>{arm} — {ARM_NAME.get(arm, arm)}</dt>'
+        f'<dd>{ARM_BLURB.get(arm, "")}</dd>'
+        for arm in arms)
+    return ('<div class="legend"><h3>The four approaches compared</h3>'
+            f'<dl>{rows}</dl></div>')
+
 
 @app.get("/", response_class=HTMLResponse)
 def overview():
     trials = load_trials()
     if not trials:
         return page("Overview", "overview",
-                    "<h2>Study</h2><p class=dim>No trial data yet. "
-                    "Run <code>python study/run_pilot.py</code>.</p>")
+                    "<h2>Study</h2><p class=lede>No results yet. Once a study "
+                    "run has produced results, they appear here.</p>")
 
     arms = sorted({t["arm"] for t in trials})
     cards = []
@@ -134,25 +197,34 @@ def overview():
         recovered = sum(1 for r in rows if r["outcome"] == "recovered")
         false_fix = sum(1 for r in rows if r["outcome"] == "false_fix")
         mttrs = [r["mttr_seconds"] for r in rows if r["mttr_seconds"]]
-        med = f"{statistics.median(mttrs):.1f}s" if mttrs else "—"
+        med = f"{statistics.median(mttrs):.1f}s" if mttrs else "n/a"
+        ff = (f'<span class=fail>{false_fix} bad fixes shipped</span>'
+              if false_fix else "no bad fixes shipped")
         cards.append(
             f'<div class="card"><small>{arm}</small>'
+            f'<span class="armname">{ARM_NAME.get(arm, arm)}</span>'
             f'<b>{recovered}/{len(rows)}</b>'
-            f'<small>recovered · median MTTR {med}<br>'
-            f'{"<span class=fail>" + str(false_fix) + " false fixes</span>" if false_fix else "no false fixes"}'
-            f'</small></div>')
+            f'<small>failures fixed · typical time to fix {med}<br>{ff}</small>'
+            f'</div>')
 
     rows_html = "".join(
-        f'<tr><td>{t["entry"]}</td><td>{t["arm"]}</td>'
-        f'<td class="{OUTCOME_CLASS.get(t["outcome"], "")}">{t["outcome"]}</td>'
+        f'<tr><td>{t["entry"]}</td>'
+        f'<td><span class="help" title="{html.escape(ARM_NAME.get(t["arm"], t["arm"]))}">{t["arm"]}</span></td>'
+        f'{outcome_cell(t["outcome"])}'
         f'<td>{t["mttr_seconds"] if t["mttr_seconds"] is not None else "—"}</td>'
-        f'<td class=dim>{t.get("expected_c3", "")}</td>'
+        f'<td class=dim>{"should refuse" if t.get("expected_c3") == "refused" else "should fix"}</td>'
         f'<td class=dim>{html.escape(str(t.get("detail", {}).get("heal_reason", ""))[:90])}</td></tr>'
         for t in trials)
-    body = (f"<h2>Study — {len(trials)} trials</h2>"
+    body = (f"<h2>Study results — {len(trials)} test runs</h2>"
+            '<p class="lede">Each fault was injected into a live service and '
+            "handed to four different recovery approaches. A run counts as "
+            "<b>fixed</b> only when the failing request works again "
+            "<i>and</i> live traffic is clean; time to fix is measured from "
+            "the first error to the moment it recovers.</p>"
+            f'{arms_legend(arms)}'
             f'<div class="cards">{"".join(cards)}</div>'
-            "<table><tr><th>Fault</th><th>Arm</th><th>Outcome</th>"
-            "<th>MTTR s</th><th>Expected C3</th><th>Detail</th></tr>"
+            '<table><tr><th>Fault</th><th>Approach</th><th>Result</th>'
+            '<th>Time to fix (s)</th><th>Expected</th><th>Notes</th></tr>'
             f"{rows_html}</table>")
     return page("Overview", "overview", body)
 
@@ -162,22 +234,28 @@ def certificates():
     store = CertificateStore(CERT_DIR)
     try:
         chain = store.verify_chain()
-        status = ('<p class="ok">Chain verified: every hash, link and '
-                  'signature checks out.</p>')
+        status = ('<p class="ok">All certificates verified — every record is '
+                  'intact and none has been altered.</p>')
     except CertificateError as exc:
         chain = store.all()
-        status = f'<p class="fail">CHAIN BROKEN: {html.escape(str(exc))}</p>'
+        status = (f'<p class="fail">A certificate failed verification: '
+                  f'{html.escape(str(exc))}</p>')
 
     rows = "".join(
         f'<tr><td><a href="/certificates/{c["sequence"]}">'
-        f'{c["sequence"]:06d}</a></td>'
+        f'#{c["sequence"]:06d}</a></td>'
         f'<td>{html.escape(c.get("signature") or "")}</td>'
         f'<td class=dim>{c["issued_at"]}</td>'
         f'<td class=seam>{c["hash"][:16]}…</td></tr>'
         for c in chain)
-    body = (f"<h2>Repair certificates — {len(chain)}</h2>{status}"
-            "<table><tr><th>Seq</th><th>Signature</th><th>Issued</th>"
-            f"<th>Hash</th></tr>{rows}</table>")
+    body = (f"<h2>Repair certificates — {len(chain)}</h2>"
+            '<p class="lede">Every fix the platform ships is recorded as a '
+            "tamper-evident certificate: the failure, how it was reproduced, "
+            "the patch, and the checks it passed. The records are chained "
+            "together, so altering any one of them is detectable.</p>"
+            f"{status}"
+            "<table><tr><th>Number</th><th>Failure</th><th>Issued</th>"
+            f"<th>Fingerprint</th></tr>{rows}</table>")
     return page("Certificates", "certificates", body)
 
 
@@ -225,25 +303,37 @@ def practice():
     rows = bank.all()
     if not rows:
         return page("Practice", "practice",
-                    "<h2>Practice log</h2><p class=dim>The bank is empty; "
-                    "the platform has not practised yet.</p>")
+                    "<h2>Practice log</h2><p class=lede>Nothing here yet. "
+                    "When the platform is idle it rehearses failures against "
+                    "a copy of the services; those rehearsals will show up "
+                    "here.</p>")
     counts = bank.counts()
     would = sum(1 for r in rows if r["status"] == "would_heal")
     refused = sum(1 for r in rows if r["status"] == "refused")
     cards = (f'<div class="cards">'
-             f'<div class="card"><small>rehearsals</small><b>{len(rows)}</b></div>'
-             f'<div class="card"><small>would heal</small><b class=ok>{would}</b></div>'
-             f'<div class="card"><small>refusals banked</small><b>{refused}</b></div>'
+             f'<div class="card"><small>rehearsals run</small><b>{len(rows)}</b></div>'
+             f'<div class="card"><small>would fix</small><b class=ok>{would}</b></div>'
+             f'<div class="card"><small>would decline</small><b>{refused}</b></div>'
              f'<div class="card"><small>faults covered</small><b>{len(counts)}</b></div>'
              f'</div>')
+    status_word = {"would_heal": ("would fix", "ok"),
+                   "refused": ("would decline", "warn"),
+                   "no_fire": ("did not trigger", "dim")}
     table = "".join(
         f'<tr><td>{r["entry_id"]}</td>'
-        f'<td class="{OUTCOME_CLASS.get("recovered" if r["status"] == "would_heal" else "refused", "")}">{r["status"]}</td>'
+        f'<td class="{status_word.get(r["status"], (r["status"], ""))[1]}">'
+        f'{status_word.get(r["status"], (r["status"], ""))[0]}</td>'
         f'<td class=dim>{html.escape(r.get("key") or "")}</td>'
         f'<td class=dim>{r["rehearsed_at"]}</td>'
         f'<td class=dim>{html.escape((r.get("reason") or "")[:80])}</td></tr>'
         for r in reversed(rows))
-    body = (f"<h2>Practice log</h2>{cards}"
-            "<table><tr><th>Fault</th><th>Outcome</th><th>Shape key</th>"
-            f"<th>When</th><th>Reason</th></tr>{table}</table>")
+    body = ("<h2>Practice log</h2>"
+            '<p class="lede">While idle, the platform breaks a private copy '
+            "of the services on purpose and rehearses the repair, so it has "
+            "seen the failure before it happens for real. Each rehearsal is "
+            "recorded below.</p>"
+            f"{cards}"
+            '<table><tr><th>Fault</th><th>Rehearsal result</th>'
+            "<th>Failure shape</th><th>When</th><th>Notes</th></tr>"
+            f"{table}</table>")
     return page("Practice", "practice", body)
