@@ -211,7 +211,8 @@ class TrialRig:
 def run_trial(entry: CorpusEntry, arm: str, workdir: str, *,
               complete=None, observe_seconds: float = 1.5,
               suite_path: str | None = None, certificates=None,
-              practice_bank=None) -> Trial:
+              practice_bank=None, require_reproduction: bool | None = None,
+              max_candidates: int | None = None) -> Trial:
     rig = TrialRig(entry, workdir)
     timings: dict = {}
     try:
@@ -242,7 +243,9 @@ def run_trial(entry: CorpusEntry, arm: str, workdir: str, *,
             return _run_heal_arm(rig, arm, first_event, timings,
                                  complete=complete, suite_path=suite_path,
                                  certificates=certificates,
-                                 practice_bank=practice_bank)
+                                 practice_bank=practice_bank,
+                                 require_reproduction=require_reproduction,
+                                 max_candidates=max_candidates)
 
         raise ValueError(f"unknown arm {arm}")
     finally:
@@ -299,7 +302,8 @@ def _incident_key(event: dict) -> tuple[str, str]:
 
 def _run_heal_arm(rig: TrialRig, arm: str, first_event: dict, timings: dict,
                   *, complete, suite_path, certificates=None,
-                  practice_bank=None) -> Trial:
+                  practice_bank=None, require_reproduction: bool | None = None,
+                  max_candidates: int | None = None) -> Trial:
     """Heal successive incidents until the traffic is clean.
 
     One injected fault can fan out into several distinct incidents (a
@@ -307,7 +311,11 @@ def _run_heal_arm(rig: TrialRig, arm: str, first_event: dict, timings: dict,
     single heal is not the protocol; responding to what the capture stream
     shows is. An incident RECURRING after its own patch deployed is the
     false-fix signal; a DIFFERENT incident is the next piece of work.
+
+    `require_reproduction` / `max_candidates` override the arm defaults for
+    the study's guard-off and regeneration-off ablations.
     """
+    gated = (arm == "C3") if require_reproduction is None else require_reproduction
     detail: dict = {"incidents": []}
     healed_keys: set[tuple[str, str]] = set()
     event = first_event
@@ -320,7 +328,8 @@ def _run_heal_arm(rig: TrialRig, arm: str, first_event: dict, timings: dict,
         outcome = heal(event, f"{svc}.main:app", rig.trees[svc],
                        complete=complete, incident_id=rig.entry.id,
                        suite_path=suite_path, memory_notes=notes,
-                       require_reproduction=(arm == "C3"))
+                       require_reproduction=gated,
+                       max_candidates=max_candidates)
         timings["heal_finished"] = time.time()
         detail["incidents"].append(
             {"signature": outcome.signature, "heal_status": outcome.status,

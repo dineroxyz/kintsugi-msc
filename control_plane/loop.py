@@ -36,13 +36,17 @@ def heal(capture: dict, service_spec: str, workdir: str, *,
          complete=None, incident_id: int | str = "x",
          suite_path: str | None = "tests",
          memory_notes: list[str] | None = None,
-         require_reproduction: bool = True) -> Outcome:
+         require_reproduction: bool = True,
+         max_candidates: int | None = None) -> Outcome:
     """Run the loop for one captured incident.
 
     `complete` is the diagnosis completion function (None = production model).
     `require_reproduction=False` is configuration C2 of the study — the
     ungated arm — retained here so every arm runs through the same code.
+    `max_candidates` overrides the regeneration budget (the study's
+    regeneration-off ablation runs with 1).
     """
+    budget = max_candidates if max_candidates is not None else MAX_CANDIDATES
     trail: list[dict] = []
 
     result = reproduce(capture, service_spec, workdir=workdir)
@@ -57,7 +61,7 @@ def heal(capture: dict, service_spec: str, workdir: str, *,
     signature = result.signature or f"{capture['exception_type']}@unreproduced"
     prior_failures: list[dict] = []
 
-    for attempt in range(1, MAX_CANDIDATES + 1):
+    for attempt in range(1, budget + 1):
         package = pack(capture, signature, workdir,
                        prior_failures=prior_failures,
                        memory_notes=memory_notes)
@@ -108,5 +112,5 @@ def heal(capture: dict, service_spec: str, workdir: str, *,
         discard_patched_tree(verdict.patched_tree)   # rejected: nothing needs it
 
     return Outcome("escalated",
-                   f"no candidate passed the gate in {MAX_CANDIDATES} attempts",
+                   f"no candidate passed the gate in {budget} attempts",
                    signature=signature, reproduction=repro, candidates=trail)
