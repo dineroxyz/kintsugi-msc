@@ -20,6 +20,7 @@ import hashlib
 import html
 import json
 import os
+import re
 import statistics
 from contextlib import asynccontextmanager
 from functools import lru_cache
@@ -296,10 +297,11 @@ FOOT_SEAM = ('<svg class="footseam" viewBox="0 0 1000 22" preserveAspectRatio="n
 
 
 def page(title: str, active: str, body: str) -> HTMLResponse:
-    tabs = [("/", "overview", "Study"),
+    tabs = [
+            ("/", "overview", "Results"),
             ("/certificates", "certificates", "Certificates"),
             ("/practice", "practice", "Practice"),
-            ("/incidents", "incidents", "Incidents")]
+            ("/incidents", "incidents", "Errors")]
     nav = "".join(
         f'<a href="{href}"{" aria-current=page" if key == active else ""}>'
         f'{label}</a>' for href, key, label in tabs)
@@ -335,48 +337,68 @@ def page(title: str, active: str, body: str) -> HTMLResponse:
 ARM_NAME = {
     "C0": "No recovery",
     "C1": "Restart, then roll back",
-    "C2": "AI repair, unchecked",
-    "C3": "AI repair behind the gate",
+    "C2": "AI fix, no safety check",
+    "C3": "AI fix with safety check",
 }
 ARM_BLURB = {
-    "C0": "Watches the failure and does nothing. The yardstick.",
-    "C1": "The traditional runbook: restart the service, and if the failure "
-          "comes back, roll back to the previous release.",
-    "C2": "The model writes a patch and it ships once it applies, with no "
-          "requirement to reproduce the failure first.",
-    "C3": "Kintsugi. Reproduces the failure first, then ships a patch only if "
-          "that reproduction now passes, along with the tests and a check for "
-          "cheating patches.",
+    "C0": "Sees the error and does nothing. Used only for comparison.",
+    "C1": "The usual approach today: restart the app, and if the error "
+          "comes back, switch back to the previous version.",
+    "C2": "The AI writes a fix and it goes live straight away. Nobody "
+          "checks first that it really solves the problem.",
+    "C3": "Kintsugi. First it makes the error happen again on purpose. The "
+          "AI's fix only goes live if that error then stops, nothing else "
+          "breaks, and the fix is not just hiding the error.",
 }
 VARIANT_NAME = {
-    "C3-noguard": "Gate removed",
-    "C3-noregen": "One attempt only, no retries",
-    "C3-nomemory": "Repeat run of the full gate",
+    "C3-noguard": "Without the safety check",
+    "C3-noregen": "AI gets only one try",
+    "C3-nomemory": "Same as normal, run again",
 }
 # outcome -> (status key, plain word, explanation)
 OUTCOME = {
     "recovered": ("fixed", "Fixed",
-                  "the failing request works again and live traffic is clean"),
-    "refused": ("declined", "Declined",
-                "the platform could not make the failure happen again on "
-                "demand, so it would not act"),
+                  "the app works again and no more errors are coming in"),
+    "refused": ("declined", "Left alone",
+                "it could not make the error happen again, so it could not "
+                "test a fix, and left it for a person"),
     "escalated": ("gaveup", "Gave up",
-                  "no patch passed the checks within three attempts; handed "
-                  "to a person"),
+                  "none of its three fixes passed the checks, so it handed "
+                  "the problem to a person"),
     "unrecovered": ("broken", "Still broken",
-                    "nothing was done and the failure stayed live"),
-    "false_fix": ("broken", "Bad fix shipped",
-                  "a patch was deployed but the failure is still there"),
-    "harness_error": ("none", "Run error", "the test harness itself failed"),
+                    "nothing was done, so the app kept failing"),
+    "false_fix": ("broken", "Bad fix went live",
+                  "a fix went live but the app was still failing"),
+    "harness_error": ("none", "Test error", "the testing setup itself failed"),
     "fault_never_fired": ("none", "Did not trigger",
-                          "the injected fault never surfaced under load"),
+                          "the planted bug never caused an error"),
 }
 
 
 def status(outcome: str) -> str:
     key, word, tip = OUTCOME.get(outcome, ("none", outcome, ""))
-    return (f'<span class="status" title="{E(tip)} (recorded as {E(outcome)})">'
+    return (f'<span class="status" title="{E(tip)}">'
             f'<span class="sw {key}"></span>{word}</span>')
+
+
+def plain_reason(reason: str) -> str:
+    """Turn the platform's internal reasons into plain words."""
+    r = reason.lower()
+    if not r:
+        return ""
+    if "did not recur" in r:
+        return "The error would not happen again on purpose, so it was left alone."
+    if "outbound call" in r:
+        return "The error happened by chance, so it could not be repeated."
+    if "no candidate passed" in r:
+        return "None of the AI's three fixes passed the checks."
+    m = re.search(r"admitted on candidate (\d+)", r)
+    if m:
+        n = int(m.group(1))
+        return "Fixed on the first try." if n == 1 else f"Fixed on try {n}."
+    if "budget exhausted" in r:
+        return "Too many errors at once; handed to a person."
+    return reason[:90]
 
 
 def legend(keys: list[str]) -> str:
@@ -499,8 +521,8 @@ def matrix_svg(trials: list[dict], arms: list[str]) -> str:
         out.append(f'<text class="grp" x="{x0}" y="14">{E(text)}</text>')
         out.append(f'<path class="bracket" d="M{x0} 24 V20 H{x1} V24"/>')
 
-    bracket(fix_group, f"Should be fixed ({len(fix_group)} faults)")
-    bracket(refuse_group, f"Should be declined ({len(refuse_group)})")
+    bracket(fix_group, f"Bugs that can be fixed ({len(fix_group)})")
+    bracket(refuse_group, f"Bugs it should leave alone ({len(refuse_group)})")
     for e in entries:
         out.append(f'<text class="fid" transform="translate({xs[e] + 8},{top - 6}) '
                    f'rotate(-90)">{E(e)}</text>')
@@ -521,7 +543,7 @@ def matrix_svg(trials: list[dict], arms: list[str]) -> str:
                 OUTCOME.get(cell.get((arm, e, s)), ("", "no run"))[1].lower()
                 for s in seeds)
             tip = (f"{e}: {titles.get(e, '')}\n{ARM_NAME.get(arm, arm)}\n"
-                   f"Runs: {words}")
+                   f"Results: {words}")
             out.append("".join(parts))
             out.append(f'<rect class="hit" x="{xs[e] - 1.5}" y="{y0 - 1.5}" '
                        f'width="{w + 3}" height="{row_h - 9}" rx="2">'
@@ -536,10 +558,9 @@ def matrix_svg(trials: list[dict], arms: list[str]) -> str:
 def overview():
     all_trials = load_trials()
     if not all_trials:
-        return page("Study", "overview",
-                    "<h1>No study results yet</h1><p class=lede>Run the study "
-                    "and its results will appear here, read straight from the "
-                    "trial log.</p>")
+        return page("Results", "overview",
+                    "<h1>No results yet</h1><p class=lede>Once the tests have "
+                    "been run, the results will show up here.</p>")
 
     # the four-approach comparison is over base trials only; ablation
     # variants carry arm "C3" and would otherwise inflate the C3 figures
@@ -576,12 +597,13 @@ def overview():
                     and t.get("expected_c3") != "refused")
         shipped_bad = sum(count([t for t in trials if t["arm"] == a], "false_fix")
                           for a in arms)
-        lede = (f"<p class=lede>The gated approach declined {right} of the "
-                f"{len(should)} runs it was built to decline and "
-                f"{'none' if not wrong else wrong} of the others. "
-                + ("No approach shipped a bad fix in any run."
+        lede = (f"<p class=lede>Kintsugi left alone {right} of the {len(should)} "
+                "tests where it should have, and "
+                f"{'never' if not wrong else str(wrong) + ' times'} left alone "
+                "a bug it could have fixed. "
+                + ("No approach ever put a bad fix live."
                    if not shipped_bad else
-                   f"{shipped_bad} bad fixes were shipped in total.")
+                   f"{shipped_bad} bad fixes went live in total.")
                 + "</p>")
 
     ablation_html = ""
@@ -598,16 +620,16 @@ def overview():
                 f'<td class="num">{count(vs, "false_fix")}</td>'
                 f'<td class="num">{seconds(statistics.median(mttrs)) if mttrs else ""}</td></tr>')
         ablation_html = (
-            "<h2>Taking the gated approach apart</h2>"
-            "<p>The gated approach run again with one part switched off at a "
-            f"time, {len(ablations)} further runs. Removing the gate turns "
-            "every decline into a fix attempt; removing retries is what hurts "
-            "most, because the model's usual mistake is a patch that will not "
-            "apply rather than a wrong one.</p>"
-            '<div class="scroll"><table><tr><th>Variant</th>'
-            '<th class="num">Fixed</th><th class="num">Declined</th>'
+            "<h2>Which parts of Kintsugi matter</h2>"
+            "<p>Kintsugi was tested again with one part switched off at a "
+            f"time ({len(ablations)} more tests). Without the safety check it "
+            "tries to fix everything. Giving the AI only one try hurts most, "
+            "because the AI's usual mistake is a badly formatted fix, not a "
+            "wrong one, and a second try sorts that out.</p>"
+            '<div class="scroll"><table><tr><th>Version</th>'
+            '<th class="num">Fixed</th><th class="num">Left alone</th>'
             '<th class="num">Gave up</th><th class="num">Bad fixes</th>'
-            '<th class="num">Typical time to fix</th></tr>'
+            '<th class="num">Usual time to fix</th></tr>'
             f'{"".join(rows)}</table></div>')
 
     titles = corpus_titles()
@@ -618,38 +640,39 @@ def overview():
         f'<td class="num">{t.get("seed", "")}</td>'
         f'<td>{status(t["outcome"])}</td>'
         f'<td class="num">{t["mttr_seconds"] if t["mttr_seconds"] is not None else ""}</td>'
-        f'<td class="quiet small">{E(str((t.get("detail") or {}).get("heal_reason", ""))[:90])}</td></tr>'
+        f'<td class="quiet small">{E(plain_reason(str((t.get("detail") or {}).get("heal_reason", ""))))}</td></tr>'
         for t in trials)
 
     body = (
-        f"<h1>{len(faults)} faults, four ways to recover from them</h1>"
-        f"<p>Each fault was deployed into a live service under load and handed "
-        f"to four recovery approaches, {len(seeds)} times each: "
-        f"{len(trials)} runs. A run counts as fixed only when the failing "
-        "request works again and the live traffic is clean.</p>"
+        f"<h1>{len(faults)} bugs, four ways to deal with them</h1>"
+        f"<p>We planted {len(faults)} kinds of real bug into a running app, one "
+        "at a time, and let four different approaches respond. Each one was "
+        f"tested {len(seeds)} times, {len(trials)} tests in all. A bug only "
+        "counts as fixed when the app works again and no more errors are "
+        "coming in.</p>"
         f"{lede}"
         '<div class="panel" style="margin-top:24px">'
         '<div class="scroll">' + matrix_svg(trials, arms) + "</div>"
         + legend(["recovered", "refused", "escalated", "unrecovered"])
-        + '<p class="quiet small" style="margin:10px 0 0">One column per fault, '
-        "one thin bar per run. Point at a column for the fault's name and "
-        "what happened.</p></div>"
-        "<h2>By approach</h2>"
+        + '<p class="quiet small" style="margin:10px 0 0">Each column is one '
+        "bug and each thin bar is one test. Point at a column to see what "
+        "the bug was and what happened.</p></div>"
+        "<h2>How each approach did</h2>"
         '<div class="scroll"><table><tr><th>Approach</th>'
-        '<th class="num">Fixed</th><th class="num">Declined</th>'
+        '<th class="num">Fixed</th><th class="num">Left alone</th>'
         '<th class="num">Gave up</th><th class="num">Still broken</th>'
-        '<th class="num">Bad fixes</th><th class="num">Typical time to fix</th>'
+        '<th class="num">Bad fixes</th><th class="num">Usual time to fix</th>'
         f'</tr>{"".join(summary)}</table></div>'
-        '<p class="quiet small">Typical time to fix is the median, measured '
-        "from the first error to the moment the failing request works again.</p>"
+        '<p class="quiet small">Usual time to fix is the middle value: from '
+        "the first error until the app works again.</p>"
         f"{ablation_html}"
-        "<h2>Every run</h2>"
-        f"<details><summary>Show all {len(trials)} runs</summary>"
-        '<div class="scroll"><table><tr><th>Fault</th><th>What broke</th>'
-        '<th>Approach</th><th class="num">Run</th><th>Result</th>'
+        "<h2>Every test</h2>"
+        f"<details><summary>Show all {len(trials)} tests</summary>"
+        '<div class="scroll"><table><tr><th>Bug</th><th>What was wrong</th>'
+        '<th>Approach</th><th class="num">Try</th><th>Result</th>'
         '<th class="num">Seconds to fix</th><th>Notes</th></tr>'
         f"{log}</table></div></details>")
-    return page("Study", "overview", body)
+    return page("Results", "overview", body)
 
 
 @app.get("/certificates", response_class=HTMLResponse)
@@ -659,18 +682,19 @@ def certificates(page_no: int = 1):
         chain = store.verify_chain()
         banner = (f'<div class="banner">{seal_svg("chain", 28)}<div><b>All '
                   f'{len(chain)} certificates check out.</b> <span class=quiet>'
-                  "Each one matches its own fingerprint, links to the one "
-                  "before it, and carries a valid signature.</span></div></div>")
+                  "None has been changed, none is missing, and every one is "
+                  "signed by Kintsugi.</span></div></div>")
     except CertificateError as exc:
         chain = store.all()
         banner = (f'<div class="banner"><span class="sw broken"></span><div>'
-                  f'<b>A certificate failed its check.</b> {E(str(exc))}</div></div>')
+                  f'<b>Something is wrong with a certificate.</b> {E(str(exc))}</div></div>')
 
     if not chain:
         return page("Certificates", "certificates",
                     "<h1>Repair certificates</h1>"
-                    "<p class=lede>No certificates yet. Every fix the gated "
-                    "approach ships is recorded here as a certificate.</p>")
+                    "<p class=lede>No certificates yet. Each time Kintsugi puts "
+                    "a fix live, it writes a certificate, and it will show "
+                    "up here.</p>")
 
     issued_by = cert_index(load_trials())
     titles = corpus_titles()
@@ -691,11 +715,10 @@ def certificates(page_no: int = 1):
         items.append(
             f'<li>{seal_svg(c["hash"])}<div class="what">'
             f'<a href="/certificates/{c["sequence"]}">Certificate '
-            f'{c["sequence"]:06d}</a> <span class="quiet">'
-            f'{E(c.get("signature") or "")}</span>'
+            f'{c["sequence"]:06d}</a>'
             f'<div class="meta">{E("; ".join(context))}</div>'
-            f'<div class="meta">Issued {E(c["issued_at"].replace("T", " at "))}, '
-            f'fingerprint <span class="hash">{c["hash"][:16]}</span></div>'
+            f'<div class="meta">Written {E(c["issued_at"].replace("T", " at "))}, '
+            f'ID <span class="hash">{c["hash"][:16]}</span></div>'
             f'</div></li>')
 
     nav = ['<div class="pager">']
@@ -707,11 +730,11 @@ def certificates(page_no: int = 1):
     nav.append("</div>")
 
     body = ("<h1>Repair certificates</h1>"
-            "<p class=lede>Every fix the gated approach ships is written down "
-            "as a certificate: the failure, the proof that it happened again "
-            "on demand, every patch that was tried, the one that passed, and "
-            "the checks it passed. Each certificate is chained to the one "
-            "before it, like a seam, so altering any of them is detectable.</p>"
+            "<p class=lede>Each time Kintsugi puts a fix live, it writes a "
+            "certificate: a record of what went wrong, proof that the error "
+            "could be repeated, every fix the AI tried, and which checks the "
+            "final fix passed. Each certificate is linked to the one before "
+            "it, like a chain, so if anyone changes or deletes one, it shows.</p>"
             f"{banner}<ol class=ledger>{''.join(items)}</ol>{''.join(nav)}")
     return page("Certificates", "certificates", body)
 
@@ -727,10 +750,10 @@ def diff_html(patch: str) -> str:
     return "\n".join(lines)
 
 
-COND_NAME = {"structural": "No cheating pattern",
-             "applies": "Applies to the code",
-             "reproduction": "Failure no longer happens",
-             "suite": "Tests still pass"}
+COND_NAME = {"structural": "Not just hiding the error",
+             "applies": "Fix is written correctly",
+             "reproduction": "The error is gone",
+             "suite": "Nothing else broke"}
 
 
 @app.get("/certificates/{seq}", response_class=HTMLResponse)
@@ -760,22 +783,22 @@ def certificate(seq: int):
             f'<li class="{"pass" if ok else "fail"}">{COND_NAME.get(k, k)}</li>'
             for k, ok in conds.items())
         cands.append(
-            f'<li><b>Attempt {cand.get("attempt")}</b>: '
-            f'{"admitted" if admitted else "rejected"}'
+            f'<li><b>Try {cand.get("attempt")}</b>: '
+            f'{"accepted" if admitted else "turned down"}'
             f'<ul class="conds">{chips}</ul></li>')
 
     ver = verification().get("by_sequence", {}).get(cert["sequence"])
     if ver:
-        replay = ("<p><b>Replayed independently.</b> Starting from a fresh "
-                  "copy of the faulty code and using only this certificate, "
-                  + ("the failure happened again before the patch and stopped "
-                     "after it." if ver.get("verified") else
-                     f"the replay did not confirm the repair: {E(str(ver))}")
+        replay = ("<p><b>Checked again separately.</b> Using only this "
+                  "certificate and a fresh copy of the broken app, "
+                  + ("the error happened before the fix and stopped after it."
+                     if ver.get("verified") else
+                     f"the fix could not be confirmed: {E(str(ver))}")
                   + "</p>")
     else:
-        replay = ("<p class=quiet>Anyone holding this certificate can replay "
-                  "the repair against the faulty code: the failure must happen "
-                  "before the patch and stop after it.</p>")
+        replay = ("<p class=quiet>Anyone with this certificate can check the "
+                  "fix again: the error should happen before the fix and stop "
+                  "after it.</p>")
 
     prev_seq = cert["sequence"] - 1 if cert["sequence"] > 0 else None
     next_seq = cert["sequence"] + 1 if cert["sequence"] + 1 in certs else None
@@ -792,33 +815,33 @@ def certificate(seq: int):
 <p class="quiet" style="margin:0">Repair certificate</p>
 <h1 style="margin-top:4px">{cert['sequence']:06d}</h1>
 <p class=lede>{E(title) if title else E(cert.get('signature') or '')}</p>
-<p class="quiet small">Issued {E(cert['issued_at'].replace('T', ' at '))} for
-<code>{E(cert.get('service_spec', ''))}</code>{', fault ' + E(t['entry']) if t.get('entry') else ''}</p>
+<p class="quiet small">Written {E(cert['issued_at'].replace('T', ' at '))}{', bug ' + E(t['entry']) if t.get('entry') else ''}</p>
 </div>{seal_svg(cert['hash'], 104)}</div>
 
 <ol class="steps">
-<li><h3>The failure was captured</h3>
-<p><code>{E(req.get('method', ''))} {E(req.get('path', ''))}</code> raised
-<b>{E(capture.get('exception_type', ''))}</b>{': ' + E(str(capture.get('exception_message', ''))[:120]) if capture.get('exception_message') else ''}.
-The platform named it <code>{E(cert.get('signature') or '')}</code>.</p></li>
+<li><h3>An error was caught</h3>
+<p>A visit to <code>{E(req.get('path', ''))}</code> crashed the app with a
+<b>{E(capture.get('exception_type', ''))}</b> error. Kintsugi saved
+everything about that visit so it could study it.</p></li>
 
-<li><h3>It was made to happen again</h3>
+<li><h3>The error was repeated on purpose</h3>
 <div class="replays" aria-hidden="true">{''.join('<span></span>' for _ in verdicts)}</div>
-<p>{E(repro.get('reason', ''))}. Only a failure that can be repeated on
-demand can be checked against a patch.</p></li>
+<p>In a safe copy of the app, Kintsugi replayed the same visit
+{len(verdicts)} times and it crashed every time. If you can make an error
+happen whenever you like, you can test whether a fix really stops it.</p></li>
 
-<li><h3>Patches were tried</h3>
+<li><h3>The AI suggested fixes</h3>
 <ul style="padding-left:18px;margin:0">{''.join(cands)}</ul></li>
 
-<li><h3>The admitted patch</h3>
+<li><h3>The fix that went live</h3>
+<p class="quiet small">Red lines were removed, green lines were added.</p>
 <pre>{diff_html(cert.get('patch', ''))}</pre></li>
 
-<li><h3>It was signed and chained</h3>
-<p>The gate signed a record binding the failure to this exact patch
-(fingerprint <span class="hash">{E(str(payload.get('diff_sha256', ''))[:16])}</span>),
-and the certificate links to the one before it.</p>
-<p class="quiet small">Previous <span class="hash">{cert['prev_hash'][:16]}</span>,
-this <span class="hash">{cert['hash'][:16]}</span></p>
+<li><h3>It was signed and added to the chain</h3>
+<p>Kintsugi signed this record and linked it to the certificate before it,
+so nobody can quietly change it later.</p>
+<p class="quiet small">This certificate's ID <span class="hash">{cert['hash'][:16]}</span>,
+linked to <span class="hash">{cert['prev_hash'][:16]}</span></p>
 {replay}</li>
 </ol>
 <div class="pager">{''.join(links)}</div>"""
@@ -831,10 +854,10 @@ def practice():
     rows = bank.all()
     if not rows:
         return page("Practice", "practice",
-                    "<h1>Practice</h1><p class=lede>Nothing rehearsed yet. "
-                    "While the services are quiet, the platform breaks a "
-                    "private copy of them on purpose and rehearses the repair. "
-                    "Those rehearsals will appear here.</p>")
+                    "<h1>Practice</h1><p class=lede>No practice yet. When the "
+                    "app is quiet, Kintsugi breaks a private copy of it on "
+                    "purpose and practises fixing it. That practice will show "
+                    "up here.</p>")
     counts = bank.counts()
     would = sum(1 for r in rows if r["status"] == "would_heal")
     refused = sum(1 for r in rows if r["status"] == "refused")
@@ -847,22 +870,23 @@ def practice():
         f'<td class="quiet">{E(titles.get(r["entry_id"], ""))}</td>'
         f'<td>{status(word.get(r["status"], r["status"]))}</td>'
         f'<td class="quiet small">{E((r.get("rehearsed_at") or "").replace("T", " "))}</td>'
-        f'<td class="quiet small">{E((r.get("reason") or "")[:80])}</td></tr>'
+        f'<td class="quiet small">{E(plain_reason(r.get("reason") or ""))}</td></tr>'
         for r in reversed(rows))
     body = ("<h1>Practice</h1>"
-            "<p class=lede>While the services are quiet, the platform breaks a "
-            "private copy of them on purpose and rehearses the repair, so it "
-            "has seen a failure before it happens for real. Every rehearsal "
-            "that ends in a fix also leaves a permanent test behind.</p>"
+            "<p class=lede>When the app is quiet, Kintsugi breaks a private "
+            "copy of it on purpose and practises fixing it, so it has seen a "
+            "problem before it happens for real. Every practice that ends in a "
+            "fix also leaves behind a test that stops the same bug coming "
+            "back.</p>"
             '<div class="stats">'
-            f'<div><span class="fig">{len(rows)}</span><span class="quiet">rehearsals</span></div>'
-            f'<div><span class="fig">{len(counts)}</span><span class="quiet">faults covered</span></div>'
+            f'<div><span class="fig">{len(rows)}</span><span class="quiet">practice runs</span></div>'
+            f'<div><span class="fig">{len(counts)}</span><span class="quiet">bugs practised</span></div>'
             f'<div><span class="fig">{would}</span><span class="quiet">would be fixed</span></div>'
-            f'<div><span class="fig">{refused}</span><span class="quiet">would be declined</span></div>'
-            f'<div><span class="fig">{tests}</span><span class="quiet">tests banked</span></div>'
+            f'<div><span class="fig">{refused}</span><span class="quiet">would be left alone</span></div>'
+            f'<div><span class="fig">{tests}</span><span class="quiet">tests saved</span></div>'
             "</div>"
-            '<div class="scroll"><table><tr><th>Fault</th><th>What broke</th>'
-            "<th>Rehearsal</th><th>When</th><th>Notes</th></tr>"
+            '<div class="scroll"><table><tr><th>Bug</th><th>What was wrong</th>'
+            "<th>Practice result</th><th>When</th><th>Notes</th></tr>"
             f"{table}</table></div>")
     return page("Practice", "practice", body)
 
@@ -874,27 +898,26 @@ def incidents():
         rows = list_incidents()
     except Exception as exc:
         return page("Incidents", "incidents",
-                    "<h1>Incidents</h1><p class=lede>The incident store could "
-                    f"not be read: {E(str(exc))}. Check the database "
+                    "<h1>Errors</h1><p class=lede>The list of errors could "
+                    f"not be loaded ({E(str(exc))}). Check the database "
                     "connection.</p>")
     if not rows:
-        body = ("<h1>Incidents</h1><p class=lede>No failures have been "
-                "reported by the live services. When one fails, its captures "
-                "are grouped into an incident here.</p>")
-        return page("Incidents", "incidents", body)
+        body = ("<h1>Errors</h1><p class=lede>No errors so far. When the "
+                "live app hits one, it will show up here.</p>")
+        return page("Errors", "incidents", body)
     table = "".join(
         f'<tr><td class="num">{r["id"]}</td><td>{E(r["service"])}</td>'
         f'<td>{E(r["exception_type"])}</td><td>{E(r["release"])}</td>'
         f'<td class="num">{r["capture_count"]}</td><td>{E(r["status"])}</td>'
         f'<td class="quiet small">{E(str(r["created_at"]).replace("T", " ")[:19])}</td></tr>'
         for r in rows)
-    body = ("<h1>Incidents</h1>"
-            "<p class=lede>Failures reported by the live services. Repeats of "
-            "the same failure are grouped into one incident, so a burst of "
-            "errors is one piece of work, not hundreds.</p>"
+    body = ("<h1>Errors</h1>"
+            "<p class=lede>Errors reported by the live app. When the same "
+            "error happens many times, it is counted as one problem, so a "
+            "burst of errors is one thing to fix, not hundreds.</p>"
             '<div class="scroll"><table><tr><th class="num">Number</th>'
-            "<th>Service</th><th>Error</th><th>Release</th>"
+            "<th>Part of the app</th><th>Error</th><th>Version</th>"
             '<th class="num">Times seen</th><th>Status</th><th>First seen</th>'
             f"</tr>{table}</table></div>"
             '<p class="quiet small">Raw data: <a href="/api/incidents">/api/incidents</a></p>')
-    return page("Incidents", "incidents", body)
+    return page("Errors", "incidents", body)
