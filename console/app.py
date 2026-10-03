@@ -227,6 +227,22 @@ th.num { white-space:nowrap; }
 .stats div { min-width:120px; }
 .stats .fig { display:block; font-size:30px; }
 .stats .quiet { font-size:14px; }
+footer.site { padding:0 0 40px; }
+.footseam { display:block; width:100%; height:22px; }
+.footseam path { fill:none; stroke:var(--seam); stroke-width:1.6;
+                 stroke-linecap:round; stroke-linejoin:round;
+                 stroke-dasharray:1; stroke-dashoffset:1; }
+.footseam.drawn path { animation:seam-draw 2.4s cubic-bezier(.6,.05,.3,1) forwards; }
+@keyframes seam-draw { to { stroke-dashoffset:0; } }
+.byline { margin:14px 0 0; color:var(--clay); font-size:14px; opacity:0;
+          transition:opacity .8s ease 1.6s; }
+.footseam.drawn + .byline { opacity:1; }
+.byline b { font-family:"Shippori Mincho", serif; color:var(--ink);
+            font-weight:700; }
+@media (prefers-reduced-motion: reduce) {
+  .footseam path { stroke-dashoffset:0; animation:none !important; }
+  .byline { opacity:1; transition:none; }
+}
 @media (max-width:640px) {
   .cert-head { grid-template-columns:minmax(0,1fr); }
   .seamline { margin-top:10px; }
@@ -272,6 +288,13 @@ SEAM = ('<svg class="seamline" viewBox="0 0 1000 22" preserveAspectRatio="none" 
         'L780 11 L796 17 L812 9 L829 12 L1000 11"/></svg>')
 
 
+# the footer seam draws itself in once, when it scrolls into view
+FOOT_SEAM = ('<svg class="footseam" viewBox="0 0 1000 22" preserveAspectRatio="none" '
+             'aria-hidden="true"><path pathLength="1" d="M0 11 L90 11 L108 15 '
+             'L121 7 L139 12 L330 11 L346 5 L357 14 L372 9 L395 11 L640 11 '
+             'L655 17 L668 8 L684 12 L1000 11"/></svg>')
+
+
 def page(title: str, active: str, body: str) -> HTMLResponse:
     tabs = [("/", "overview", "Study"),
             ("/certificates", "certificates", "Certificates"),
@@ -288,7 +311,22 @@ def page(title: str, active: str, body: str) -> HTMLResponse:
 <nav class="tabs" aria-label="Sections">{nav}
 <button class="theme" type="button" onclick="kintsugiTheme()">Switch theme</button></nav></div>
 {SEAM}</div></header>
-<main><div class="wrap">{body}</div></main></body></html>"""
+<main><div class="wrap">{body}</div></main>
+<footer class="site"><div class="wrap">{FOOT_SEAM}
+<p class="byline"><b>Kintsugi</b> by Abe Oluwaseyi Elizabeth</p></div></footer>
+<script>
+(function () {{
+  var seam = document.querySelector(".footseam");
+  if (!seam) return;
+  var draw = function () {{ seam.classList.add("drawn"); }};
+  if (!("IntersectionObserver" in window)) return draw();
+  new IntersectionObserver(function (entries, obs) {{
+    if (entries.some(function (e) {{ return e.isIntersecting; }})) {{
+      draw(); obs.disconnect();
+    }}
+  }}, {{ threshold: 0.6 }}).observe(seam);
+}})();
+</script></body></html>"""
     return HTMLResponse(doc)
 
 
