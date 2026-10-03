@@ -31,7 +31,7 @@ def test_empty_surfaces_render(console):
     for path in ("/", "/certificates", "/practice"):
         response = client.get(path)
         assert response.status_code == 200
-        assert "KINTSUGI" in response.text
+        assert "Kintsugi" in response.text
 
 
 def test_overview_renders_trials(console):
