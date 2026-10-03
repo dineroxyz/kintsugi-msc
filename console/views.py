@@ -57,43 +57,71 @@ ICON_MOON = ('<svg class="moon" viewBox="0 0 24 24" aria-hidden="true"><path '
 ICON_CLOSE = ('<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 '
               '6L6 18"/></svg>')
 
-NAV = [("/", "results", "Results"),
+NAV = [("/results", "results", "Results"),
        ("/certificates", "certificates", "Certificates"),
        ("/practice", "practice", "Practice"),
-       ("/incidents", "errors", "Errors")]
+       ("/guide", "guide", "Guide")]
 
 
-def shell(title: str, active: str, body: str, *, description: str = "") -> str:
+def shell(title: str, active: str, body: str, *, description: str = "",
+          user: str | None = None, csrf: str = "", wide: bool = False) -> str:
+    links = list(NAV)
+    if user:
+        links.append(("/incidents", "errors", "Errors"))
     nav = "".join(
         f'<a href="{href}"{" aria-current=page" if key == active else ""}>'
-        f"{label}</a>" for href, key, label in NAV)
-    desc = description or ("Kintsugi compares four ways of dealing with real "
-                           "software bugs, tested 720 times.")
+        f"{label}</a>" for href, key, label in links)
+    if user:
+        account = (f'<form class="signout" method="post" action="/logout">'
+                   f'<input type="hidden" name="csrf" value="{E(csrf)}">'
+                   f'<button class="nav-btn" type="submit" title="Signed in as {E(user)}">'
+                   f'Sign out</button></form>')
+    else:
+        account = (f'<a class="nav-btn" href="/login"'
+                   f'{" aria-current=page" if active == "login" else ""}>Sign in</a>')
+    desc = description or ("Kintsugi is a self-healing software platform: it "
+                           "repairs live apps with AI, but only with proof.")
     return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{E(title)} | Kintsugi</title>
 <meta name="description" content="{E(desc)}">
 <meta name="color-scheme" content="dark light">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 {THEME_BOOT}
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@700&family=Zen+Kaku+Gothic+New:wght@400;500&display=swap">
+<link rel="preload" href="/static/fonts/shippori-mincho-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/static/fonts/zen-kaku-gothic-new-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/static/console.css">
 <script src="/static/console.js" defer></script>
 </head><body>
 <a class="skip" href="#main">Skip to content</a>
 <header class="site-head"><div class="wrap">
-<div class="bar"><a class="mark" href="/">Kintsugi</a>
+<div class="bar"><a class="mark" href="/" aria-label="Kintsugi, home">Kintsugi</a>
 <nav class="nav" aria-label="Main">{nav}
 <button class="theme" type="button" data-theme-toggle aria-label="Switch theme">{ICON_SUN}{ICON_MOON}<span class="theme-text">Theme</span></button>
-</nav></div>{seam()}</div></header>
-<main id="main"><div class="wrap">{body}</div></main>
+{account}</nav></div>{seam()}</div></header>
+<main id="main"{' class="wide"' if wide else ""}><div class="wrap">{body}</div></main>
 <footer class="foot"><div class="wrap">{seam()}
-<div class="foot-row"><p class="byline"><b>Kintsugi</b> by Abe Oluwaseyi Elizabeth</p>
-<nav aria-label="Footer"><a href="/">Results</a><a href="/certificates">Certificates</a>
-<a href="/data/trials.json">Raw test data</a><a href="/data/verification.json">Certificate check report</a></nav></div>
+<div class="foot-grid">
+<div class="foot-brand"><p class="byline"><b>Kintsugi</b></p>
+<p class="small muted">A self-healing software platform that repairs live
+apps with AI, but only with proof. MSc Computer Science project, University
+of Lagos.</p>
+<p class="small muted">By Abe Oluwaseyi Elizabeth</p></div>
+<nav aria-label="Explore"><h2 class="foot-h">Explore</h2>
+<a href="/results">Results</a><a href="/certificates">Certificates</a>
+<a href="/practice">Practice</a></nav>
+<nav aria-label="Help"><h2 class="foot-h">Help</h2>
+<a href="/guide">How to use this site</a><a href="/guide#glossary">Glossary</a>
+<a href="/guide#verify">Check a certificate yourself</a></nav>
+<nav aria-label="Data and policy"><h2 class="foot-h">Data and policy</h2>
+<a href="/data/trials.json">Raw test data</a>
+<a href="/data/verification.json">Certificate check report</a>
+<a href="/privacy">Privacy policy</a></nav>
+</div>
+<p class="foot-note small faint">Fonts are served from this site. No tracking, no
+analytics, no third-party requests.</p>
 </div></footer>
 <dialog class="detail" id="detail" aria-labelledby="detail-title">
 <div class="detail-head"><span class="detail-title muted" id="detail-title">Details</span>
@@ -301,7 +329,7 @@ def compare_table(trials: list[dict]) -> str:
         time = (f'<td class="num">{fmt_s(s.time)}</td>' if s.time is not None else
                 '<td class="num"><span class="na">none fixed</span></td>')
         rows.append(
-            f'<tr><td class="appr"><a href="/?approach={a}#tests" '
+            f'<tr><td class="appr"><a href="/results?approach={a}#tests" '
             f'aria-label="{E(D.APPROACH_NAME[a])}: show its {s.n} tests">'
             f'{E(D.APPROACH_NAME[a])}</a><p>{E(D.APPROACH_BLURB[a])}</p></td>'
             f'{cell("recovered")}{cell("refused")}{cell("escalated")}'
@@ -425,7 +453,7 @@ def explorer(trials: list[dict], q: D.Query, titles: dict[str, str]) -> str:
                         if any(t["outcome"] == o for t in D.main_trials(trials))]
     total = len(D.main_trials(trials))
     form = (
-        f'<form id="ex-form" class="filters" method="get" action="/#tests" role="search" '
+        f'<form id="ex-form" class="filters" method="get" action="/results#tests" role="search" '
         f'aria-label="Filter tests">'
         f'<div class="field"><label for="f-bug">Bug ID</label>'
         f'<input id="f-bug" type="search" name="bug" value="{E(q.bug)}" '
@@ -457,7 +485,7 @@ def explorer_results(trials: list[dict], q: D.Query, titles: dict[str, str]) -> 
     if not res["total"]:
         return ('<div class="empty"><p><b>No tests match these filters.</b></p>'
                 '<p>Try a shorter bug ID, or clear the filters to see all tests.</p>'
-                '<a class="btn" href="/#tests" data-ex-reset>Clear filters</a></div>')
+                '<a class="btn" href="/results#tests" data-ex-reset>Clear filters</a></div>')
 
     def sort_link(key: str, label: str, numeric: bool = False) -> str:
         active = q.sort == key
@@ -465,7 +493,7 @@ def explorer_results(trials: list[dict], q: D.Query, titles: dict[str, str]) -> 
         arrow = ("↑" if q.order == "asc" else "↓") if active else ""
         aria = (f' aria-sort="{"ascending" if q.order == "asc" else "descending"}"'
                 if active else "")
-        href = "/" + qs(q.params(sort=key, order=order, page=1)) + "#tests"
+        href = "/results" + qs(q.params(sort=key, order=order, page=1)) + "#tests"
         return (f'<th scope="col"{aria}{" class=num" if numeric else ""}>'
                 f'<a href="{E(href)}" data-ex>{label}'
                 f'<span class="arrow" aria-hidden="true">{arrow}</span>'
@@ -487,19 +515,19 @@ def explorer_results(trials: list[dict], q: D.Query, titles: dict[str, str]) -> 
 
     pager = ['<nav class="pager" aria-label="Pages">']
     if res["page"] > 1:
-        href = "/" + qs(q.params(page=res["page"] - 1)) + "#tests"
+        href = "/results" + qs(q.params(page=res["page"] - 1)) + "#tests"
         pager.append(f'<a class="btn" href="{E(href)}" data-ex data-ex-top>Previous</a>')
     else:
         pager.append('<span class="btn" aria-disabled="true">Previous</span>')
     pager.append(f'<span class="muted small">Page {res["page"]} of {res["pages"]}</span>')
     if res["page"] < res["pages"]:
-        href = "/" + qs(q.params(page=res["page"] + 1)) + "#tests"
+        href = "/results" + qs(q.params(page=res["page"] + 1)) + "#tests"
         pager.append(f'<a class="btn" href="{E(href)}" data-ex data-ex-top>Next</a>')
     else:
         pager.append('<span class="btn" aria-disabled="true">Next</span>')
     pager.append("</nav>")
 
-    reset = ('<a class="btn btn-quiet" href="/#tests" data-ex-reset>Clear filters</a>'
+    reset = ('<a class="btn btn-quiet" href="/results#tests" data-ex-reset>Clear filters</a>'
              if q.active() else "")
     return f"""
 <div class="ex-status"><span>Showing {res["start"]} to {res["end"]} of {res["total"]} tests</span>{reset}</div>

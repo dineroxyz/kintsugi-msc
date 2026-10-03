@@ -13,13 +13,17 @@ from __future__ import annotations
 import json
 import os
 from contextlib import asynccontextmanager
+from contextvars import ContextVar
 from functools import lru_cache
 
 from fastapi import FastAPI, Request
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
+from fastapi.responses import (FileResponse, HTMLResponse, JSONResponse,
+                               RedirectResponse)
 from fastapi.staticfiles import StaticFiles
 
+from console import auth
 from console import data as D
+from console import pages as P
 from console import views as V
 from control_plane.api.main import app as control_plane_api
 from control_plane.certificates.issuer import (CertificateError,
@@ -37,6 +41,9 @@ BANK_PATH = os.environ.get("KINTSUGI_BANK_PATH",
                            os.path.join(ROOT, "study", "practice_bank.jsonl"))
 VERIFY_PATH = os.path.join(os.path.dirname(CERT_DIR),
                            "certificate_verification.json")
+SUPP_DIR = os.environ.get("KINTSUGI_SUPP_DIR",
+                          os.path.join(os.path.dirname(STUDY_DIR), "supp"))
+_request: ContextVar[Request | None] = ContextVar("request", default=None)
 PAGE_SIZE = 50
 
 
@@ -58,8 +65,43 @@ app.mount("/static", StaticFiles(directory=os.path.join(HERE, "static")),
           name="static")
 
 
-def page(title: str, active: str, body: str, status: int = 200) -> HTMLResponse:
-    return HTMLResponse(V.shell(title, active, body), status_code=status)
+SECURITY_HEADERS = {
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+    "Content-Security-Policy": (
+        "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; "
+        "script-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'self'; "
+        "frame-ancestors 'none'; base-uri 'self'; form-action 'self'"),
+}
+
+
+@app.middleware("http")
+async def _context(request: Request, call_next):
+    token = _request.set(request)
+    try:
+        # the live incident data is for the signed-in operator only;
+        # ingest (POST) stays open so the services can report failures
+        if (request.method == "GET" and request.url.path.startswith("/api/incidents")
+                and not auth.current_user(request)):
+            return JSONResponse({"error": "sign in required"}, status_code=401)
+        response = await call_next(request)
+    finally:
+        _request.reset(token)
+    for k, v in SECURITY_HEADERS.items():
+        response.headers.setdefault(k, v)
+    return response
+
+
+def page(title: str, active: str, body: str, status: int = 200,
+         wide: bool = False) -> HTMLResponse:
+    request = _request.get()
+    user = auth.current_user(request) if request else None
+    html = V.shell(title, active, body, user=user, wide=wide,
+                   csrf=auth.form_token("logout") if user else "")
+    return HTMLResponse(html, status_code=status,
+                        headers={"Cache-Control": "no-store"} if user else None)
 
 
 def not_found(what: str, back: str, back_label: str) -> HTMLResponse:
@@ -122,6 +164,70 @@ def verification() -> dict:
 # ---------------------------------------------------------------- results
 
 @app.get("/", response_class=HTMLResponse)
+def home():
+    return page("Software that repairs itself", "home",
+                P.home(trials(), len(cert_seq()), SUPP_DIR))
+
+
+@app.get("/guide", response_class=HTMLResponse)
+def guide():
+    return page("How to use this site", "guide", P.guide())
+
+
+@app.get("/privacy", response_class=HTMLResponse)
+def privacy():
+    return page("Privacy policy", "privacy", P.privacy())
+
+
+@app.get("/login", response_class=HTMLResponse)
+def login_form(request: Request, next: str = "/results"):
+    if auth.current_user(request):
+        return RedirectResponse(auth.safe_next(next), status_code=303)
+    return page("Sign in", "login",
+                P.login(auth.form_token("login"), auth.safe_next(next),
+                        configured=auth.configured(),
+                        locked=auth.locked_for(auth.client_ip(request))))
+
+
+@app.post("/login", response_class=HTMLResponse)
+async def login_submit(request: Request):
+    form = await auth.read_form(request)
+    nxt = auth.safe_next(form.get("next"))
+    ip = auth.client_ip(request)
+
+    def again(error: str, status: int):
+        return page("Sign in", "login",
+                    P.login(auth.form_token("login"), nxt, error=error,
+                            user=form.get("user", "")[:80],
+                            configured=auth.configured(),
+                            locked=auth.locked_for(ip)), status=status)
+
+    if not auth.check_form_token(form.get("csrf", ""), "login"):
+        return again("This form expired. Please try again.", 400)
+    if not auth.configured():
+        return again("", 403)
+    if auth.locked_for(ip):
+        return again("", 429)
+    if not auth.check_credentials(form.get("user", ""), form.get("password", "")):
+        auth.record_failure(ip)
+        return again("That user name and password do not match. Check them "
+                     "and try again.", 401)
+    auth.clear_failures(ip)
+    response = RedirectResponse(nxt, status_code=303)
+    auth.start_session(response, request, auth.admin_user())
+    return response
+
+
+@app.post("/logout")
+async def logout(request: Request):
+    form = await auth.read_form(request)
+    response = RedirectResponse("/", status_code=303)
+    if auth.check_form_token(form.get("csrf", ""), "logout"):
+        auth.end_session(response)
+    return response
+
+
+@app.get("/results", response_class=HTMLResponse)
 def results(request: Request):
     ts = trials()
     if not ts:
@@ -165,7 +271,7 @@ def explorer_fragment(request: Request):
 def bug_page(bug: str):
     html = V.bug_detail(trials(), bug, titles())
     if html is None:
-        return not_found(f"No bug called {bug}", "/", "Back to the results")
+        return not_found(f"No bug called {bug}", "/results", "Back to the results")
     return page(f"Bug {bug}", "results", html)
 
 
@@ -186,11 +292,11 @@ def _trial(test_id: int) -> dict | None:
 def test_page(test_id: int):
     t = _trial(test_id)
     if t is None:
-        return not_found(f"No test number {test_id}", "/#tests", "See every test")
+        return not_found(f"No test number {test_id}", "/results#tests", "See every test")
     return page(f"Test {test_id}", "results",
                 V.test_detail(t, titles(), cert_seq())
                 + f'<p class="links"><a href="/bugs/{E(t["entry"])}">Every test '
-                f'of bug {E(t["entry"])}</a><a href="/#tests">All tests</a></p>')
+                f'of bug {E(t["entry"])}</a><a href="/results#tests">All tests</a></p>')
 
 
 @app.get("/fragment/test/{test_id}", response_class=HTMLResponse)
@@ -406,7 +512,9 @@ def practice():
 # ----------------------------------------------------------------- errors
 
 @app.get("/incidents", response_class=HTMLResponse)
-def incidents():
+def incidents(request: Request):
+    if not auth.current_user(request):
+        return auth.login_redirect(request)
     try:
         from control_plane.api.main import list_incidents
         rows = list_incidents()

@@ -206,3 +206,18 @@ def test_console_numbers_reconcile_with_the_committed_analysis():
 def test_main_study_bug_groups_match_pre_registered_labels():
     fix, alone = D.bug_groups(D.load_trials(MAIN))
     assert len(fix) == 45 and len(alone) == 15
+
+
+def test_leave_alone_is_also_counted_per_bug():
+    rows = [trial("F02", seed=r, outcome="refused", expected="refused") for r in (1, 2, 3)]
+    rows += [trial("F06", seed=1, outcome="refused", expected="refused"),
+             trial("F06", seed=2, outcome="escalated", expected="refused")]
+    rows += [trial("F01", seed=1, outcome="refused", expected="healed")]
+    assert D.leave_alone_by_bug(rows) == {"risky": 2, "every_run": 1,
+                                          "fixable_wrongly": 1}
+
+
+@needs_study
+def test_main_study_left_alone_all_15_risky_bugs_in_every_run():
+    assert D.leave_alone_by_bug(D.load_trials(MAIN)) == \
+        {"risky": 15, "every_run": 15, "fixable_wrongly": 0}

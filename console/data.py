@@ -207,6 +207,23 @@ def correct_leave_alone(trials: list[dict]) -> dict:
                            if t.get("expected_c3") != "refused")}
 
 
+def leave_alone_by_bug(trials: list[dict]) -> dict:
+    """The same decisions counted per bug rather than per test: a risky bug
+    counts as handled only if it was left alone in every one of its runs."""
+    rows = [t for t in main_trials(trials) if t["arm"] == "C3"]
+    by_bug: dict[str, list[dict]] = {}
+    for t in rows:
+        by_bug.setdefault(t["entry"], []).append(t)
+    risky = {b: rs for b, rs in by_bug.items()
+             if rs and rs[0].get("expected_c3") == "refused"}
+    fixable = {b: rs for b, rs in by_bug.items() if b not in risky}
+    return {"risky": len(risky),
+            "every_run": sum(all(t["outcome"] == "refused" for t in rs)
+                             for rs in risky.values()),
+            "fixable_wrongly": sum(any(t["outcome"] == "refused" for t in rs)
+                                   for rs in fixable.values())}
+
+
 # ---------------------------------------------------------------- integrity
 
 def integrity(trials: list[dict], expect_bugs: int = 60,

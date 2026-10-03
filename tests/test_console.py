@@ -45,7 +45,7 @@ def real(monkeypatch):
 
 def test_empty_surfaces_render(empty):
     client, _ = empty
-    for path in ("/", "/certificates", "/practice"):
+    for path in ("/", "/results", "/certificates", "/practice", "/guide", "/privacy", "/login"):
         r = client.get(path)
         assert r.status_code == 200
         assert "Kintsugi" in r.text and "Abe Oluwaseyi Elizabeth" in r.text
@@ -62,7 +62,7 @@ def test_small_log_renders_with_integrity_warning(empty):
     ]
     with open(study / "trials.jsonl", "w") as fh:
         fh.writelines(json.dumps(r) + "\n" for r in rows)
-    text = client.get("/").text
+    text = client.get("/results").text
     assert "F01" in text and "Left alone" in text and "11.0 s" in text
     assert "do not add up" in text          # 2 bugs, not 60: flagged, not hidden
 
@@ -79,7 +79,7 @@ def test_static_assets_are_served(empty):
 
 
 def test_results_page_on_real_data(real):
-    text = real.get("/").text
+    text = real.get("/results").text
     assert "Data check passed: 720 test records" in text
     assert len(re.findall(r'class="mx-cell"', text)) == 240      # 60 bugs x 4
     assert text.count('role="row"') == 4
@@ -101,7 +101,7 @@ def test_explorer_fragment_filters_sorts_and_paginates(real):
 
 
 def test_deep_link_renders_the_filtered_explorer(real):
-    text = real.get("/?approach=C1&run=2").text
+    text = real.get("/results?approach=C1&run=2").text
     assert "Showing 1 to 25 of 60 tests" in text
     assert '<option value="C1" selected>' in text
 
@@ -122,9 +122,10 @@ def test_certified_test_links_to_its_certificate(real):
     assert "/certificates/" in real.get(f"/fragment/test/{i}").text
 
 
-def test_every_internal_link_on_the_results_page_resolves(real):
-    text = real.get("/").text
-    links = set(re.findall(r'href="(/[^"#]*)', text))
+def test_every_internal_link_resolves(real):
+    links = set()
+    for page in ("/", "/results", "/guide", "/privacy", "/certificates/0"):
+        links |= set(re.findall(r'href="(/[^"#]*)', real.get(page).text))
     for link in sorted(links):
         if link.startswith("/static/"):
             continue
@@ -135,3 +136,20 @@ def test_data_endpoints(real):
     data = real.get("/data/trials.json").json()
     assert len(data) == 1260
     assert real.get("/data/verification.json").status_code == 200
+
+
+def test_home_page_counts_come_from_the_records(real):
+    text = real.get("/").text
+    assert "Software that repairs itself" in text
+    assert "15 of 15" in text and "in every run" in text   # per bug, not per test
+    assert "across all 1,260 tests" in text
+    assert "92%" in text and "43%" in text          # supplementary study
+    assert "fonts.googleapis" not in text           # fonts are self-hosted
+
+
+def test_guide_and_privacy_pages(real):
+    guide = real.get("/guide").text
+    for anchor in ("grid", "tests", "verify", "glossary", "keys"):
+        assert f'id="{anchor}"' in guide
+    privacy = real.get("/privacy").text
+    assert "kintsugi_session" in privacy and "No cookies for visitors" in privacy
