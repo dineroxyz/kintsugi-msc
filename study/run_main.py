@@ -142,7 +142,7 @@ def main() -> int:
           f"({len(plan)} total)", flush=True)
 
     for i, (entry, arm, seed, variant, kw) in enumerate(remaining, 1):
-        os.environ["KINTSUGI_SEED"] = str(seed)   # tags the model prompt
+        os.environ["KINTSUGI_SEED"] = str(seed)   # bookkeeping only: seeds are independent fresh repetitions
         row = one_trial(entry, arm, seed, certificates, variant=variant, **kw)
         with open(trials_path, "a") as fh:
             fh.write(json.dumps(row) + "\n")

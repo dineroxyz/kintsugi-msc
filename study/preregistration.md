@@ -99,3 +99,26 @@ the probe fails with no new incident forming. Outcome definitions are
 otherwise unchanged; no metric or statistical test changed. Pilot runs 1
 and 2 are preserved under study/pilot_run1 and study/pilot_run2 with
 findings notes; neither enters the main analysis, as already registered.
+
+**A2 (2026-10-03, after the main study, before any supplementary trial
+of the memory arms).** Disclosure and supplement. The registered
+"evidence memory off" ablation was configured identically to full C3,
+because the main study loaded no practice bank; it is reported as a
+replication of C3, not as a memory test. To test H4 and H5 as registered,
+a supplementary study (study/run_supp.py, results in study/supp/) runs:
+one self-practice rehearsal of every frozen-corpus entry into a fresh
+bank; C3 with the bank loaded at three seeds in two variants, C3-mem
+(full bank: recurring classes, H4) and C3-mem-loo (the entry's own
+rehearsal withheld, so only same-shape sibling rehearsals are recallable:
+rehearsed-but-unseen faults, H5 clause 3), compared with main-study C3 as
+the no-memory baseline; and the kill matrix of the banked regression
+suite over the corpus mutant pool, from which mutation-score growth over
+the rehearsal sequence and the recurrence measure are computed. Primary
+H4/H5 measure: first-attempt repair success (admitted on candidate 1) per
+trial, Fisher exact two-sided against main-study C3 on the 45 repairable
+faults; secondary: recovery rate, MTTR (Wilcoxon, paired per fault).
+Recurrence is operationalised as a previously healed fault reaching
+production again when redeployed, i.e. not killed by the banked suite
+before deploy. Main-study analyses are unchanged. Also disclosed: the
+runner's KINTSUGI_SEED variable is read by no component, so seeds are
+independent fresh repetitions, as the Study sizes section already states.
