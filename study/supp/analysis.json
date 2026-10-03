@@ -1,0 +1,627 @@
+{
+ "practice": {
+  "rehearsals": 60,
+  "status": {
+   "would_heal": 45,
+   "refused": 15
+  },
+  "shape_keys_healed": 35,
+  "entries_with_healed_sibling": [
+   "F01",
+   "F05",
+   "F07",
+   "F08",
+   "F15",
+   "F17",
+   "F18",
+   "F20",
+   "F21",
+   "M01",
+   "M03",
+   "M10",
+   "M13",
+   "M14",
+   "M16",
+   "M18",
+   "M19",
+   "N20"
+  ]
+ },
+ "arms": {
+  "C3 (no memory, main study)": {
+   "n": 180,
+   "outcomes": {
+    "recovered": 127,
+    "refused": 45,
+    "escalated": 8
+   },
+   "repairable_n": 135,
+   "first_attempt": 58,
+   "first_attempt_rate": 0.43,
+   "recovered_repairable": 127,
+   "recovery_rate": 0.706,
+   "false_fix": 0,
+   "mean_candidates_recovered": 1.606,
+   "mttr": {
+    "median": 12.295,
+    "ci95": [
+     9.672,
+     13.793
+    ],
+    "n": 127
+   }
+  },
+  "C3-mem": {
+   "n": 180,
+   "outcomes": {
+    "recovered": 135,
+    "refused": 45
+   },
+   "repairable_n": 135,
+   "first_attempt": 124,
+   "first_attempt_rate": 0.919,
+   "recovered_repairable": 135,
+   "recovery_rate": 0.75,
+   "false_fix": 0,
+   "mean_candidates_recovered": 1.089,
+   "mttr": {
+    "median": 5.33,
+    "ci95": [
+     5.133,
+     5.448
+    ],
+    "n": 135
+   }
+  },
+  "C3-mem-loo": {
+   "n": 180,
+   "outcomes": {
+    "recovered": 129,
+    "refused": 45,
+    "escalated": 6
+   },
+   "repairable_n": 135,
+   "first_attempt": 70,
+   "first_attempt_rate": 0.519,
+   "recovered_repairable": 129,
+   "recovery_rate": 0.717,
+   "false_fix": 0,
+   "mean_candidates_recovered": 1.527,
+   "mttr": {
+    "median": 7.865,
+    "ci95": [
+     6.326,
+     10.929
+    ],
+    "n": 129
+   }
+  }
+ },
+ "comparisons": {
+  "H4: C3-mem vs C3": {
+   "first_attempt": [
+    124,
+    135,
+    58,
+    135
+   ],
+   "first_attempt_fisher_p": 0.0,
+   "mttr_paired_faults": 44,
+   "mttr_wilcoxon": {
+    "n": 44,
+    "W": 0,
+    "p": 0.0,
+    "method": "normal-approx"
+   },
+   "mttr_cliffs_delta": -0.882
+  },
+  "H5c: C3-mem-loo vs C3": {
+   "first_attempt": [
+    70,
+    135,
+    58,
+    135
+   ],
+   "first_attempt_fisher_p": 0.17992,
+   "mttr_paired_faults": 44,
+   "mttr_wilcoxon": {
+    "n": 44,
+    "W": 202.0,
+    "p": 0.00064,
+    "method": "normal-approx"
+   },
+   "mttr_cliffs_delta": -0.311
+  },
+  "H5c (exploratory, faults with a healed sibling)": {
+   "first_attempt": [
+    32,
+    54,
+    23,
+    54
+   ],
+   "first_attempt_fisher_p": 0.12321,
+   "mttr_paired_faults": 18,
+   "mttr_wilcoxon": {
+    "n": 18,
+    "W": 42.0,
+    "p": 0.05994,
+    "method": "exact"
+   },
+   "mttr_cliffs_delta": -0.327
+  }
+ },
+ "holm_adjusted_first_attempt_p": {
+  "H4: C3-mem vs C3": 0.0,
+  "H5c: C3-mem-loo vs C3": 0.17992
+ },
+ "hardening": {
+  "mutants": 60,
+  "banked_tests": 45,
+  "valid_tests": 44,
+  "invalid_on_clean": [
+   "f21"
+  ],
+  "curve": [
+   {
+    "rehearsals": 1,
+    "suite_size": 1,
+    "killed": 5,
+    "score": 0.083
+   },
+   {
+    "rehearsals": 2,
+    "suite_size": 1,
+    "killed": 5,
+    "score": 0.083
+   },
+   {
+    "rehearsals": 3,
+    "suite_size": 2,
+    "killed": 6,
+    "score": 0.1
+   },
+   {
+    "rehearsals": 4,
+    "suite_size": 3,
+    "killed": 7,
+    "score": 0.117
+   },
+   {
+    "rehearsals": 5,
+    "suite_size": 4,
+    "killed": 14,
+    "score": 0.233
+   },
+   {
+    "rehearsals": 6,
+    "suite_size": 4,
+    "killed": 14,
+    "score": 0.233
+   },
+   {
+    "rehearsals": 7,
+    "suite_size": 5,
+    "killed": 15,
+    "score": 0.25
+   },
+   {
+    "rehearsals": 8,
+    "suite_size": 6,
+    "killed": 17,
+    "score": 0.283
+   },
+   {
+    "rehearsals": 9,
+    "suite_size": 6,
+    "killed": 17,
+    "score": 0.283
+   },
+   {
+    "rehearsals": 10,
+    "suite_size": 7,
+    "killed": 18,
+    "score": 0.3
+   },
+   {
+    "rehearsals": 11,
+    "suite_size": 7,
+    "killed": 18,
+    "score": 0.3
+   },
+   {
+    "rehearsals": 12,
+    "suite_size": 8,
+    "killed": 19,
+    "score": 0.317
+   },
+   {
+    "rehearsals": 13,
+    "suite_size": 9,
+    "killed": 20,
+    "score": 0.333
+   },
+   {
+    "rehearsals": 14,
+    "suite_size": 10,
+    "killed": 21,
+    "score": 0.35
+   },
+   {
+    "rehearsals": 15,
+    "suite_size": 11,
+    "killed": 21,
+    "score": 0.35
+   },
+   {
+    "rehearsals": 16,
+    "suite_size": 11,
+    "killed": 21,
+    "score": 0.35
+   },
+   {
+    "rehearsals": 17,
+    "suite_size": 12,
+    "killed": 22,
+    "score": 0.367
+   },
+   {
+    "rehearsals": 18,
+    "suite_size": 13,
+    "killed": 22,
+    "score": 0.367
+   },
+   {
+    "rehearsals": 19,
+    "suite_size": 14,
+    "killed": 22,
+    "score": 0.367
+   },
+   {
+    "rehearsals": 20,
+    "suite_size": 15,
+    "killed": 24,
+    "score": 0.4
+   },
+   {
+    "rehearsals": 21,
+    "suite_size": 15,
+    "killed": 24,
+    "score": 0.4
+   },
+   {
+    "rehearsals": 22,
+    "suite_size": 16,
+    "killed": 26,
+    "score": 0.433
+   },
+   {
+    "rehearsals": 23,
+    "suite_size": 16,
+    "killed": 26,
+    "score": 0.433
+   },
+   {
+    "rehearsals": 24,
+    "suite_size": 17,
+    "killed": 26,
+    "score": 0.433
+   },
+   {
+    "rehearsals": 25,
+    "suite_size": 17,
+    "killed": 26,
+    "score": 0.433
+   },
+   {
+    "rehearsals": 26,
+    "suite_size": 18,
+    "killed": 28,
+    "score": 0.467
+   },
+   {
+    "rehearsals": 27,
+    "suite_size": 18,
+    "killed": 28,
+    "score": 0.467
+   },
+   {
+    "rehearsals": 28,
+    "suite_size": 19,
+    "killed": 30,
+    "score": 0.5
+   },
+   {
+    "rehearsals": 29,
+    "suite_size": 20,
+    "killed": 30,
+    "score": 0.5
+   },
+   {
+    "rehearsals": 30,
+    "suite_size": 21,
+    "killed": 30,
+    "score": 0.5
+   },
+   {
+    "rehearsals": 31,
+    "suite_size": 22,
+    "killed": 30,
+    "score": 0.5
+   },
+   {
+    "rehearsals": 32,
+    "suite_size": 23,
+    "killed": 30,
+    "score": 0.5
+   },
+   {
+    "rehearsals": 33,
+    "suite_size": 24,
+    "killed": 31,
+    "score": 0.517
+   },
+   {
+    "rehearsals": 34,
+    "suite_size": 25,
+    "killed": 31,
+    "score": 0.517
+   },
+   {
+    "rehearsals": 35,
+    "suite_size": 26,
+    "killed": 31,
+    "score": 0.517
+   },
+   {
+    "rehearsals": 36,
+    "suite_size": 27,
+    "killed": 32,
+    "score": 0.533
+   },
+   {
+    "rehearsals": 37,
+    "suite_size": 28,
+    "killed": 32,
+    "score": 0.533
+   },
+   {
+    "rehearsals": 38,
+    "suite_size": 29,
+    "killed": 33,
+    "score": 0.55
+   },
+   {
+    "rehearsals": 39,
+    "suite_size": 30,
+    "killed": 33,
+    "score": 0.55
+   },
+   {
+    "rehearsals": 40,
+    "suite_size": 31,
+    "killed": 33,
+    "score": 0.55
+   },
+   {
+    "rehearsals": 41,
+    "suite_size": 31,
+    "killed": 33,
+    "score": 0.55
+   },
+   {
+    "rehearsals": 42,
+    "suite_size": 32,
+    "killed": 34,
+    "score": 0.567
+   },
+   {
+    "rehearsals": 43,
+    "suite_size": 33,
+    "killed": 36,
+    "score": 0.6
+   },
+   {
+    "rehearsals": 44,
+    "suite_size": 34,
+    "killed": 37,
+    "score": 0.617
+   },
+   {
+    "rehearsals": 45,
+    "suite_size": 35,
+    "killed": 39,
+    "score": 0.65
+   },
+   {
+    "rehearsals": 46,
+    "suite_size": 36,
+    "killed": 40,
+    "score": 0.667
+   },
+   {
+    "rehearsals": 47,
+    "suite_size": 36,
+    "killed": 40,
+    "score": 0.667
+   },
+   {
+    "rehearsals": 48,
+    "suite_size": 36,
+    "killed": 40,
+    "score": 0.667
+   },
+   {
+    "rehearsals": 49,
+    "suite_size": 37,
+    "killed": 41,
+    "score": 0.683
+   },
+   {
+    "rehearsals": 50,
+    "suite_size": 37,
+    "killed": 41,
+    "score": 0.683
+   },
+   {
+    "rehearsals": 51,
+    "suite_size": 37,
+    "killed": 41,
+    "score": 0.683
+   },
+   {
+    "rehearsals": 52,
+    "suite_size": 38,
+    "killed": 43,
+    "score": 0.717
+   },
+   {
+    "rehearsals": 53,
+    "suite_size": 38,
+    "killed": 43,
+    "score": 0.717
+   },
+   {
+    "rehearsals": 54,
+    "suite_size": 39,
+    "killed": 43,
+    "score": 0.717
+   },
+   {
+    "rehearsals": 55,
+    "suite_size": 40,
+    "killed": 43,
+    "score": 0.717
+   },
+   {
+    "rehearsals": 56,
+    "suite_size": 40,
+    "killed": 43,
+    "score": 0.717
+   },
+   {
+    "rehearsals": 57,
+    "suite_size": 41,
+    "killed": 43,
+    "score": 0.717
+   },
+   {
+    "rehearsals": 58,
+    "suite_size": 42,
+    "killed": 44,
+    "score": 0.733
+   },
+   {
+    "rehearsals": 59,
+    "suite_size": 43,
+    "killed": 45,
+    "score": 0.75
+   },
+   {
+    "rehearsals": 60,
+    "suite_size": 44,
+    "killed": 45,
+    "score": 0.75
+   }
+  ],
+  "mean_curve_random_order": [
+   0.034,
+   0.069,
+   0.102,
+   0.129,
+   0.157,
+   0.183,
+   0.206,
+   0.229,
+   0.25,
+   0.27,
+   0.288,
+   0.307,
+   0.322,
+   0.339,
+   0.353,
+   0.368,
+   0.381,
+   0.394,
+   0.408,
+   0.421,
+   0.433,
+   0.444,
+   0.455,
+   0.466,
+   0.477,
+   0.488,
+   0.497,
+   0.508,
+   0.517,
+   0.528,
+   0.537,
+   0.546,
+   0.555,
+   0.564,
+   0.573,
+   0.582,
+   0.59,
+   0.598,
+   0.606,
+   0.615,
+   0.623,
+   0.63,
+   0.638,
+   0.645,
+   0.653,
+   0.66,
+   0.667,
+   0.674,
+   0.681,
+   0.688,
+   0.695,
+   0.701,
+   0.708,
+   0.714,
+   0.72,
+   0.726,
+   0.732,
+   0.738,
+   0.744,
+   0.75
+  ],
+  "final_score": 0.75,
+  "recurrence": {
+   "healed_faults": 44,
+   "blocked_on_redeploy": 44,
+   "recurrence_rate_with_bank": 0.0,
+   "recurrence_rate_without_bank": 1.0,
+   "not_blocked": []
+  },
+  "cross_protection": {
+   "mutants_killed_by_another_faults_test": 25,
+   "which": [
+    "F01",
+    "F04",
+    "F09",
+    "F15",
+    "F18",
+    "F19",
+    "F20",
+    "M01",
+    "M03",
+    "M05",
+    "M08",
+    "M09",
+    "M10",
+    "M11",
+    "M13",
+    "M14",
+    "M16",
+    "M18",
+    "M19",
+    "N03",
+    "N05",
+    "N14",
+    "N15",
+    "N17",
+    "N20"
+   ]
+  }
+ }
+}

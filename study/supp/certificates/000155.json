@@ -1,0 +1,220 @@
+{
+  "version": 1,
+  "sequence": 155,
+  "issued_at": "2026-10-03T15:07:08",
+  "service_spec": "beta.main:app",
+  "signature": "KeyError@main.py:92",
+  "capture": {
+    "service": "beta",
+    "release": "r2",
+    "exception_type": "KeyError",
+    "exception_message": "'platinum'",
+    "frames": [
+      {
+        "file": "/Users/ssheyii/kintsugi/libs/kintsugi_capture/__init__.py",
+        "line": 158,
+        "function": "__call__",
+        "code": "await self.app(scope, buffering_receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py",
+        "line": 63,
+        "function": "__call__",
+        "code": "await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 53,
+        "function": "wrapped_app",
+        "code": "raise exc"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 42,
+        "function": "wrapped_app",
+        "code": "await app(scope, receive, sender)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py",
+        "line": 18,
+        "function": "__call__",
+        "code": "await self.app(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/routing.py",
+        "line": 670,
+        "function": "__call__",
+        "code": "await self.middleware_stack(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 2734,
+        "function": "app",
+        "code": "await route.handle(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 1281,
+        "function": "handle",
+        "code": "await super().handle(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/routing.py",
+        "line": 280,
+        "function": "handle",
+        "code": "await self.app(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 158,
+        "function": "app",
+        "code": "await wrap_app_handling_exceptions(app, request)(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 53,
+        "function": "wrapped_app",
+        "code": "raise exc"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 42,
+        "function": "wrapped_app",
+        "code": "await app(scope, receive, sender)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 144,
+        "function": "app",
+        "code": "response = await f(request)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 706,
+        "function": "app",
+        "code": "raw_response = await run_endpoint_function("
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 354,
+        "function": "run_endpoint_function",
+        "code": "return await run_in_threadpool(dependant.call, **values)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/concurrency.py",
+        "line": 34,
+        "function": "run_in_threadpool",
+        "code": "return await anyio.to_thread.run_sync(func)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/to_thread.py",
+        "line": 65,
+        "function": "run_sync",
+        "code": "return await get_async_backend().run_sync_in_worker_thread("
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py",
+        "line": 2641,
+        "function": "run_sync_in_worker_thread",
+        "code": "return await future"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py",
+        "line": 1033,
+        "function": "run",
+        "code": "result = context.run(func, *args)"
+      },
+      {
+        "file": "/private/var/folders/mv/mzz_q2mn3q3c827r6pfcby640000gn/T/main-N09-C3-s2-_vip5kes/live_beta/beta/main.py",
+        "line": 92,
+        "function": "tier_discount",
+        "code": "bps = table[tier]"
+      }
+    ],
+    "request": {
+      "method": "GET",
+      "path": "/discounts/platinum",
+      "query": "",
+      "headers": {
+        "host": "127.0.0.1:58198",
+        "accept": "*/*",
+        "accept-encoding": "gzip, deflate, br",
+        "connection": "keep-alive",
+        "user-agent": "python-httpx/0.28.1"
+      },
+      "body": ""
+    },
+    "external_calls": []
+  },
+  "reproduction": {
+    "status": "reproduced",
+    "reason": "failed identically on 5/5 replays",
+    "signature": "KeyError@main.py:92",
+    "verdicts": [
+      {
+        "failed": true,
+        "exception_type": "KeyError",
+        "top_frame": "main.py:92",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "KeyError",
+        "top_frame": "main.py:92",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "KeyError",
+        "top_frame": "main.py:92",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "KeyError",
+        "top_frame": "main.py:92",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "KeyError",
+        "top_frame": "main.py:92",
+        "status_code": 500,
+        "hermetic_violation": false
+      }
+    ]
+  },
+  "candidates": [
+    {
+      "attempt": 1,
+      "diff": "--- a/beta/main.py\n+++ b/beta/main.py\n@@ -88,6 +88,8 @@\n @app.get(\"/discounts/{tier}\")\n def tier_discount(tier: str) -> dict:\n     \"\"\"Look up a loyalty tier's discount basis points.\"\"\"\n     table = {\"bronze\": 100, \"silver\": 250, \"gold\": 500}\n+    if tier not in table:\n+        raise HTTPException(status_code=404, detail=f\"unknown tier {tier!r}\")\n     bps = table[tier]\n     return {\"tier\": tier, \"bps\": bps, \"fraction\": round(bps / 10000, 4)}",
+      "conditions": {
+        "structural": true,
+        "applies": true,
+        "reproduction": true,
+        "suite": true
+      }
+    }
+  ],
+  "patch": "--- a/beta/main.py\n+++ b/beta/main.py\n@@ -88,6 +88,8 @@\n @app.get(\"/discounts/{tier}\")\n def tier_discount(tier: str) -> dict:\n     \"\"\"Look up a loyalty tier's discount basis points.\"\"\"\n     table = {\"bronze\": 100, \"silver\": 250, \"gold\": 500}\n+    if tier not in table:\n+        raise HTTPException(status_code=404, detail=f\"unknown tier {tier!r}\")\n     bps = table[tier]\n     return {\"tier\": tier, \"bps\": bps, \"fraction\": round(bps / 10000, 4)}",
+  "verification_record": {
+    "payload": {
+      "signature": "KeyError@main.py:92",
+      "diff_sha256": "fa1ff5750d326e2001b49c169e01600e053121c4ea12e69b31cb19776071a64d",
+      "conditions": {
+        "structural": true,
+        "applies": true,
+        "reproduction": true,
+        "suite": true
+      }
+    },
+    "hmac": "d964a7501307f947155a9928055219dcf0a1a1cdcd15c64815afb3be407484dc"
+  },
+  "prev_hash": "e8651e9843f863629b3b24ab034462b8c077707baa381b601ddf5088b8a594a9",
+  "hash": "d36f8d9c52125331a02a94bafd27765387d009c790352d4e5d85f24b8c3115f2",
+  "hmac": "24277d8c0f0d26532b50de720fa0df0ec37b29be10a563df5e6ea8031be2d799"
+}

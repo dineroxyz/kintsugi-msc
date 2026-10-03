@@ -1,0 +1,230 @@
+{
+  "version": 1,
+  "sequence": 136,
+  "issued_at": "2026-10-03T14:42:59",
+  "service_spec": "alpha.main:app",
+  "signature": "ValueError@main.py:155",
+  "capture": {
+    "service": "alpha",
+    "release": "r2",
+    "exception_type": "ValueError",
+    "exception_message": "count must be at least 1",
+    "frames": [
+      {
+        "file": "/Users/ssheyii/kintsugi/libs/kintsugi_capture/__init__.py",
+        "line": 158,
+        "function": "__call__",
+        "code": "await self.app(scope, buffering_receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py",
+        "line": 63,
+        "function": "__call__",
+        "code": "await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 53,
+        "function": "wrapped_app",
+        "code": "raise exc"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 42,
+        "function": "wrapped_app",
+        "code": "await app(scope, receive, sender)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py",
+        "line": 18,
+        "function": "__call__",
+        "code": "await self.app(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/routing.py",
+        "line": 670,
+        "function": "__call__",
+        "code": "await self.middleware_stack(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 2734,
+        "function": "app",
+        "code": "await route.handle(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 1281,
+        "function": "handle",
+        "code": "await super().handle(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/routing.py",
+        "line": 280,
+        "function": "handle",
+        "code": "await self.app(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 158,
+        "function": "app",
+        "code": "await wrap_app_handling_exceptions(app, request)(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 53,
+        "function": "wrapped_app",
+        "code": "raise exc"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 42,
+        "function": "wrapped_app",
+        "code": "await app(scope, receive, sender)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 144,
+        "function": "app",
+        "code": "response = await f(request)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 706,
+        "function": "app",
+        "code": "raw_response = await run_endpoint_function("
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 354,
+        "function": "run_endpoint_function",
+        "code": "return await run_in_threadpool(dependant.call, **values)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/concurrency.py",
+        "line": 34,
+        "function": "run_in_threadpool",
+        "code": "return await anyio.to_thread.run_sync(func)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/to_thread.py",
+        "line": 65,
+        "function": "run_sync",
+        "code": "return await get_async_backend().run_sync_in_worker_thread("
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py",
+        "line": 2641,
+        "function": "run_sync_in_worker_thread",
+        "code": "return await future"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py",
+        "line": 1033,
+        "function": "run",
+        "code": "result = context.run(func, *args)"
+      },
+      {
+        "file": "/private/var/folders/mv/mzz_q2mn3q3c827r6pfcby640000gn/T/main-M12-C3-s2-5zifypqj/live_alpha/alpha/main.py",
+        "line": 155,
+        "function": "restock",
+        "code": "raise ValueError(\"count must be at least 1\")"
+      }
+    ],
+    "request": {
+      "method": "POST",
+      "path": "/restock/WIDGET",
+      "query": "",
+      "headers": {
+        "host": "127.0.0.1:52264",
+        "accept": "*/*",
+        "accept-encoding": "gzip, deflate, br",
+        "connection": "keep-alive",
+        "user-agent": "python-httpx/0.28.1",
+        "content-length": "11",
+        "content-type": "application/json"
+      },
+      "body": "{\"count\":0}"
+    },
+    "external_calls": []
+  },
+  "reproduction": {
+    "status": "reproduced",
+    "reason": "failed identically on 5/5 replays",
+    "signature": "ValueError@main.py:155",
+    "verdicts": [
+      {
+        "failed": true,
+        "exception_type": "ValueError",
+        "top_frame": "main.py:155",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "ValueError",
+        "top_frame": "main.py:155",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "ValueError",
+        "top_frame": "main.py:155",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "ValueError",
+        "top_frame": "main.py:155",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "ValueError",
+        "top_frame": "main.py:155",
+        "status_code": 500,
+        "hermetic_violation": false
+      }
+    ]
+  },
+  "candidates": [
+    {
+      "attempt": 1,
+      "diff": "--- a/alpha/main.py\n+++ b/alpha/main.py\n@@ -150,9 +150,12 @@\n @app.post(\"/restock/{sku}\")\n def restock(sku: str, payload: dict) -> dict:\n-    count = int(payload.get(\"count\", 0))\n+    try:\n+        count = int(payload.get(\"count\", 0))\n+    except (TypeError, ValueError):\n+        raise HTTPException(status_code=422, detail=\"count must be an integer\")\n     if count < 1:\n-        raise ValueError(\"count must be at least 1\")\n+        raise HTTPException(status_code=422, detail=\"count must be at least 1\")\n     with _stock_lock:\n         STOCK[sku] = [f\"{sku}-{i}\" for i in range(count)]\n     return {\"sku\": sku, \"stocked\": count}",
+      "conditions": {
+        "structural": true,
+        "applies": false
+      }
+    },
+    {
+      "attempt": 2,
+      "diff": "--- a/alpha/main.py\n+++ b/alpha/main.py\n@@ -149,12 +149,15 @@\n \n \n @app.post(\"/restock/{sku}\")\n def restock(sku: str, payload: dict) -> dict:\n-    count = int(payload.get(\"count\", 0))\n+    try:\n+        count = int(payload.get(\"count\", 0))\n+    except (TypeError, ValueError):\n+        raise HTTPException(status_code=422, detail=\"count must be an integer\")\n     if count < 1:\n-        raise ValueError(\"count must be at least 1\")\n+        raise HTTPException(status_code=422, detail=\"count must be at least 1\")\n     with _stock_lock:\n         STOCK[sku] = [f\"{sku}-{i}\" for i in range(count)]\n     return {\"sku\": sku, \"stocked\": count}\n \n ",
+      "conditions": {
+        "structural": true,
+        "applies": true,
+        "reproduction": true,
+        "suite": true
+      }
+    }
+  ],
+  "patch": "--- a/alpha/main.py\n+++ b/alpha/main.py\n@@ -149,12 +149,15 @@\n \n \n @app.post(\"/restock/{sku}\")\n def restock(sku: str, payload: dict) -> dict:\n-    count = int(payload.get(\"count\", 0))\n+    try:\n+        count = int(payload.get(\"count\", 0))\n+    except (TypeError, ValueError):\n+        raise HTTPException(status_code=422, detail=\"count must be an integer\")\n     if count < 1:\n-        raise ValueError(\"count must be at least 1\")\n+        raise HTTPException(status_code=422, detail=\"count must be at least 1\")\n     with _stock_lock:\n         STOCK[sku] = [f\"{sku}-{i}\" for i in range(count)]\n     return {\"sku\": sku, \"stocked\": count}\n \n ",
+  "verification_record": {
+    "payload": {
+      "signature": "ValueError@main.py:155",
+      "diff_sha256": "f51f5e3e4ba3c45dcdefcc0a021468ddc136872002825db82de2697ab6379a66",
+      "conditions": {
+        "structural": true,
+        "applies": true,
+        "reproduction": true,
+        "suite": true
+      }
+    },
+    "hmac": "f1eb4a7d9bfe95a6282a5611659746c79327d5c62841d1c44657c6847f5ecbae"
+  },
+  "prev_hash": "127a7f70ae5df7b16681866f713e3a18ae37233da0997179c394f65f628769b5",
+  "hash": "5d0853816caf5790538d4e42ab392414948e30c88d94e8d6349f24a2df75b57b",
+  "hmac": "874ebb919ca634bbaf6e1e87d436673d8f7c0282a06401edb38710cc1808ba21"
+}

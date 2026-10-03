@@ -1,0 +1,228 @@
+{
+  "version": 1,
+  "sequence": 3,
+  "issued_at": "2026-10-03T13:52:40",
+  "service_spec": "alpha.main:app",
+  "signature": "KeyError@main.py:105",
+  "capture": {
+    "service": "alpha",
+    "release": "r2",
+    "exception_type": "KeyError",
+    "exception_message": "999999",
+    "frames": [
+      {
+        "file": "/Users/ssheyii/kintsugi/libs/kintsugi_capture/__init__.py",
+        "line": 158,
+        "function": "__call__",
+        "code": "await self.app(scope, buffering_receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py",
+        "line": 63,
+        "function": "__call__",
+        "code": "await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 53,
+        "function": "wrapped_app",
+        "code": "raise exc"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 42,
+        "function": "wrapped_app",
+        "code": "await app(scope, receive, sender)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py",
+        "line": 18,
+        "function": "__call__",
+        "code": "await self.app(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/routing.py",
+        "line": 670,
+        "function": "__call__",
+        "code": "await self.middleware_stack(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 2734,
+        "function": "app",
+        "code": "await route.handle(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 1281,
+        "function": "handle",
+        "code": "await super().handle(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/routing.py",
+        "line": 280,
+        "function": "handle",
+        "code": "await self.app(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 158,
+        "function": "app",
+        "code": "await wrap_app_handling_exceptions(app, request)(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 53,
+        "function": "wrapped_app",
+        "code": "raise exc"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 42,
+        "function": "wrapped_app",
+        "code": "await app(scope, receive, sender)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 144,
+        "function": "app",
+        "code": "response = await f(request)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 706,
+        "function": "app",
+        "code": "raw_response = await run_endpoint_function("
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 354,
+        "function": "run_endpoint_function",
+        "code": "return await run_in_threadpool(dependant.call, **values)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/concurrency.py",
+        "line": 34,
+        "function": "run_in_threadpool",
+        "code": "return await anyio.to_thread.run_sync(func)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/to_thread.py",
+        "line": 65,
+        "function": "run_sync",
+        "code": "return await get_async_backend().run_sync_in_worker_thread("
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py",
+        "line": 2641,
+        "function": "run_sync_in_worker_thread",
+        "code": "return await future"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py",
+        "line": 1033,
+        "function": "run",
+        "code": "result = context.run(func, *args)"
+      },
+      {
+        "file": "/private/var/folders/mv/mzz_q2mn3q3c827r6pfcby640000gn/T/main-F03-C3-s1-3c19r9fu/live_alpha/alpha/main.py",
+        "line": 105,
+        "function": "get_order",
+        "code": "return ORDERS[order_id]"
+      }
+    ],
+    "request": {
+      "method": "GET",
+      "path": "/orders/999999",
+      "query": "",
+      "headers": {
+        "host": "127.0.0.1:64337",
+        "accept": "*/*",
+        "accept-encoding": "gzip, deflate, br",
+        "connection": "keep-alive",
+        "user-agent": "python-httpx/0.28.1"
+      },
+      "body": ""
+    },
+    "external_calls": []
+  },
+  "reproduction": {
+    "status": "reproduced",
+    "reason": "failed identically on 5/5 replays",
+    "signature": "KeyError@main.py:105",
+    "verdicts": [
+      {
+        "failed": true,
+        "exception_type": "KeyError",
+        "top_frame": "main.py:105",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "KeyError",
+        "top_frame": "main.py:105",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "KeyError",
+        "top_frame": "main.py:105",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "KeyError",
+        "top_frame": "main.py:105",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "KeyError",
+        "top_frame": "main.py:105",
+        "status_code": 500,
+        "hermetic_violation": false
+      }
+    ]
+  },
+  "candidates": [
+    {
+      "attempt": 1,
+      "diff": "--- a/alpha/main.py\n+++ b/alpha/main.py\n@@\n @app.get(\"/orders/{order_id}\")\n def get_order(order_id: int) -> dict:\n-    return ORDERS[order_id]\n+    order = ORDERS.get(order_id)\n+    if order is None:\n+        raise HTTPException(status_code=404, detail=f\"no order {order_id}\")\n+    return order",
+      "conditions": {
+        "structural": true,
+        "applies": false
+      }
+    },
+    {
+      "attempt": 2,
+      "diff": "--- a/alpha/main.py\n+++ b/alpha/main.py\n@@ -101,8 +101,11 @@\n \n \n @app.get(\"/orders/{order_id}\")\n def get_order(order_id: int) -> dict:\n-    return ORDERS[order_id]\n+    order = ORDERS.get(order_id)\n+    if order is None:\n+        raise HTTPException(status_code=404, detail=f\"no order {order_id}\")\n+    return order\n \n \n @app.post(\"/orders/{order_id}/cancel\")",
+      "conditions": {
+        "structural": true,
+        "applies": true,
+        "reproduction": true,
+        "suite": true
+      }
+    }
+  ],
+  "patch": "--- a/alpha/main.py\n+++ b/alpha/main.py\n@@ -101,8 +101,11 @@\n \n \n @app.get(\"/orders/{order_id}\")\n def get_order(order_id: int) -> dict:\n-    return ORDERS[order_id]\n+    order = ORDERS.get(order_id)\n+    if order is None:\n+        raise HTTPException(status_code=404, detail=f\"no order {order_id}\")\n+    return order\n \n \n @app.post(\"/orders/{order_id}/cancel\")",
+  "verification_record": {
+    "payload": {
+      "signature": "KeyError@main.py:105",
+      "diff_sha256": "3176fe13f83f1433fa7496bb488daa7cf0cb65f195517014919ff611c8b55a5c",
+      "conditions": {
+        "structural": true,
+        "applies": true,
+        "reproduction": true,
+        "suite": true
+      }
+    },
+    "hmac": "a7736d0812e5ece01d5f96dccc38a5e9fa595188e380fec38bc64dd9cfb64536"
+  },
+  "prev_hash": "f40276e0b9763485815594192db08beaba5ff87b676cf6597e471e57797a7636",
+  "hash": "6a3fe77afa45a4ec91873e6741f1849f5b971780f83d88c69e16750c40f63df4",
+  "hmac": "340cf0aea7a5058fc06423a2fa7eebfb8666bafbaaced9f7f75080e7d3d25395"
+}
