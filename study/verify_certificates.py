@@ -49,8 +49,7 @@ CERTS = os.path.join(MAIN, "certificates")
 def keyless_integrity(certs: list[dict]) -> dict:
     prev = issuer.GENESIS
     for cert in certs:
-        body = {k: v for k, v in cert.items() if k not in ("hash", "hmac")}
-        if hashlib.sha256(issuer._canonical(body)).hexdigest() != cert["hash"]:
+        if hashlib.sha256(issuer.canonical_bytes(cert)).hexdigest() != cert["hash"]:
             return {"ok": False, "at": cert["sequence"], "why": "tampered"}
         if cert["prev_hash"] != prev:
             return {"ok": False, "at": cert["sequence"], "why": "chain broken"}

@@ -194,6 +194,7 @@
     $("st-chips").innerHTML = "";
     patchEl.innerHTML = '<span class="muted">The patch appears here as the model writes it.</span>';
     attemptEl.textContent = ""; stamp.hidden = true; stamp.innerHTML = "";
+    var ex = document.getElementById("live-explain"); if (ex) ex.hidden = true;
     outcomeEl.textContent = "Every repair adds a seam.";
     setState("", "Starting");
   }
@@ -313,6 +314,18 @@
         setStep("recovered", "done", "Working again " + e.mttr.toFixed(1) + " s after the first error.", e.t);
         setState("mended", "Mended in " + e.mttr.toFixed(1) + " s");
         outcomeEl.textContent = "Mended in " + e.mttr.toFixed(1) + " s, and a new gold seam marks the repair.";
+        break;
+      case "explanation":
+        var ex = document.getElementById("live-explain");
+        if (ex) { ex.hidden = false; ex.querySelector("p").textContent = e.text; }
+        break;
+      case "pull_request":
+        if (e.url) {
+          var pr = document.createElement("a");
+          pr.href = e.url; pr.textContent = "Pull request #" + e.number + " opened for review";
+          pr.target = "_blank"; pr.rel = "noopener";
+          outcomeEl.appendChild(document.createElement("br")); outcomeEl.appendChild(pr);
+        }
         break;
       case "false_fix":
         setState("broken", "Bad fix"); setStep("recovered", "failed", "The error is still there.", e.t); break;

@@ -119,11 +119,13 @@ of Lagos.</p>
 <a href="mailto:oluwaseyiabe0@gmail.com">oluwaseyiabe0@gmail.com</a></p></div>
 <nav aria-label="Explore"><h2 class="foot-h">Explore</h2>
 <a href="/results">Results</a><a href="/certificates">Certificates</a>
-<a href="/practice">Practice</a></nav>
+<a href="/practice">Practice</a><a href="/status">Status</a></nav>
 <nav aria-label="Help"><h2 class="foot-h">Help</h2>
-<a href="/guide">How to use this site</a><a href="/guide#glossary">Glossary</a>
+<a href="/guide">How to use this site</a><a href="/built">How it is built</a>
+<a href="/guide#glossary">Glossary</a>
 <a href="/guide#verify">Check a certificate yourself</a></nav>
 <nav aria-label="Data and policy"><h2 class="foot-h">Data and policy</h2>
+<a href="/trust">Why you can trust the record</a>
 <a href="/data/trials.json">Raw test data</a>
 <a href="/data/verification.json">Certificate check report</a>
 <a href="/privacy">Privacy policy</a></nav>

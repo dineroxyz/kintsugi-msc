@@ -303,9 +303,79 @@ def account(request: Request):
         response = RedirectResponse("/", status_code=303)
         auth.end_session(response)
         return response
+    return _account_page(request, user)
+
+
+def _account_page(request: Request, user, *, new_key: tuple | None = None,
+                  service_error: str = "", status: int = 200):
+    services = [(svc, A.service_incidents(svc)) for svc in A.user_services(user.id)]
+    base = os.environ.get("KINTSUGI_PUBLIC_URL", str(request.base_url).rstrip("/"))
     return page("Your account", "account",
                 P.account(user, A.user_runs(user.id), A.runs_left(user.id),
-                          titles(), auth.form_token("delete"), live_enabled=L.enabled()))
+                          titles(), auth.form_token("delete"), live_enabled=L.enabled(),
+                          services=services, service_token=auth.form_token("service"),
+                          new_key=new_key, service_error=service_error, base_url=base),
+                status=status)
+
+
+@app.post("/account/services")
+async def add_service(request: Request):
+    who = auth.identity(request)
+    form = await auth.read_form(request)
+    if not who or who["r"] != "user" or not auth.check_form_token(form.get("csrf", ""), "service"):
+        return RedirectResponse("/account", status_code=303)
+    user = A.get_user(who["u"])
+    if user is None:
+        return RedirectResponse("/", status_code=303)
+    try:
+        svc, key = A.create_service(user.id, form.get("name", ""))
+    except ValueError as exc:
+        return _account_page(request, user, service_error=str(exc), status=400)
+    return _account_page(request, user, new_key=(svc, key))
+
+
+@app.post("/account/services/{service_id}/delete")
+async def remove_service(service_id: int, request: Request):
+    who = auth.identity(request)
+    form = await auth.read_form(request)
+    if who and who["r"] == "user" and auth.check_form_token(form.get("csrf", ""), "service"):
+        user = A.get_user(who["u"])
+        if user:
+            A.delete_service(user.id, service_id)
+    return RedirectResponse("/account#services", status_code=303)
+
+
+REQUIRED_EVENT = ("exception_type", "frames", "request")
+
+
+@app.post("/connect/{key}/ingest/event")
+async def connected_ingest(key: str, request: Request):
+    """Failures from a visitor's own service. The key decides which account
+    the incident belongs to; the event is checked before it is stored."""
+    svc = A.service_by_key(key)
+    if svc is None:
+        return JSONResponse({"error": "unknown key"}, status_code=401)
+    if not A.ingest_allowed(svc.id):
+        return JSONResponse({"error": "too many events; slow down"}, status_code=429)
+    body = await request.body()
+    if len(body) > 256 * 1024:
+        return JSONResponse({"error": "event too large"}, status_code=413)
+    try:
+        event = json.loads(body)
+        assert isinstance(event, dict)
+        assert all(k in event for k in REQUIRED_EVENT)
+        assert isinstance(event["frames"], list) and isinstance(event["request"], dict)
+    except Exception:
+        return JSONResponse({"error": "not a Kintsugi capture event"}, status_code=400)
+    event["service"] = A.service_tag(svc)
+    event.setdefault("release", "unknown")
+    event.setdefault("exception_message", "")
+    event.setdefault("external_calls", [])
+    from control_plane.db import get_session
+    from control_plane.incidents.former import ingest
+    with get_session() as session:
+        incident, capture = ingest(session, event)
+        return {"incident_id": incident.id, "capture_count": incident.capture_count}
 
 
 @app.post("/account/delete")
@@ -547,6 +617,121 @@ def trials_json():
     return JSONResponse(trials())
 
 
+# ------------------------------------------------------------------ trust
+
+ATTESTATION = os.path.join(os.path.dirname(CERT_DIR), "attestation.json")
+
+
+def _published_key() -> dict:
+    from control_plane.certificates import pubsig
+    pub = pubsig.public_key_b64()
+    if pub is None and os.path.exists(ATTESTATION):       # key from the attestation
+        try:
+            pub = json.load(open(ATTESTATION))["key"]
+        except Exception:
+            pub = None
+    return {"alg": "Ed25519", "key": pub, "key_id": pubsig.key_id(pub) if pub else None}
+
+
+@app.get("/.well-known/kintsugi-key.json")
+def well_known_key():
+    return JSONResponse(_published_key())
+
+
+@app.get("/data/attestation.json")
+def attestation_json():
+    if not os.path.exists(ATTESTATION):
+        return JSONResponse({"error": "no attestation"}, status_code=404)
+    return FileResponse(ATTESTATION, media_type="application/json")
+
+
+@app.get("/data/attestation.json.ots")
+def attestation_ots():
+    path = ATTESTATION + ".ots"
+    if not os.path.exists(path):
+        return JSONResponse({"error": "not anchored yet"}, status_code=404)
+    return FileResponse(path, media_type="application/octet-stream",
+                        filename="attestation.json.ots")
+
+
+@app.get("/certificates/{seq}/canonical")
+def certificate_canonical(seq: int):
+    """Exactly the bytes the certificate's hash covers, so a browser can
+    recompute the hash itself instead of trusting this server's word."""
+    from fastapi.responses import Response
+    from control_plane.certificates.issuer import canonical_bytes
+    certs = {c["sequence"]: c for c in CertificateStore(CERT_DIR).all()}
+    cert = certs.get(seq)
+    if cert is None:
+        return JSONResponse({"error": "no such certificate"}, status_code=404)
+    return Response(canonical_bytes(cert), media_type="application/octet-stream",
+                    headers={"X-Certificate-Hash": cert["hash"]})
+
+
+@app.get("/certificates/{seq}.json")
+def certificate_json(seq: int):
+    certs = {c["sequence"]: c for c in CertificateStore(CERT_DIR).all()}
+    cert = certs.get(seq)
+    if cert is None:
+        return JSONResponse({"error": "no such certificate"}, status_code=404)
+    return JSONResponse({"sequence": seq, "hash": cert["hash"],
+                         "prev_hash": cert["prev_hash"],
+                         "ed25519": cert.get("ed25519")})
+
+
+# ----------------------------------------------------------------- status
+
+_status_cache: dict = {"at": 0.0, "checks": None}
+
+
+def _status_checks() -> list[dict]:
+    """Ask each watched service whether it answers, now (cached 20 s so the
+    page cannot be used to hammer them). No background job: the page checks
+    when it is opened."""
+    import time as _t
+    import httpx
+    if _status_cache["checks"] is not None and _t.time() - _status_cache["at"] < 20:
+        return _status_cache["checks"]
+    out = []
+    for pair in os.environ.get("KINTSUGI_STATUS_TARGETS", "").split(","):
+        if "=" not in pair:
+            continue
+        name, url = (x.strip() for x in pair.split("=", 1))
+        t0 = _t.time()
+        try:
+            ok = httpx.get(url, timeout=5.0).status_code < 500
+        except httpx.HTTPError:
+            ok = False
+        out.append({"name": name, "ok": ok, "ms": round((_t.time() - t0) * 1000)})
+    _status_cache.update(at=_t.time(), checks=out)
+    return out
+
+
+@app.get("/status", response_class=HTMLResponse)
+def status():
+    return page("Status", "status",
+                P.status(_status_checks(), A.recent_runs(24), titles()))
+
+
+@app.get("/built", response_class=HTMLResponse)
+def built():
+    return page("How it is built", "built",
+                P.built(ROOT, len(cert_seq()), len(trials())), wide=False)
+
+
+@app.get("/trust", response_class=HTMLResponse)
+def trust():
+    att = None
+    if os.path.exists(ATTESTATION):
+        try:
+            att = json.load(open(ATTESTATION))
+        except Exception:
+            att = None
+    return page("Why you can trust the record", "trust",
+                P.trust(_published_key(), att, os.path.exists(ATTESTATION + ".ots"),
+                        len(cert_seq())))
+
+
 @app.get("/data/verification.json")
 def verification_json():
     if not os.path.exists(VERIFY_PATH):
@@ -662,6 +847,11 @@ def certificate(seq: int):
     bug_link = (f', <a href="/bugs/{E(t["entry"])}">bug {E(t["entry"])}</a>'
                 if t.get("entry") else "")
 
+    check = (f'<div class="verify-box" data-verify="{cert["sequence"]}">'
+             '<button class="btn" type="button" data-verify-go>Check it yourself</button>'
+             '<span class="muted small">Your browser recomputes the fingerprint, the link '
+             'to the previous certificate and the signature. Nothing is taken on trust. '
+             '<a href="/trust">How this works</a></span><ol class="verify-out" hidden></ol></div>')
     body = f"""
 <div class="cert-head"><div>
 <p class="muted" style="margin:0">Repair certificate</p>
@@ -689,8 +879,9 @@ like, you can test whether a fix really stops it.</p></li>
 so nobody can quietly change it later.</p>
 <p class="faint small">ID <span class="mono">{cert["hash"][:16]}</span>,
 linked to <span class="mono">{cert["prev_hash"][:16]}</span></p>{replay}</li>
-</ol><p class="links">{"".join(links)}</p>"""
-    return page(f"Certificate {seq:06d}", "certificates", body)
+</ol>{check}<p class="links">{"".join(links)}</p>"""
+    return page(f"Certificate {seq:06d}", "certificates", body,
+                extra_head='<script src="/static/verify.js" defer></script>')
 
 
 # --------------------------------------------------------------- practice

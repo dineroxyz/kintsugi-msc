@@ -601,8 +601,60 @@ minlength="10" required aria-describedby="pw-help">
         "and a scrambled form of your password, nothing else.")
 
 
+def _services_section(services: list, token: str, new_key, error: str, base: str) -> str:
+    fresh = ""
+    if new_key:
+        svc, key = new_key
+        fresh = f"""
+<div class="new-key" role="status"><p><b>Service “{E(svc.name)}” connected.</b> Copy this key
+now: it is shown only once and stored only as a fingerprint.</p>
+<code class="keyblock">{E(key)}</code>
+<ol class="steps-mini">
+<li>Copy <a href="https://github.com/dineroxyz/kintsugi-shop/blob/main/libs/kintsugi_capture/__init__.py">kintsugi_capture</a>
+into your project (it needs <code>httpx</code>).</li>
+<li>Add two lines to your FastAPI or Starlette app:</li></ol>
+<pre>from kintsugi_capture import CaptureMiddleware
+app.add_middleware(CaptureMiddleware, service="{E(svc.name)}")</pre>
+<ol class="steps-mini" start="3"><li>Set this environment variable where the service runs:</li></ol>
+<pre>KINTSUGI_CONTROL_PLANE={E(base)}/connect/{E(key)}</pre>
+<p class="muted small">Every unhandled failure is then sent here, with passwords and keys removed
+before it leaves your server, and grouped into incidents below.</p></div>"""
+    err = f'<p class="form-error" role="alert">{E(error)}</p>' if error else ""
+    rows = []
+    for svc, incidents in services:
+        inc = "".join(
+            f'<tr><td>{E(i.exception_type)}</td><td class="num">{i.capture_count}</td>'
+            f'<td class="mono small">{E(i.signature[:12])}</td>'
+            f'<td class="faint small num">{E(str(i.created_at)[:16].replace("T", " "))}</td></tr>'
+            for i in incidents)
+        table = (f'<div class="table-scroll"><table class="ex-table" style="min-width:520px">'
+                 '<thead><tr><th scope="col">Error</th><th scope="col" class="num">Times seen</th>'
+                 '<th scope="col">Signature</th><th scope="col" class="num">First seen (UTC)</th></tr></thead>'
+                 f'<tbody>{inc}</tbody></table></div>' if incidents else
+                 '<p class="muted small">No failures reported yet. That is good news.</p>')
+        rows.append(f"""<div class="svc"><div class="svc-head"><h3>{E(svc.name)}</h3>
+<form method="post" action="/account/services/{svc.id}/delete"><input type="hidden" name="csrf" value="{E(token)}">
+<button class="btn btn-quiet" type="submit">Disconnect</button></form></div>{table}</div>""")
+    return f"""
+<section id="services" aria-labelledby="svc-title" style="margin-top:48px">
+<h2 id="svc-title" style="font-size:22px;margin:0 0 8px">Connect your own service</h2>
+<p class="muted">Point a real Python service at Kintsugi and its failures are caught,
+grouped and shown here. Connecting does not give Kintsugi any access to your code;
+it only receives the failure reports your service sends.</p>
+{fresh}{err}
+{"".join(rows)}
+<form method="post" action="/account/services" class="auth-form svc-form">
+<input type="hidden" name="csrf" value="{E(token)}">
+<div class="field"><label for="svc-name">Service name</label>
+<input id="svc-name" name="name" required maxlength="40" placeholder="for example detector-api"
+autocapitalize="none" spellcheck="false"></div>
+<button class="btn" type="submit">Connect a service</button></form>
+</section>"""
+
+
 def account(user, runs: list, left: dict, titles: dict, delete_token: str, *,
-            live_enabled: bool) -> str:
+            live_enabled: bool, services: list | None = None, service_token: str = "",
+            new_key=None, service_error: str = "", base_url: str = "") -> str:
     rows = "".join(
         f'<tr><td class="mono">{E(r.entry)}</td><td class="muted small">{E(titles.get(r.entry, ""))}</td>'
         f'<td>{E({"recovered": "Mended", "refused": "Left alone", "escalated": "Gave up", "false_fix": "Bad fix", None: "Running"}.get(r.outcome, r.outcome or ""))}'
@@ -625,6 +677,7 @@ def account(user, runs: list, left: dict, titles: dict, delete_token: str, *,
 <p><a class="btn btn-primary" href="/live">Break a bug</a></p></div>
 <h2 style="font-size:22px;margin:0 0 12px">Your runs</h2>
 {table}
+{_services_section(services or [], service_token, new_key, service_error, base_url)}
 <section class="danger" aria-labelledby="del-title">
 <h2 id="del-title" style="font-size:22px;margin:48px 0 8px">Delete your account</h2>
 <p class="muted">This removes your email and password, and unlinks your runs from you.
@@ -728,6 +781,9 @@ it, prove it, fix it and sign for it.</p></div>
 <section class="panel patch" aria-labelledby="p-title">
 <div class="panel-head"><h2 id="p-title">The AI's patch</h2><span class="muted small" id="p-attempt"></span></div>
 <pre id="live-patch" aria-live="off"><span class="muted">The patch appears here as the model writes it.</span></pre>
+<div class="explain" id="live-explain" hidden><b>In plain English</b>
+<span class="faint small">Written by a small AI model from the evidence. Not verified; the certificate is the proof.</span>
+<p></p></div>
 </section>
 
 <section class="panel mend" aria-labelledby="m-title">
@@ -740,3 +796,207 @@ aria-label="A bowl with one gold seam for every repair Kintsugi has made"></svg>
 </section>
 </div>
 </div>"""
+
+
+# ------------------------------------------------------------------ trust
+
+def trust(key: dict, att: dict | None, anchored: bool, cert_count: int) -> str:
+    key_html = (f'<p><span class="faint small">Public key (Ed25519, base64)</span><br>'
+                f'<code class="keyblock">{E(key["key"])}</code></p>'
+                f'<p class="muted">Fingerprint <code>{E(key["key_id"])}</code>. '
+                '<a href="/.well-known/kintsugi-key.json">Download as JSON</a></p>'
+                if key.get("key") else
+                '<p class="muted">No public key has been published on this copy of the site.</p>')
+    att_html = ""
+    if att:
+        att_html = f"""
+<section id="attestation"><h2>The study's certificates, signed</h2>
+<p>The {att["count"]} certificates from the main study were issued under the chain's
+original keyed-hash signature, which only the key holder can check. On
+{E(att["at"][:10])} their hashes were listed and signed with the public key above,
+so from that date anyone can check that each one is unchanged.
+<a href="/data/attestation.json">Download the signed list</a>.</p></section>"""
+    anchor_html = ("""
+<section id="anchor"><h2>Anchored to Bitcoin</h2>
+<p>The signed list was also timestamped with OpenTimestamps, which records a
+fingerprint of it in the Bitcoin blockchain. Once confirmed (usually a few
+hours after stamping), this proves the list existed, unchanged, at that time,
+without trusting this site, its owner, or anyone else.</p>
+<p><a href="/data/attestation.json.ots">Download the timestamp proof</a>, then check it
+with the open-source OpenTimestamps tool:</p>
+<pre>pip install opentimestamps-client
+ots verify attestation.json.ots</pre></section>""" if anchored else "")
+    return f"""
+<div class="page-head"><h1>Why you can trust the record</h1>
+<p class="lede">Every repair Kintsugi makes is written down as a certificate. These are
+the three ways you can check those certificates without having to trust this
+website.</p></div>
+<article class="prose narrow">
+<section><h2>1. Recompute it yourself</h2>
+<p>Each certificate's ID is a SHA-256 fingerprint of its exact contents, and each
+one includes the fingerprint of the certificate before it. Change one
+character anywhere and every fingerprint after it stops matching. On any
+certificate page, <b>Check it yourself</b> recomputes this in your own browser.</p></section>
+<section id="key"><h2>2. Check the signature</h2>
+<p>New certificates are signed with an Ed25519 key. The private half never leaves
+the server; the public half is below, so anyone can verify a signature without
+holding any secret.</p>
+{key_html}</section>
+{att_html}
+{anchor_html}
+<section><h2>What this does not prove</h2>
+<p>A valid certificate proves the record is genuine and unchanged, and that its
+fix passed the checks it lists. It does not prove the fix is the best possible
+one; for that, read the patch, or replay it, as described in the
+<a href="/guide#verify">guide</a>. There are {cert_count:,} certificates in the
+study chain.</p></section>
+</article>"""
+
+
+
+# ----------------------------------------------------------------- status
+
+def status(checks: list[dict], runs: list, titles: dict) -> str:
+    all_up = bool(checks) and all(c["ok"] for c in checks)
+    head = ("All services are answering." if all_up else
+            "Something is not answering." if checks else
+            "No services are being watched on this copy of the site.")
+    def svc_line(c: dict) -> str:
+        state = f'answering, {c["ms"]} ms' if c["ok"] else "not answering"
+        swatch = "k-fixed" if c["ok"] else "k-broken"
+        return (f'<li><span class="sw {swatch}" aria-hidden="true"></span>'
+                f'<b>{E(c["name"])}</b><span class="muted">{state}</span></li>')
+    svc = "".join(svc_line(c) for c in checks)
+    counts = {"recovered": 0, "refused": 0, "escalated": 0, "false_fix": 0}
+    for r in runs:
+        if r.outcome in counts:
+            counts[r.outcome] += 1
+    board = "".join(f'<div><dd>{n}</dd><dt>{E(label)}</dt></div>' for label, n in [
+        ("bugs planted", len(runs)), ("mended", counts["recovered"]),
+        ("left alone", counts["refused"]), ("gave up", counts["escalated"]),
+        ("bad fixes shipped", counts["false_fix"])])
+    word = {"recovered": "Mended", "refused": "Left alone", "escalated": "Gave up",
+            "false_fix": "Bad fix", None: "Running"}
+    rows = "".join(
+        f'<tr><td class="mono">{E(r.entry)}</td><td class="muted small">{E(titles.get(r.entry, ""))}</td>'
+        f'<td>{E(word.get(r.outcome, r.outcome or ""))}{f" in {r.mttr:.1f} s" if r.mttr else ""}</td>'
+        f'<td class="faint small num">{E(r.started_at[11:16])} UTC</td>'
+        f'<td>{f"<a href=\"/live?replay={E(r.recording)}\">Replay</a>" if r.recording else ""}</td></tr>'
+        for r in runs)
+    table = (f'<div class="table-scroll"><table class="ex-table"><thead><tr><th scope="col">Bug</th>'
+             '<th scope="col">What was wrong</th><th scope="col">Result</th>'
+             '<th scope="col" class="num">When</th><th scope="col"><span class="sr-only">Replay</span></th>'
+             f'</tr></thead><tbody>{rows}</tbody></table></div>' if runs else
+             '<p class="muted">No bugs have been planted in the last 24 hours. '
+             '<a href="/live">Plant one</a>.</p>')
+    return f"""
+<div class="page-head"><h1>Status</h1>
+<p class="lede">{head}</p>
+<ul class="svc-status">{svc}</ul>
+<p class="faint small">Checked when this page was opened.</p></div>
+<h2 style="font-size:24px;margin:0 0 16px">The last 24 hours</h2>
+<dl class="proof board">{board}</dl>
+<h2 style="font-size:24px;margin:40px 0 12px">Every bug planted</h2>
+{table}"""
+
+
+
+# ------------------------------------------------------------------ built
+
+COMPONENTS = [
+    ("libs/kintsugi_capture", "Capture agent",
+     "Lives inside each service. Records every failing request and the outbound calls it made, removing secrets at source."),
+    ("control_plane/incidents", "Incident former",
+     "Groups repeated failures by cause, so a burst of errors becomes one piece of work."),
+    ("control_plane/reproduction", "Reproduction engine",
+     "Replays a failure in a sealed copy of the exact release, refusing anything it cannot repeat on demand."),
+    ("control_plane/diagnosis", "Diagnosis",
+     "Packs the evidence and asks an AI model for one small patch. The model can only propose text."),
+    ("control_plane/gate", "Verification gate",
+     "Checks a patch in cost order: not hiding the error, applies cleanly, the failure is gone, nothing else broke. Signs what passes."),
+    ("control_plane/deploy", "Deploy controller",
+     "Deploys only gate-signed patches and can roll back. A canary with a metric guard is built and tested; the study and the Live runs deploy directly after the gate."),
+    ("control_plane/certificates", "Certificate chain",
+     "Writes every repair into a hash-linked, signed chain that can be replayed and verified by anyone."),
+    ("control_plane/practice", "Practice",
+     "Rehearses bugs against a private copy while idle, banking what it learns."),
+    ("control_plane/metrics", "Hardening",
+     "Measures how the saved regression tests protect the service against known kinds of bug."),
+    ("control_plane/study", "Study harness",
+     "Runs a recovery approach against a live service under load and scores the outcome on traffic, not on claims."),
+    ("control_plane/integrations", "Integrations",
+     "Opens a pull request for each repair so a team can review it."),
+    ("console", "Console and site",
+     "This website: results, live runs, accounts, certificates and the checks behind them."),
+    ("corpus", "Fault corpus",
+     "Sixty bugs as checked source changes, thirty-nine taken from real fixes in open-source projects."),
+]
+
+
+def _lines(root: str, rel: str) -> int:
+    total = 0
+    base = os.path.join(root, rel)
+    for dirpath, _, files in os.walk(base):
+        if "__pycache__" in dirpath:
+            continue
+        for f in files:
+            if f.endswith((".py", ".js", ".css")):
+                try:
+                    with open(os.path.join(dirpath, f), encoding="utf-8") as fh:
+                        total += sum(1 for line in fh if line.strip())
+                except OSError:
+                    pass
+    return total
+
+
+def built(root: str, cert_count: int, trials: int) -> str:
+    rows, total = [], 0
+    for rel, name, what in COMPONENTS:
+        n = _lines(root, rel)
+        total += n
+        rows.append(f"<tr><td><b>{E(name)}</b><div class=\"faint small mono\">{E(rel)}</div></td>"
+                    f"<td class=\"muted small\">{E(what)}</td><td class=\"num\">{n:,}</td></tr>")
+    tests_dir = os.path.join(root, "tests")
+    n_tests = 0
+    if os.path.isdir(tests_dir):
+        for f in os.listdir(tests_dir):
+            if f.startswith("test_") and f.endswith(".py"):
+                with open(os.path.join(tests_dir, f), encoding="utf-8") as fh:
+                    n_tests += sum(1 for line in fh if line.lstrip().startswith("def test_"))
+    facts = [(f"{total:,}", "lines of code (excluding blanks)"), (f"{len(COMPONENTS)}", "components"),
+             (f"{n_tests}", "test functions"), (f"{trials:,}", "study tests run"),
+             (f"{cert_count:,}", "signed repairs")]
+    facts_html = "".join(f"<div><dd>{a}</dd><dt>{E(b)}</dt></div>" for a, b in facts)
+    return f"""
+<div class="page-head"><h1>How it is built</h1>
+<p class="lede">Kintsugi is not a wrapper around an AI model. The model writes one small
+patch; everything around it decides whether that patch may ever reach production.</p>
+<dl class="proof board">{facts_html}</dl>
+<p class="faint small">Counted from the source files on this server when the page loaded.</p></div>
+<h2 style="font-size:24px;margin:0 0 16px">The repair loop</h2>
+{ARCH_SVG}
+<h2 style="font-size:24px;margin:48px 0 12px">Every component</h2>
+<div class="table-scroll"><table class="ex-table built"><thead><tr><th scope="col">Component</th>
+<th scope="col">What it does</th><th scope="col" class="num">Lines</th></tr></thead>
+<tbody>{"".join(rows)}</tbody></table></div>"""
+
+
+ARCH_SVG = """<figure class="arch"><svg viewBox="0 0 1100 330" role="img"
+aria-label="The repair loop: a live service with the capture agent sends a failure to the incident former, then the reproduction engine, the AI diagnosis, the verification gate, the deploy controller and the certificate chain. A failure that cannot be reproduced goes to a person. Practice and hardening feed what they learn back into diagnosis.">
+<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M0 0L10 5L0 10z" class="arch-arrow"/></marker></defs>
+<g class="arch-box"><rect x="10" y="40" width="140" height="70" rx="8"/><text x="80" y="70">Live service</text><text x="80" y="92" class="s">+ capture agent</text></g>
+<g class="arch-box"><rect x="190" y="40" width="130" height="70" rx="8"/><text x="255" y="70">Incidents</text><text x="255" y="92" class="s">grouped by cause</text></g>
+<g class="arch-box key"><rect x="360" y="40" width="150" height="70" rx="8"/><text x="435" y="70">Reproduce</text><text x="435" y="92" class="s">sealed copy, 5 replays</text></g>
+<g class="arch-box"><rect x="550" y="40" width="130" height="70" rx="8"/><text x="615" y="70">Diagnose</text><text x="615" y="92" class="s">AI writes a patch</text></g>
+<g class="arch-box key"><rect x="720" y="40" width="130" height="70" rx="8"/><text x="785" y="70">Gate</text><text x="785" y="92" class="s">four checks, signs</text></g>
+<g class="arch-box"><rect x="890" y="40" width="200" height="70" rx="8"/><text x="990" y="70">Deploy and certify</text><text x="990" y="92" class="s">signed patches only</text></g>
+<path class="arch-line" d="M150 75H186"/><path class="arch-line" d="M320 75H356"/>
+<path class="arch-line" d="M510 75H546"/><path class="arch-line" d="M680 75H716"/><path class="arch-line" d="M850 75H886"/>
+<path class="arch-line" d="M785 110V150H615V114"/><text x="700" y="168" class="s">rejected: the failure goes back to the model, up to 3 tries</text>
+<path class="arch-line" d="M435 110V214"/><g class="arch-box human"><rect x="355" y="218" width="160" height="56" rx="8"/><text x="435" y="246">A person</text><text x="435" y="264" class="s">with the reason</text></g>
+<text x="445" y="170" class="s" text-anchor="start">cannot repeat it</text>
+<g class="arch-box soft"><rect x="550" y="218" width="300" height="56" rx="8"/><text x="700" y="246">Practice and hardening</text><text x="700" y="264" class="s">rehearsals, saved tests, memory</text></g>
+<path class="arch-line" d="M640 218V114"/>
+<path class="arch-line seam" d="M990 110V300H80V114"/><text x="540" y="318" class="s">every repair leaves a regression test and a certificate behind</text>
+</svg></figure>"""

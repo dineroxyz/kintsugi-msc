@@ -22,6 +22,7 @@ import json
 import os
 import time
 
+from control_plane.certificates.pubsig import sign_hash, verify
 from control_plane.gate.verifier import _apply_patch, _sign, verify_record
 from control_plane.reproduction.engine import reproduce
 
@@ -30,6 +31,19 @@ GENESIS = "0" * 64
 
 class CertificateError(RuntimeError):
     pass
+
+
+# fields that sit outside the hashed body: the hash itself and its signatures
+SIGNATURE_FIELDS = ("hash", "hmac", "ed25519")
+
+
+def body_of(cert: dict) -> dict:
+    return {k: v for k, v in cert.items() if k not in SIGNATURE_FIELDS}
+
+
+def canonical_bytes(cert: dict) -> bytes:
+    """Exactly the bytes a certificate's hash is computed over."""
+    return _canonical(body_of(cert))
 
 
 def _canonical(body: dict) -> bytes:
@@ -68,6 +82,9 @@ class CertificateStore:
         }
         digest = hashlib.sha256(_canonical(body)).hexdigest()
         cert = {**body, "hash": digest, "hmac": _sign({"hash": digest})}
+        public = sign_hash(digest)          # anyone can verify this one
+        if public:
+            cert["ed25519"] = public
 
         path = os.path.join(self.root, f"{body['sequence']:06d}.json")
         if os.path.exists(path):
@@ -101,7 +118,7 @@ class CertificateStore:
         prev = GENESIS
         chain = []
         for cert in self.all():
-            body = {k: v for k, v in cert.items() if k not in ("hash", "hmac")}
+            body = body_of(cert)
             digest = hashlib.sha256(_canonical(body)).hexdigest()
             if digest != cert["hash"]:
                 raise CertificateError(
@@ -114,6 +131,10 @@ class CertificateStore:
             if not verify_record({"hash": cert["hash"]}, cert["hmac"]):
                 raise CertificateError(
                     f"certificate {cert['sequence']} HMAC invalid: forged")
+            pub = cert.get("ed25519")
+            if pub and not verify(pub["key"], cert["hash"].encode(), pub["sig"]):
+                raise CertificateError(
+                    f"certificate {cert['sequence']} public signature invalid: forged")
             prev = cert["hash"]
             chain.append(cert)
         return chain

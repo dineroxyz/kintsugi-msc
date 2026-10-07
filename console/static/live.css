@@ -122,3 +122,8 @@ main.wide { padding-top: var(--s5); }
   .stamp { animation: none; transform: rotate(-6deg); }
 }
 .chips b { display: inline; font-size: 13px; font-weight: 500; margin-right: 4px; }
+
+.explain { margin-top: var(--s4); padding: var(--s3) var(--s4); border-left: 2px solid var(--gold);
+  background: var(--surface-2); border-radius: 0 6px 6px 0; display: grid; gap: 2px; }
+.explain[hidden] { display: none; }
+.explain p { margin: 6px 0 0; color: var(--ink); }

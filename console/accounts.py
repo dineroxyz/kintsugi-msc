@@ -126,13 +126,14 @@ def get_user(email: str) -> User | None:
         return s.scalar(select(User).where(User.email == normalise(email)))
 
 
-def delete_user(user_id: int) -> None:
+def delete_user(user_id: int) -> None:  # noqa: F811 (services removed below)
     """Delete the account. Its runs stay, unlinked from anyone, so they still
     count towards the site's daily ceiling (otherwise deleting and re-creating
     accounts would get round the cost limit)."""
     from sqlalchemy import update
     with get_session() as s:
         s.execute(update(Run).where(Run.user_id == user_id).values(user_id=None))
+        s.execute(delete(Service.__table__).where(Service.__table__.c.user_id == user_id))
         s.execute(delete(User).where(User.id == user_id))
         s.commit()
 
@@ -196,3 +197,95 @@ def signup_allowed(ip: str) -> bool:
 
 def record_signup(ip: str) -> None:
     _signups.setdefault(ip, []).append(time.time())
+
+
+# ------------------------------------------------- connected services
+
+class Service(Base):
+    """A visitor's own service, sending its failures to Kintsugi."""
+    __tablename__ = "services"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    name: Mapped[str] = mapped_column(String(60))
+    key_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    created_at: Mapped[str] = mapped_column(String(40), default=utcnow)
+
+
+MAX_SERVICES = 5
+SERVICE_NAME = re.compile(r"^[a-z0-9][a-z0-9-]{0,39}$")
+
+
+def _key_hash(key: str) -> str:
+    return hashlib.sha256(key.encode()).hexdigest()
+
+
+def service_tag(service: Service) -> str:
+    """How a connected service's incidents are labelled in the store."""
+    return f"svc{service.id}-{service.name}"
+
+
+def create_service(user_id: int, name: str) -> tuple[Service, str]:
+    """A new connected service and its ingest key (returned once, stored hashed)."""
+    name = (name or "").strip().lower()
+    if not SERVICE_NAME.match(name):
+        raise ValueError("Use a short name of lower-case letters, numbers and dashes.")
+    with get_session() as s:
+        count = s.scalar(select(func.count()).select_from(Service)
+                         .where(Service.user_id == user_id)) or 0
+        if count >= MAX_SERVICES:
+            raise ValueError(f"An account can connect up to {MAX_SERVICES} services.")
+        key = "ks_" + secrets.token_urlsafe(24)
+        svc = Service(user_id=user_id, name=name, key_hash=_key_hash(key))
+        s.add(svc)
+        s.commit()
+        s.refresh(svc)
+        return svc, key
+
+
+def service_by_key(key: str) -> Service | None:
+    if not key or not key.startswith("ks_") or len(key) > 80:
+        return None
+    with get_session() as s:
+        return s.scalar(select(Service).where(Service.key_hash == _key_hash(key)))
+
+
+def user_services(user_id: int) -> list[Service]:
+    with get_session() as s:
+        return list(s.scalars(select(Service).where(Service.user_id == user_id)
+                              .order_by(Service.id)))
+
+
+def delete_service(user_id: int, service_id: int) -> None:
+    with get_session() as s:
+        s.execute(delete(Service).where(Service.id == service_id,
+                                        Service.user_id == user_id))
+        s.commit()
+
+
+def service_incidents(service: Service) -> list:
+    from control_plane.db import Incident
+    with get_session() as s:
+        return list(s.scalars(select(Incident).where(Incident.service == service_tag(service))
+                              .order_by(Incident.id.desc()).limit(50)))
+
+
+_ingest_times: dict[int, list[float]] = {}
+INGEST_PER_MINUTE = 120
+
+
+def ingest_allowed(service_id: int) -> bool:
+    now = time.time()
+    recent = [t for t in _ingest_times.get(service_id, []) if now - t < 60]
+    if len(recent) >= INGEST_PER_MINUTE:
+        _ingest_times[service_id] = recent
+        return False
+    recent.append(now)
+    _ingest_times[service_id] = recent
+    return True
+
+
+def recent_runs(hours: int = 24, limit: int = 40) -> list[Run]:
+    since = (datetime.now(timezone.utc) - timedelta(hours=hours)).isoformat()
+    with get_session() as s:
+        return list(s.scalars(select(Run).where(Run.started_at >= since)
+                              .order_by(Run.id.desc()).limit(limit)))
