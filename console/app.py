@@ -186,10 +186,21 @@ def verification() -> dict:
 
 # ---------------------------------------------------------------- results
 
+HERO_REPLAY_ENTRY = os.environ.get("KINTSUGI_HERO_REPLAY", "M05")
+
+
 @app.get("/", response_class=HTMLResponse)
 def home():
-    return page("Software that repairs itself", "home",
-                P.home(trials(), len(cert_seq()), SUPP_DIR))
+    recs = [r for r in L.recordings()
+            if r["entry"] == HERO_REPLAY_ENTRY and r.get("outcome") == "recovered"]
+    rec = recs[0] if recs else next(
+        (r for r in L.recordings() if r.get("outcome") == "recovered"), None)
+    return page("Production software that mends itself", "home",
+                P.home(trials(), len(cert_seq()), SUPP_DIR,
+                       hero_replay=rec["name"] if rec else None, hero_meta=rec),
+                wide=True,
+                extra_head='<link rel="stylesheet" href="/static/home.css">\n'
+                           '<script src="/static/home.js" defer></script>')
 
 
 @app.get("/guide", response_class=HTMLResponse)

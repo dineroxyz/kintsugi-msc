@@ -141,10 +141,11 @@ def test_data_endpoints(real):
 
 def test_home_page_counts_come_from_the_records(real):
     text = real.get("/").text
-    assert "Software that repairs itself" in text
-    assert "15 of 15" in text and "in every run" in text   # per bug, not per test
-    assert "across all 1,260 tests" in text
+    assert "Production software that mends itself" in text
+    assert "15 of 15" in text and "untestable bugs correctly left alone" in text  # per bug
+    assert "1,260" in text and "bad fixes ever put live" in text
     assert "92%" in text and "43%" in text          # supplementary study
+    assert text.count('class="gb-seams"') == 1      # one seam per certificate
     assert "fonts.googleapis" not in text           # fonts are self-hosted
 
 

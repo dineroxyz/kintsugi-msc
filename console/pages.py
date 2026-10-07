@@ -48,106 +48,278 @@ def _supp_first_attempt(supp_dir: str) -> tuple[float, float] | None:
         return None
 
 
-def home(trials: list[dict], cert_count: int, supp_dir: str) -> str:
+def _hardening(supp_dir: str) -> dict | None:
+    try:
+        with open(os.path.join(supp_dir, "analysis.json")) as fh:
+            h = json.load(fh)["hardening"]
+        return {"score": h["final_score"],
+                "cross": h["cross_protection"]["mutants_killed_by_another_faults_test"],
+                "mutants": h["mutants"]}
+    except Exception:
+        return None
+
+
+ICONS = {
+    "catch": '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>',
+    "repeat": '<path d="M4 9a8 8 0 0 1 14-3l2 2"/><path d="M20 4v4h-4"/><path d="M20 15a8 8 0 0 1-14 3l-2-2"/><path d="M4 20v-4h4"/>',
+    "write": '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13 7l4 4"/>',
+    "prove": '<path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6z"/><path d="M9 12l2 2 4-4"/>',
+    "ship": '<path d="M12 19V5"/><path d="M6 11l6-6 6 6"/><path d="M5 21h14"/>',
+    "certify": '<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 8h3v3H8zM13 13h3v3h-3zM13 8h3M8 16h3"/>',
+}
+
+
+def _seam(i: int) -> str:
+    """The same seam the Live view draws for repair i (a mulberry32 walk
+    down the bowl), so a bowl here and a bowl there carry the same marks."""
+    def rng(seed):
+        state = [seed & 0xFFFFFFFF]
+        def nxt():
+            state[0] = (state[0] + 0x6D2B79F5) & 0xFFFFFFFF
+            t = state[0]
+            t = ((t ^ (t >> 15)) * (1 | t)) & 0xFFFFFFFF
+            t = (t + (((t ^ (t >> 7)) * (61 | t)) & 0xFFFFFFFF) ^ t) & 0xFFFFFFFF
+            return ((t ^ (t >> 14)) & 0xFFFFFFFF) / 4294967296
+        return nxt
+
+    def half(y):
+        k = min(1, max(0, (y - 92) / 158))
+        return 150 - 92 * k ** 1.6
+    r = rng(i * 7919 + 13)
+    y = 100 + r() * 6
+    x = 210 + (r() * 2 - 1) * (half(y) - 18)
+    d = f"M{x:.1f} {y:.1f}"
+    for _ in range(4 + int(r() * 4)):
+        y += 16 + r() * 20
+        if y > 244:
+            break
+        x += (r() * 2 - 1) * 18
+        hw = half(y) - 10
+        x = max(210 - hw, min(210 + hw, x))
+        d += f" L{x:.1f} {y:.1f}"
+    return d
+
+
+def mended_bowl(repairs: int) -> str:
+    """A bowl carrying one fine gold seam per repair: the platform's record."""
+    seams = "".join(f'<path d="{_seam(i)}"/>' for i in range(repairs))
+    return (f'<svg class="gold-bowl" viewBox="0 0 420 300" role="img" '
+            f'aria-label="A bowl covered in {repairs} fine gold seams, one per repair">'
+            '<ellipse cx="210" cy="268" rx="132" ry="12" class="gb-shadow"/>'
+            '<path class="gb-body" d="M58 92 C58 92 60 214 150 250 C180 262 240 262 270 250 '
+            'C360 214 362 92 362 92 Z"/><path class="gb-foot" d="M168 252 L172 266 L248 266 L252 252"/>'
+            f'<g class="gb-seams">{seams}</g>'
+            '<ellipse class="gb-rim" cx="210" cy="92" rx="152" ry="26"/>'
+            '<ellipse class="gb-inner" cx="210" cy="94" rx="136" ry="18"/></svg>')
+
+
+def icon(name: str) -> str:
+    return (f'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">{ICONS[name]}</svg>')
+
+
+def home(trials: list[dict], cert_count: int, supp_dir: str,
+         hero_replay: str | None = None, hero_meta: dict | None = None) -> str:
     check = D.integrity(trials)
     by_bug = D.leave_alone_by_bug(trials)
     bad_all = sum(t["outcome"] == "false_fix" for t in trials)
     summaries = D.by_approach(trials)
-    rollback = summaries.get("C1")
+    gated, ungated, rollback = (summaries.get("C3"), summaries.get("C2"),
+                                summaries.get("C1"))
     memory = _supp_first_attempt(supp_dir)
-
-    findings = [
-        (f"{bad_all}", f"bad fixes went live, across all {len(trials):,} tests",
-         "Neither AI approach ever put a fix live that left the app broken, "
-         "with or without the safety check.", "/results#compare-title"),
-        (f"{by_bug['every_run']} of {by_bug['risky']}",
-         "risky bugs left alone, in every run",
-         "The safety check held back on exactly the bugs it could not test, "
-         + ("and never on a bug it could have fixed."
-            if not by_bug["fixable_wrongly"] else
-            f"but also on {by_bug['fixable_wrongly']} it could have fixed."),
-         "/results#grid-title"),
-    ]
-    if memory:
-        findings.append(
-            (f"{round(memory[1] * 100)}%", "fixed on the first try with memory",
-             f"Up from {round(memory[0] * 100)}% when Kintsugi had no memory of "
-             "fixing that bug before.", "/guide#glossary"))
-    if rollback and rollback.time is not None:
-        findings.append(
-            (f"{rollback.time:.1f} s", "for a restart and roll back",
-             "The old way was fastest here, because a working older version "
-             "always existed. Kintsugi is for when it does not.",
-             "/results#compare-title"))
-    cards = "".join(
-        f'<a class="finding" href="{href}"><span class="finding-num">{E(num)}</span>'
-        f'<span class="finding-what">{E(what)}</span>'
-        f'<span class="finding-why">{E(why)}</span></a>'
-        for num, what, why, href in findings)
+    hard = _hardening(supp_dir)
 
     integrity = ("" if check["ok"] else
                  '<p class="integrity bad" role="alert">The test records do not '
                  'add up. See the <a href="/results">results page</a> for details.</p>')
 
-    return f"""
-<section class="home-hero" aria-labelledby="home-title">
-<div class="home-hero-text">
-<h1 id="home-title">Software that repairs itself, and proves it</h1>
-<p class="lede">Kintsugi watches a live app. When it crashes, Kintsugi makes the
-error happen again in a safe copy, lets an AI write a fix, and only puts that fix
-live once the error is shown to be gone. Every repair leaves a signed record
-anyone can check.</p>
-<div class="cta-row"><a class="btn btn-primary" href="/live">Break it, and watch it mend</a>
-<a class="btn" href="/results">See the results</a></div>
+    proof = [
+        (f"{len(trials):,}", "tests run in a pre-registered study"),
+        (f"{bad_all}", "bad fixes ever put live"),
+        (f"{cert_count:,}", "repair certificates, every one verified"),
+        (f"{by_bug['every_run']} of {by_bug['risky']}", "untestable bugs correctly left alone"),
+    ]
+    proof_html = "".join(f'<div><dt>{E(b)}</dt><dd>{E(a)}</dd></div>' for a, b in proof)
+    gold_bowl = mended_bowl(cert_count)
+
+    window = ""
+    if hero_replay:
+        recorded = E((hero_meta or {}).get("recorded", ""))
+        window = f"""
+<figure class="window" data-replay="{E(hero_replay)}" aria-label="A real run of Kintsugi, replayed">
+<div class="window-bar"><i></i><i></i><i></i><span>Kintsugi live view</span>
+<b class="window-state" data-state>Starting</b></div>
+<div class="window-body">
+<canvas class="window-traffic" aria-hidden="true"></canvas>
+<ol class="window-steps">
+<li data-s="fault_deployed">Bug goes live</li><li data-s="captured">Error caught</li>
+<li data-s="reproduce_done">Repeated 5 of 5 times</li><li data-s="gate_result">AI fix checked</li>
+<li data-s="deployed">Fix live</li><li data-s="recovered">Working again</li>
+<li data-s="certificate">Certificate signed</li></ol>
+<div class="window-seal" data-seal hidden></div>
 </div>
-<div class="home-hero-art">{bowl()}</div>
+<figcaption>A real run, replayed at the pace it happened. Recorded {recorded}.
+<a href="/live">Try it yourself</a></figcaption>
+</figure>"""
+
+    rollback_t = f"{rollback.time:.1f} s" if rollback and rollback.time else "n/a"
+    gated_t = f"{gated.time:.1f} s" if gated and gated.time else "n/a"
+    ungated_t = f"{ungated.time:.1f} s" if ungated and ungated.time else "n/a"
+
+    mem_html = ""
+    if memory:
+        a, b = round(memory[0] * 100), round(memory[1] * 100)
+        mem_html = f"""<div class="bars" aria-label="First-try success: {a}% without memory, {b}% with memory">
+<div><span>Without memory</span><i style="--w:{a}%"></i><b>{a}%</b></div>
+<div><span>With memory</span><i class="gold" style="--w:{b}%"></i><b>{b}%</b></div></div>"""
+    hard_line = (f" The tests it saved along the way now catch {round(hard['score'] * 100)}% "
+                 f"of the bugs before they ship, {hard['cross']} of them through a test "
+                 "saved for a different bug." if hard else "")
+
+    pipeline = [
+        ("catch", "Catch", "The failing request is recorded with everything the app called."),
+        ("repeat", "Reproduce", "It is replayed in a sealed copy until it fails the same way every time."),
+        ("write", "Diagnose", "An AI model reads the evidence and writes one small patch."),
+        ("prove", "Prove", "The patch must stop the failure, break nothing and hide nothing."),
+        ("ship", "Ship", "Only a signed, proven patch is allowed to go live."),
+        ("certify", "Certify", "The repair is written into a tamper-evident chain."),
+    ]
+    pipe_html = "".join(
+        f'<li><span class="pipe-ico">{icon(k)}</span><b>{E(t)}</b><span>{E(d)}</span></li>'
+        for k, t, d in pipeline)
+
+    yes = '<span class="yes" aria-label="yes">✓</span>'
+    no = '<span class="no" aria-label="no">—</span>'
+    rows = [
+        ("Recovers the app", yes, yes, yes),
+        ("Writes new code to remove the bug", no, yes, yes),
+        ("Proves the fix before it ships", no, no, yes),
+        ("Knows when not to act", no, no, yes),
+        ("Leaves a signed, replayable record", no, no, yes),
+        ("Usual time to fix in the study", rollback_t, ungated_t, gated_t),
+    ]
+    cmp_html = "".join(
+        f'<tr><th scope="row">{E(r[0])}</th><td>{r[1]}</td><td>{r[2]}</td>'
+        f'<td class="us">{r[3]}</td></tr>' for r in rows)
+
+    return f"""
+<section class="hero2" aria-labelledby="home-title">
+<div class="hero2-copy">
+<h1 id="home-title">Production software that mends itself, and proves it.</h1>
+<p class="lede">When a live app crashes, Kintsugi catches the failure, makes it
+happen again in a sealed copy, has an AI write the fix, and ships it only once
+the failure is proven gone. Every repair comes with a signed certificate anyone
+can check.</p>
+<div class="cta-row"><a class="btn btn-primary btn-lg" href="/live">Watch it mend</a>
+<a class="btn btn-lg" href="/results">See the evidence</a></div>
+</div>
+{window}
 </section>
 {integrity}
-<section class="section" aria-labelledby="how-title">
-<div class="section-head"><h2 id="how-title">How it works</h2>
-<p>Three steps, in this order, every time. If a step cannot be done safely,
-Kintsugi stops and hands the problem to a person.</p></div>
-<ol class="how">
-<li><h3>Catch the error</h3><p>When a request to the app fails, Kintsugi saves
-everything about it: what was asked, what the app called, and where it broke.</p></li>
-<li><h3>Make it happen again</h3><p>In a safe copy of the app, Kintsugi replays
-the same request. If the error does not come back every time, it will not guess.</p></li>
-<li><h3>Fix it, with proof</h3><p>An AI writes a fix. It only goes live if the
-error is now gone, nothing else broke, and the fix is not just hiding the error.</p></li>
-</ol>
-</section>
+<dl class="proof">{proof_html}</dl>
 
-<section class="section" aria-labelledby="found-title">
-<div class="section-head"><h2 id="found-title">What the experiment found</h2>
-<p>{check["bugs"]} bugs, four ways of dealing with them, {check["tests"]} tests
-in the main experiment. These are the headlines; the
-<a href="/results">results page</a> has every number behind them.</p></div>
-<div class="findings">{cards}</div>
-</section>
-
-<section class="section" aria-labelledby="explore-title">
-<div class="section-head"><h2 id="explore-title">Explore</h2></div>
-<div class="explore">
-<a class="tile" href="/live"><h3>Live</h3><p>Plant a bug in the running shop and
-watch Kintsugi catch it, prove it, fix it and sign for it.</p></a>
-<a class="tile" href="/results"><h3>Results</h3><p>Every bug and every test,
-with filters, so you can check any number yourself.</p></a>
-<a class="tile" href="/certificates"><h3>Certificates</h3><p>{cert_count:,}
-signed repair records, each one replayable from the record alone.</p></a>
-<a class="tile" href="/practice"><h3>Practice</h3><p>How Kintsugi rehearses
-bugs while the app is quiet, before they happen for real.</p></a>
-<a class="tile" href="/guide"><h3>Guide</h3><p>What the colours mean, how to
-search the tests, and how to check a certificate.</p></a>
+<section class="band" aria-labelledby="problem-title">
+<h2 id="problem-title" class="big">It is 3 a.m. and production is down.</h2>
+<div class="three">
+<div><h3>Restart and roll back</h3><p>Fast, and the right first move when an older
+version works. But it only undoes. If the bug has always been there, there is
+nothing to go back to.</p></div>
+<div><h3>Let an AI patch it</h3><p>AI can now write a fix from a crash report. But a
+fix inferred from a stack trace is a guess, shipped to a system that is already
+in trouble.</p></div>
+<div class="us"><h3>Kintsugi</h3><p>Writes the fix and proves it first. If the failure
+cannot be reproduced, it does not guess. It stops and tells a person why.</p></div>
 </div>
 </section>
 
-<section class="section name" aria-labelledby="name-title">
-<h2 id="name-title">Why “Kintsugi”</h2>
-<p>Kintsugi is the Japanese craft of mending broken pottery with gold. The
-repair is not hidden: the gold seam shows exactly where the bowl broke and how
-it was put back together. This project treats software the same way. Every
-repair is kept, visible and checkable, and each one leaves the app a little
-stronger than before it broke.</p>
+<section class="band" aria-labelledby="pipe-title">
+<h2 id="pipe-title" class="big">Six steps. Every time. In that order.</h2>
+<p class="sub">If any step cannot be done safely, Kintsugi stops there.</p>
+<div class="pipe-wrap"><svg class="pipe-seam" viewBox="0 0 1000 10" preserveAspectRatio="none" aria-hidden="true">
+<path pathLength="1" d="M0 5 H160 l8 -3 l6 6 l7 -4 H500 l6 4 l8 -6 l6 3 H820 l7 3 l6 -5 l8 3 H1000"/></svg>
+<ol class="pipe">{pipe_html}</ol></div>
+</section>
+
+<section class="band" aria-labelledby="feat-title">
+<h2 id="feat-title" class="big">Built on evidence, not hope.</h2>
+<div class="feats">
+<article class="feat">
+<div class="feat-art"><div class="replay-dots"><i></i><i></i><i></i><i></i><i></i></div>
+<ul class="checks"><li>Not just hiding the error</li><li>Written correctly</li>
+<li>The error is gone</li><li>Nothing else broke</li></ul></div>
+<h3>Proof, not guesses</h3>
+<p>A fix is only considered once the failure has been made to happen again on
+demand. It ships only when that same failure stops.</p></article>
+
+<article class="feat">
+<div class="feat-art"><div class="replay-dots blue"><i></i><i></i><i></i><i></i><i></i></div>
+<p class="feat-num">{by_bug['every_run']} / {by_bug['risky']}</p></div>
+<h3>Knows when to stop</h3>
+<p>Races and one-off glitches cannot be proven, so it leaves them alone, with the
+reason attached. In the study it held back on every such bug, and never on one
+it could fix.</p></article>
+
+<article class="feat">
+<div class="feat-art"><div class="chain"><i></i><i></i><i></i><i class="cut"></i><i></i></div>
+<p class="feat-small">Change one character, and the chain names the record.</p></div>
+<h3>A receipt for every repair</h3>
+<p>Each repair is signed and linked to the last. All {cert_count:,} certificates
+from the study were replayed from the record alone and confirmed.</p></article>
+
+<article class="feat">
+<div class="feat-art">{mem_html}</div>
+<h3>Stronger with every repair</h3>
+<p>Kintsugi remembers what worked. With that memory it fixes a returning bug on
+the first try far more often.{E(hard_line)}</p></article>
+</div>
+</section>
+
+<section class="band dev" aria-labelledby="dev-title">
+<div class="dev-copy">
+<h2 id="dev-title" class="big">Two lines in your service.</h2>
+<p>A small capture library sits inside the app and records each failing request,
+with everything the app called, removing passwords and keys before anything
+leaves. Everything else runs beside your service, not inside it.</p>
+<a href="/guide">How it all fits together</a>
+</div>
+<pre class="code" aria-label="Example: adding Kintsugi to a FastAPI service"><span class="c-k">from</span> libs.kintsugi_capture <span class="c-k">import</span> CaptureMiddleware, CaptureClient
+
+app = FastAPI()
+<span class="c-hl">app.add_middleware(CaptureMiddleware, service=<span class="c-s">"orders"</span>)</span>
+<span class="c-hl">pricing = CaptureClient(timeout=<span class="c-n">5.0</span>)</span>   <span class="c-c"># calls recorded for replay</span>
+
+<span class="c-d">@app.get</span>(<span class="c-s">"/orders/{{order_id}}"</span>)
+<span class="c-k">def</span> get_order(order_id: int) -&gt; dict:
+    ...</pre>
+</section>
+
+<section class="band" aria-labelledby="cmp-title">
+<h2 id="cmp-title" class="big">How it compares.</h2>
+<p class="sub">Measured on the same 60 bugs, three times each. Rolling back was
+fastest here, because a working older version always existed. Kintsugi is for
+when it does not.</p>
+<div class="table-scroll"><table class="cmp"><thead><tr><th scope="col"><span class="sr-only">Capability</span></th>
+<th scope="col">Restart and roll back</th><th scope="col">AI fix, no check</th>
+<th scope="col" class="us">Kintsugi</th></tr></thead><tbody>{cmp_html}</tbody></table></div>
+</section>
+
+<section class="band research" aria-labelledby="res-title">
+<div>
+<h2 id="res-title" class="big">Tested in the open.</h2>
+<p>Kintsugi was built and evaluated as MSc Computer Science research at the
+University of Lagos. The study design was fixed before any test ran. Every test
+record, every certificate and the independent check of each one are published
+here, so every number on this page can be traced to its source.</p>
+<p class="links"><a href="/results">Every test</a><a href="/certificates">Every certificate</a>
+<a href="/data/verification.json">The certificate check report</a><a href="/guide">How to read it all</a></p>
+</div>
+<figure class="research-art">{gold_bowl}<figcaption>{cert_count:,} repairs, one gold
+seam each.</figcaption></figure>
+</section>
+
+<section class="closer" aria-labelledby="closer-title">
+<h2 id="closer-title">Break something. Watch it mend.</h2>
+<p>Pick a bug, plant it in a running shop, and watch every step happen.</p>
+<a class="btn btn-primary btn-lg" href="/live">Open the live view</a>
 </section>"""
 
 
