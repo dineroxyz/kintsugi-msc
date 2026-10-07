@@ -122,3 +122,19 @@ production again when redeployed, i.e. not killed by the banked suite
 before deploy. Main-study analyses are unchanged. Also disclosed: the
 runner's KINTSUGI_SEED variable is read by no component, so seeds are
 independent fresh repetitions, as the Study sizes section already states.
+
+**A3 (2026-10-07, before any trial of the weaker-model study).** Motivation:
+in the main study neither repair arm shipped a false fix with
+claude-opus-5, so H2 could not be tested. A3 re-runs the two repair arms
+with a weaker model, claude-haiku-4-5-20251001, everything else unchanged
+(same frozen corpus, same platform commit for the platform code, same
+probe, same three seeds, same budget of three candidates). C0 and C1 do
+not call a model and are not re-run. Runner: study/run_haiku.py, results
+in study/haiku/. Primary measure: false-fix rate, C2 against C3, two-sided
+Fisher exact test (as registered for H2). Secondary: recovery rate on the
+45 repairable faults (Fisher), refusal correctness, first-attempt
+admission, MTTR (Wilcoxon, paired per fault), and the condition on which
+each rejected C3 candidate failed. Prediction: with the weaker model, C2
+ships some false fixes and C3 ships none. If C2 ships none, that is
+reported as a finding (the gate's value does not depend on model
+strength on this corpus). No other analysis is changed.
