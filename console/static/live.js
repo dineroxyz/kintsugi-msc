@@ -228,6 +228,9 @@
       case "start":
         setState("healthy", "Healthy");
         outcomeEl.textContent = "Bug " + e.entry + ": " + e.title;
+        for (var oi = 0; oi < pick.options.length; oi++) {   // follow a replay opened by link
+          if (pick.options[oi].value === e.entry) { pick.value = e.entry; break; }
+        }
         break;
       case "traffic":
         e.samples.forEach(function (s) {

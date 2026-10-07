@@ -112,6 +112,7 @@ Results page. Say it straight:
 ```bash
 python demo/record.py heal replay refusal        # real runs, timed transcripts
 node demo/film.js ~/Desktop/kintsugi-demo        # console must be on :8100
+node demo/ninety.js ~/Desktop/kintsugi-demo      # the short film: kintsugi-film.mp4
 ```
 
 `film.js` needs ffmpeg and puppeteer (set PUPPETEER to its path if it is not

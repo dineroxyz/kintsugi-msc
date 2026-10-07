@@ -154,6 +154,10 @@ def load_recording(name: str) -> tuple[dict, list[dict]] | None:
         return None
     with open(path) as fh:
         rows = [json.loads(line) for line in fh if line.strip()]
+    from control_plane.study.live import plain_text
+    for r in rows:                     # notes recorded before Markdown was stripped
+        if r.get("kind") == "explanation":
+            r["text"] = plain_text(r.get("text", ""))
     return rows[0], rows[1:]
 
 

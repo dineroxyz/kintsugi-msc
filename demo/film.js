@@ -110,11 +110,12 @@ async function film(page, file, action) {
     const until = i + 1 < frames.length ? frames[i + 1] : Math.max(frames[i] + 0.04, t1 - t0 + frames[0]);
     lines.push(`file 'f${String(i).padStart(6, '0')}.jpg'`, `duration ${Math.max(0.001, until - frames[i]).toFixed(4)}`);
   }
-  lines.push(`file 'f${String(frames.length - 1).padStart(6, '0')}.jpg'`);
+  // ffmpeg ignores the last entry's duration, so close with a one-frame copy
+  lines.push(`file 'f${String(frames.length - 1).padStart(6, '0')}.jpg'`, 'duration 0.0333');
   fs.writeFileSync(path.join(dir, 'list.txt'), lines.join('\n'));
   const mp4 = path.join(OUT, file + '.mp4');
   execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'concat', '-safe', '0', '-i',
-    path.join(dir, 'list.txt'), '-vf', 'fps=30,format=yuv420p,scale=trunc(iw/2)*2:trunc(ih/2)*2',
+    path.join(dir, 'list.txt'), '-t', (t1 - t0).toFixed(3), '-vf', 'fps=30,format=yuv420p,scale=trunc(iw/2)*2:trunc(ih/2)*2',
     '-c:v', 'libx264', '-preset', 'slow', '-crf', '20', '-movflags', '+faststart', mp4]);
   fs.rmSync(dir, { recursive: true, force: true });
   console.log('wrote', mp4, `(${frames.length} frames, ${(t1 - t0).toFixed(1)} s)`);
