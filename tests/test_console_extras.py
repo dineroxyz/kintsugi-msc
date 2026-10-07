@@ -222,3 +222,25 @@ def test_pull_requests_are_off_without_configuration(monkeypatch):
     from control_plane.integrations import github_pr
     monkeypatch.delenv("KINTSUGI_GITHUB_TOKEN", raising=False)
     assert not github_pr.configured()
+
+
+def test_live_chain_pages(site, monkeypatch, tmp_path):
+    c, _ = site
+    import console.live as L
+    monkeypatch.setattr(L, "LIVE_CERTS", str(tmp_path / "live-certs"))
+    assert "No certificates in this chain yet" in c.get("/live-certificates").text
+    assert 'aria-current=page>Study repairs' in c.get("/certificates").text
+
+
+def test_change_password(site):
+    c, A = site
+    _signup(c)
+    text = c.get("/account").text
+    tok = re.search(r'name="csrf" value="([^"]+)"', text[text.index('action="/account/password"'):]).group(1)
+    bad = c.post("/account/password", data={"csrf": tok, "current": "wrong", "new": "another long one"})
+    assert bad.status_code == 400 and "current password is not right" in bad.text
+    ok = c.post("/account/password", data={"csrf": tok, "current": "a long passphrase here",
+                                           "new": "another long one"})
+    assert "Password changed" in ok.text
+    assert A.authenticate("dev@example.com", "another long one") is not None
+    assert A.authenticate("dev@example.com", "a long passphrase here") is None

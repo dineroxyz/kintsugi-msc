@@ -235,7 +235,7 @@ def _record_pull_request(entry, rig, heal: dict, result: dict, run: str) -> dict
                       "replays": cert["reproduction"]["reason"],
                       "attempts": len(cert["candidates"]), "mttr": result["mttr_seconds"],
                       "conditions": {names.get(k, k): v for k, v in conditions.items()},
-                      "certificate_url": f"{site}/live",
+                      "certificate_url": f"{site}/live-certificates/{cert['sequence']}",
                       "certificate_hash": cert["hash"],
                       "model": os.environ.get("KINTSUGI_MODEL", "claude-opus-5"),
                       "explanation": heal.get("explanation")})

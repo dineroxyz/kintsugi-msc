@@ -289,3 +289,16 @@ def recent_runs(hours: int = 24, limit: int = 40) -> list[Run]:
     with get_session() as s:
         return list(s.scalars(select(Run).where(Run.started_at >= since)
                               .order_by(Run.id.desc()).limit(limit)))
+
+
+def change_password(user_id: int, current: str, new: str) -> None:
+    """Replace the password after re-checking the current one."""
+    with get_session() as s:
+        user = s.get(User, user_id)
+        if user is None or not verify_password(current, user.password_hash):
+            raise ValueError("Your current password is not right.")
+        problem = check_new(user.email, new)
+        if problem:
+            raise ValueError(problem)
+        user.password_hash = hash_password(new)
+        s.commit()

@@ -215,7 +215,7 @@
     patchEl.scrollTop = patchEl.scrollHeight;
   }
 
-  var patchText = "";
+  var patchText = "", certLink = null;
   function handle(e) {
     if (e.t !== undefined && e.kind !== "replay") { lastT = e.t; lastWall = performance.now(); }
     switch (e.kind) {
@@ -305,6 +305,7 @@
             e.hash.slice(0, 12) + "</span>";
           stamp.hidden = false;
         });
+        certLink = "/live-certificates/" + e.sequence;
         addSeam();
         break;
       case "probe":
@@ -313,7 +314,11 @@
       case "recovered":
         setStep("recovered", "done", "Working again " + e.mttr.toFixed(1) + " s after the first error.", e.t);
         setState("mended", "Mended in " + e.mttr.toFixed(1) + " s");
-        outcomeEl.textContent = "Mended in " + e.mttr.toFixed(1) + " s, and a new gold seam marks the repair.";
+        outcomeEl.textContent = "Mended in " + e.mttr.toFixed(1) + " s, and a new gold seam marks the repair. ";
+        if (certLink && !replaying) {
+          var cl = document.createElement("a"); cl.href = certLink; cl.textContent = "See its certificate";
+          outcomeEl.appendChild(cl);
+        }
         break;
       case "explanation":
         var ex = document.getElementById("live-explain");

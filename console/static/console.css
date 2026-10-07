@@ -726,3 +726,8 @@ kbd { display: inline-block; min-width: 26px; padding: 1px 7px;
 .arch-line.seam { stroke: var(--gold); stroke-dasharray: 5 4; }
 .arch-arrow { fill: var(--ink-3); }
 .built td:first-child { min-width: 190px; }
+
+.chain-tabs { display: flex; gap: var(--s2); margin: var(--s4) 0 var(--s3); flex-wrap: wrap; }
+.chain-tabs a { padding: 8px 16px; border: 1px solid var(--rule-2); border-radius: 999px;
+  text-decoration: none; color: var(--ink-2); min-height: 40px; display: inline-flex; align-items: center; }
+.chain-tabs a[aria-current="page"] { border-color: var(--gold); color: var(--ink); }

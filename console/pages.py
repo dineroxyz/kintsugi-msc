@@ -302,6 +302,18 @@ when it does not.</p>
 <th scope="col" class="us">Kintsugi</th></tr></thead><tbody>{cmp_html}</tbody></table></div>
 </section>
 
+<section class="band duo" aria-labelledby="duo-title">
+<h2 id="duo-title" class="sr-only">Use it and check it</h2>
+<a class="duo-card" href="/signup"><h3>Connect your own service</h3>
+<p>Create a free account, connect a Python service with a key, and its failures are caught,
+grouped and shown on your account page. Break a bug for real while you are there.</p>
+<span class="duo-cta">Create an account</span></a>
+<a class="duo-card" href="/trust"><h3>Check the record yourself</h3>
+<p>Every repair is signed with a published key, and the study's certificates are timestamped
+on Bitcoin. Your browser can verify any certificate without trusting this site.</p>
+<span class="duo-cta">How to verify</span></a>
+</section>
+
 <section class="band research" aria-labelledby="res-title">
 <div>
 <h2 id="res-title" class="big">Tested in the open.</h2>
@@ -351,6 +363,7 @@ GUIDE_TOC = [("about", "What this site is"), ("grid", "Reading the grid"),
              ("table", "The comparison table"), ("tests", "Finding one test"),
              ("certificates", "Reading a certificate"),
              ("verify", "Check a certificate yourself"),
+             ("connect", "Connect your own service"), ("status", "The status page"),
              ("operators", "Accounts and signing in"),
              ("keys", "Keyboard and display"), ("glossary", "Glossary")]
 
@@ -427,7 +440,26 @@ succeed after it.</li></ol>
 <p>Both checks were run on every certificate from the main experiment. The full
 report is public: <a href="/data/verification.json">certificate check report</a>.
 With the project's code, the same checks can be run again with
-<code>python study/verify_certificates.py</code>.</p></section>
+<code>python study/verify_certificates.py</code>.</p>
+<p>You can also check any certificate in your own browser: open it and press
+<b>Check it yourself</b>. Your browser downloads the certificate's exact bytes,
+recomputes its fingerprint and its link to the one before, and verifies its
+signature against Kintsugi's published key. The <a href="/trust">trust page</a>
+explains the key, the signed list of the study's certificates, and the Bitcoin
+timestamp that fixes that list in time.</p></section>
+
+<section id="connect"><h2>Connect your own service</h2>
+<p>With an account, open your account page and use <b>Connect a service</b>. You get
+a key, shown once. Copy the small capture library into a Python web service, add
+two lines, and set one environment variable; the page shows exactly what to
+copy. From then on, every unhandled failure in that service is sent to Kintsugi
+with passwords and keys removed, and grouped into incidents on your account
+page. Connecting gives Kintsugi no access to your code.</p></section>
+
+<section id="status"><h2>The status page</h2>
+<p>The <a href="/status">status page</a> checks, when you open it, that the shop's
+services are answering, and lists every bug planted in the last 24 hours with
+what happened to it.</p></section>
 
 <section id="operators"><h2>Accounts and signing in</h2>
 <p>The results, certificates, practice log and this guide are public, and
@@ -654,13 +686,14 @@ autocapitalize="none" spellcheck="false"></div>
 
 def account(user, runs: list, left: dict, titles: dict, delete_token: str, *,
             live_enabled: bool, services: list | None = None, service_token: str = "",
-            new_key=None, service_error: str = "", base_url: str = "") -> str:
+            new_key=None, service_error: str = "", base_url: str = "",
+            password_token: str = "", password_msg: tuple | None = None) -> str:
     rows = "".join(
         f'<tr><td class="mono">{E(r.entry)}</td><td class="muted small">{E(titles.get(r.entry, ""))}</td>'
         f'<td>{E({"recovered": "Mended", "refused": "Left alone", "escalated": "Gave up", "false_fix": "Bad fix", None: "Running"}.get(r.outcome, r.outcome or ""))}'
         f'{f" in {r.mttr:.1f} s" if r.mttr else ""}</td>'
         f'<td class="faint small num">{E(r.started_at[:16].replace("T", " "))}</td>'
-        f'<td>{f"<a href=\"/live?replay={E(r.recording)}\">Replay</a>" if r.recording else ""}</td></tr>'
+        f'<td>{_run_links(r)}</td></tr>'
         for r in runs)
     table = (f'<div class="table-scroll"><table class="ex-table"><thead><tr><th scope="col">Bug</th>'
              '<th scope="col">What was wrong</th><th scope="col">Result</th>'
@@ -678,6 +711,17 @@ def account(user, runs: list, left: dict, titles: dict, delete_token: str, *,
 <h2 style="font-size:22px;margin:0 0 12px">Your runs</h2>
 {table}
 {_services_section(services or [], service_token, new_key, service_error, base_url)}
+<section id="password" aria-labelledby="pw-title" style="margin-top:48px">
+<h2 id="pw-title" style="font-size:22px;margin:0 0 8px">Change your password</h2>
+{(f'<p class="{"form-note" if password_msg[0] else "form-error"}" role="status">{E(password_msg[1])}</p>') if password_msg else ""}
+<form method="post" action="/account/password" class="auth-form" style="max-width:420px">
+<input type="hidden" name="csrf" value="{E(password_token)}">
+<input type="hidden" name="email" value="{E(user.email)}" autocomplete="username">
+<div class="field"><label for="pw-current">Current password</label>
+<input id="pw-current" name="current" type="password" autocomplete="current-password" required></div>
+<div class="field"><label for="pw-new">New password</label>
+<input id="pw-new" name="new" type="password" autocomplete="new-password" minlength="10" required></div>
+<button class="btn" type="submit">Change password</button></form></section>
 <section class="danger" aria-labelledby="del-title">
 <h2 id="del-title" style="font-size:22px;margin:48px 0 8px">Delete your account</h2>
 <p class="muted">This removes your email and password, and unlinks your runs from you.
@@ -693,8 +737,39 @@ the site's daily limit still counts them.</p>
 
 # ------------------------------------------------------------------ live
 
+
+
+def _run_links(r) -> str:
+    """Replay and certificate links for one recorded run."""
+    links = []
+    if r.recording:
+        links.append(f'<a href="/live?replay={E(r.recording)}">Replay</a>')
+    if r.certificate is not None and r.outcome == "recovered":
+        links.append(f'<a href="/live-certificates/{r.certificate}">Certificate</a>')
+    return " ".join(links)
+
+
+def _recent_feed(runs: list, titles: dict) -> str:
+    word = {"recovered": "Mended", "refused": "Left alone", "escalated": "Gave up",
+            "false_fix": "Bad fix", None: "Running"}
+    items = []
+    for r in runs[:8]:
+        res = word.get(r.outcome, r.outcome or "")
+        if r.mttr:
+            res += f" in {r.mttr:.1f} s"
+        items.append(f'<li><span class="mono">{E(r.entry)}</span><span class="muted">'
+                     f'{E(titles.get(r.entry, ""))}</span><b>{E(res)}</b>'
+                     f'<span class="faint small">{E(r.started_at[11:16])} UTC</span>'
+                     f'<span class="feed-links">{_run_links(r)}</span></li>')
+    if not items:
+        return ""
+    return ('<section class="panel feed" aria-labelledby="feed-title"><div class="panel-head">'
+            '<h2 id="feed-title">Recent real runs</h2><a class="small" href="/status">All of today</a></div>'
+            f'<ol class="feed-list">{"".join(items)}</ol></section>')
+
 def live(entries: list, recordings: list[dict], *, live_enabled: bool,
-         repairs: int, csrf: str, status: dict, welcome: bool = False) -> str:
+         repairs: int, csrf: str, status: dict, welcome: bool = False,
+         recent: list | None = None, titles: dict | None = None) -> str:
     """The Live view: break a bug, watch the platform mend it."""
     by_entry: dict[str, dict] = {}
     for r in recordings:                      # newest first: keep the latest
@@ -795,6 +870,7 @@ aria-label="A bowl with one gold seam for every repair Kintsugi has made"></svg>
 <p class="muted small" id="live-outcome">Every repair adds a seam.</p>
 </section>
 </div>
+{_recent_feed(recent or [], titles or {})}
 </div>"""
 
 
@@ -881,7 +957,7 @@ def status(checks: list[dict], runs: list, titles: dict) -> str:
         f'<tr><td class="mono">{E(r.entry)}</td><td class="muted small">{E(titles.get(r.entry, ""))}</td>'
         f'<td>{E(word.get(r.outcome, r.outcome or ""))}{f" in {r.mttr:.1f} s" if r.mttr else ""}</td>'
         f'<td class="faint small num">{E(r.started_at[11:16])} UTC</td>'
-        f'<td>{f"<a href=\"/live?replay={E(r.recording)}\">Replay</a>" if r.recording else ""}</td></tr>'
+        f'<td>{_run_links(r)}</td></tr>'
         for r in runs)
     table = (f'<div class="table-scroll"><table class="ex-table"><thead><tr><th scope="col">Bug</th>'
              '<th scope="col">What was wrong</th><th scope="col">Result</th>'

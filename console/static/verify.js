@@ -13,6 +13,7 @@ import * as ed from "/static/noble-ed25519.js";   // MIT, vendored: works where 
   if (!box) return;
   var out = box.querySelector(".verify-out"), go = box.querySelector("[data-verify-go]");
   var seq = parseInt(box.dataset.verify, 10);
+  var base = box.dataset.base || "/certificates";
 
   function hex(buf) {
     return Array.prototype.map.call(new Uint8Array(buf), function (b) {
@@ -21,7 +22,7 @@ import * as ed from "/static/noble-ed25519.js";   // MIT, vendored: works where 
   function b64(s) { return Uint8Array.from(atob(s), function (c) { return c.charCodeAt(0); }); }
   function sha256(bytes) { return crypto.subtle.digest("SHA-256", bytes).then(hex); }
   function bytesOf(n) {
-    return fetch("/certificates/" + n + "/canonical").then(function (r) {
+    return fetch(base + "/" + n + "/canonical").then(function (r) {
       if (!r.ok) throw new Error("certificate " + n + " not found"); return r.arrayBuffer(); });
   }
   function json(url) { return fetch(url).then(function (r) { if (!r.ok) throw new Error(url); return r.json(); }); }
@@ -47,7 +48,7 @@ import * as ed from "/static/noble-ed25519.js";   // MIT, vendored: works where 
     go.disabled = true; out.hidden = false; out.textContent = "";
     var all = true;
     try {
-      var meta = await json("/certificates/" + seq + ".json");
+      var meta = await json(base + "/" + seq + ".json");
       var bytes = await bytesOf(seq);
       var got = await sha256(bytes);
       all = line(got === meta.hash, "Fingerprint recomputed: " + got.slice(0, 16) +
@@ -68,6 +69,9 @@ import * as ed from "/static/noble-ed25519.js";   // MIT, vendored: works where 
         if (sig === null) line(null, "Your browser cannot check Ed25519 signatures; try a current Chrome, Safari or Firefox.");
         else all = line(sig && same, sig && same ? "Signature valid under the published key " + published.key_id + "." :
           "Signature does not verify under the published key.") && all;
+      } else if (meta.chain === "live") {
+        line(null, "This live certificate was issued before public signatures were switched on; " +
+          "its keyed-hash signature can only be checked on the server.");
       } else {
         var att = await json("/data/attestation.json");
         var listed = att.hashes.indexOf(meta.hash) >= 0;

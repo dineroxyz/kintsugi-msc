@@ -307,15 +307,33 @@ def account(request: Request):
 
 
 def _account_page(request: Request, user, *, new_key: tuple | None = None,
-                  service_error: str = "", status: int = 200):
+                  service_error: str = "", status: int = 200,
+                  password_msg: tuple | None = None):
     services = [(svc, A.service_incidents(svc)) for svc in A.user_services(user.id)]
     base = os.environ.get("KINTSUGI_PUBLIC_URL", str(request.base_url).rstrip("/"))
     return page("Your account", "account",
                 P.account(user, A.user_runs(user.id), A.runs_left(user.id),
                           titles(), auth.form_token("delete"), live_enabled=L.enabled(),
                           services=services, service_token=auth.form_token("service"),
-                          new_key=new_key, service_error=service_error, base_url=base),
+                          new_key=new_key, service_error=service_error, base_url=base,
+                          password_token=auth.form_token("password"), password_msg=password_msg),
                 status=status)
+
+
+@app.post("/account/password")
+async def account_password(request: Request):
+    who = auth.identity(request)
+    form = await auth.read_form(request)
+    if not who or who["r"] != "user" or not auth.check_form_token(form.get("csrf", ""), "password"):
+        return RedirectResponse("/account", status_code=303)
+    user = A.get_user(who["u"])
+    if user is None:
+        return RedirectResponse("/", status_code=303)
+    try:
+        A.change_password(user.id, form.get("current", ""), form.get("new", ""))
+    except ValueError as exc:
+        return _account_page(request, user, password_msg=(False, str(exc)), status=400)
+    return _account_page(request, user, password_msg=(True, "Password changed."))
 
 
 @app.post("/account/services")
@@ -440,7 +458,8 @@ def live_page(request: Request):
     body = P.live(entries, L.recordings(), live_enabled=L.enabled(),
                   repairs=L.repair_count(), csrf=auth.form_token("live"),
                   status=live_status(request),
-                  welcome=request.query_params.get("welcome") == "1")
+                  welcome=request.query_params.get("welcome") == "1",
+                  recent=A.recent_runs(72, 8), titles=titles())
     return page("Break it, and watch it mend", "live", body, wide=True,
                 extra_head='<link rel="stylesheet" href="/static/live.css">\n'
                            '<script src="/static/live.js" defer></script>')
@@ -654,29 +673,61 @@ def attestation_ots():
                         filename="attestation.json.ots")
 
 
-@app.get("/certificates/{seq}/canonical")
-def certificate_canonical(seq: int):
-    """Exactly the bytes the certificate's hash covers, so a browser can
-    recompute the hash itself instead of trusting this server's word."""
+def chains() -> dict[str, dict]:
+    """The certificate chains this site publishes."""
+    return {
+        "study": {"dir": CERT_DIR, "base": "/certificates", "title": "Study repairs",
+                  "intro": "The repairs made during the pre-registered study."},
+        "live": {"dir": L.LIVE_CERTS, "base": "/live-certificates", "title": "Live repairs",
+                 "intro": "Repairs made on the Live page, by visitors pressing Break it."},
+    }
+
+
+def _chain_certs(chain: str) -> dict[int, dict]:
+    d = chains()[chain]["dir"]
+    if not os.path.isdir(d):
+        return {}
+    return {c["sequence"]: c for c in CertificateStore(d).all()}
+
+
+def _canonical(chain: str, seq: int):
     from fastapi.responses import Response
     from control_plane.certificates.issuer import canonical_bytes
-    certs = {c["sequence"]: c for c in CertificateStore(CERT_DIR).all()}
-    cert = certs.get(seq)
+    cert = _chain_certs(chain).get(seq)
     if cert is None:
         return JSONResponse({"error": "no such certificate"}, status_code=404)
     return Response(canonical_bytes(cert), media_type="application/octet-stream",
                     headers={"X-Certificate-Hash": cert["hash"]})
 
 
-@app.get("/certificates/{seq}.json")
-def certificate_json(seq: int):
-    certs = {c["sequence"]: c for c in CertificateStore(CERT_DIR).all()}
-    cert = certs.get(seq)
+def _cert_meta(chain: str, seq: int):
+    cert = _chain_certs(chain).get(seq)
     if cert is None:
         return JSONResponse({"error": "no such certificate"}, status_code=404)
-    return JSONResponse({"sequence": seq, "hash": cert["hash"],
-                         "prev_hash": cert["prev_hash"],
-                         "ed25519": cert.get("ed25519")})
+    return JSONResponse({"sequence": seq, "hash": cert["hash"], "chain": chain,
+                         "prev_hash": cert["prev_hash"], "ed25519": cert.get("ed25519")})
+
+
+@app.get("/certificates/{seq}/canonical")
+def certificate_canonical(seq: int):
+    """Exactly the bytes the certificate's hash covers, so a browser can
+    recompute the hash itself instead of trusting this server's word."""
+    return _canonical("study", seq)
+
+
+@app.get("/certificates/{seq}.json")
+def certificate_json(seq: int):
+    return _cert_meta("study", seq)
+
+
+@app.get("/live-certificates/{seq}/canonical")
+def live_certificate_canonical(seq: int):
+    return _canonical("live", seq)
+
+
+@app.get("/live-certificates/{seq}.json")
+def live_certificate_json(seq: int):
+    return _cert_meta("live", seq)
 
 
 # ----------------------------------------------------------------- status
@@ -744,7 +795,27 @@ def verification_json():
 
 @app.get("/certificates", response_class=HTMLResponse)
 def certificates(page_no: int = 1):
-    store = CertificateStore(CERT_DIR)
+    return _certificate_list("study", page_no)
+
+
+@app.get("/live-certificates", response_class=HTMLResponse)
+def live_certificates(page_no: int = 1):
+    return _certificate_list("live", page_no)
+
+
+def _chain_tabs(active: str) -> str:
+    return ('<nav class="chain-tabs" aria-label="Certificate chains">' + "".join(
+        f'<a href="{c["base"]}"{" aria-current=page" if k == active else ""}>{E(c["title"])}</a>'
+        for k, c in chains().items()) + "</nav>")
+
+
+def _certificate_list(chain: str, page_no: int):
+    info_key = chain
+    info = chains()[chain]
+    base = info["base"]
+    if chain == "live":
+        os.makedirs(info["dir"], exist_ok=True)
+    store = CertificateStore(info["dir"])
     try:
         chain = store.verify_chain()
         banner = (f'<div class="banner">{V.seal("chain", 28)}<p style="margin:0">'
@@ -758,12 +829,15 @@ def certificates(page_no: int = 1):
                   f"wrong with a certificate.</b> {E(str(exc))}</p></div>")
     if not chain:
         return page("Certificates", "certificates",
-                    "<h1>Repair certificates</h1><p class=lede>No certificates "
-                    "yet. Each time Kintsugi puts a fix live, it writes a "
-                    "certificate, and it will show up here.</p>")
+                    "<h1>Repair certificates</h1>" + _chain_tabs(info_key) +
+                    "<p class=lede>No certificates in this chain yet. Each time "
+                    "Kintsugi puts a fix live, it writes a certificate, and it will "
+                    'show up here. <a href="/live">Break a bug</a>.</p>')
 
     issued_by = {h: t for t in trials()
                  for h in (t.get("detail") or {}).get("certificates", [])}
+    if info_key == "live":
+        issued_by = {}
     t_names = titles()
     pages = max(1, -(-len(chain) // PAGE_SIZE))
     page_no = min(max(1, page_no), pages)
@@ -777,16 +851,16 @@ def certificates(page_no: int = 1):
         if t.get("variant"):
             ctx.append(D.VARIANT_NAME.get(t["variant"], t["variant"]))
         items.append(
-            f'<li>{V.seal(c["hash"])}<div><a href="/certificates/{c["sequence"]}">'
+            f'<li>{V.seal(c["hash"])}<div><a href="{base}/{c["sequence"]}">'
             f'Certificate {c["sequence"]:06d}</a>'
             f'<div class="meta">{E(". ".join(ctx))}</div>'
             f'<div class="meta">Written {E(c["issued_at"].replace("T", " at "))}, '
             f'ID <span class="mono">{c["hash"][:16]}</span></div></div></li>')
     nav = ['<nav class="pager" aria-label="Pages">']
-    nav.append(f'<a class="btn" href="/certificates?page_no={page_no - 1}">Newer</a>'
+    nav.append(f'<a class="btn" href="{base}?page_no={page_no - 1}">Newer</a>'
                if page_no > 1 else '<span class="btn" aria-disabled="true">Newer</span>')
     nav.append(f'<span class="muted small">Page {page_no} of {pages}</span>')
-    nav.append(f'<a class="btn" href="/certificates?page_no={page_no + 1}">Older</a>'
+    nav.append(f'<a class="btn" href="{base}?page_no={page_no + 1}">Older</a>'
                if page_no < pages else '<span class="btn" aria-disabled="true">Older</span>')
     nav.append("</nav>")
     body = ("<h1>Repair certificates</h1>"
@@ -795,6 +869,7 @@ def certificates(page_no: int = 1):
             "repeated, every fix the AI tried, and which checks the final fix "
             "passed. Each certificate is linked to the one before it, like a "
             "chain, so if anyone changes or deletes one, it shows.</p>"
+            + _chain_tabs(info_key) + f'<p class="muted">{E(info["intro"])}</p>'
             f'{banner}<ol class="ledger">{"".join(items)}</ol>{"".join(nav)}')
     return page("Certificates", "certificates", body)
 
@@ -807,13 +882,23 @@ COND_NAME = {"structural": "Not just hiding the error",
 
 @app.get("/certificates/{seq}", response_class=HTMLResponse)
 def certificate(seq: int):
-    certs = {c["sequence"]: c for c in CertificateStore(CERT_DIR).all()}
+    return _certificate_page("study", seq)
+
+
+@app.get("/live-certificates/{seq}", response_class=HTMLResponse)
+def live_certificate(seq: int):
+    return _certificate_page("live", seq)
+
+
+def _certificate_page(chain: str, seq: int):
+    base = chains()[chain]["base"]
+    certs = _chain_certs(chain)
     cert = certs.get(seq)
     if cert is None:
-        return not_found("No such certificate", "/certificates",
-                         "See all certificates")
-    t = next((x for x in trials()
-              if cert["hash"] in (x.get("detail") or {}).get("certificates", [])), {})
+        return not_found("No such certificate", base, "See all certificates")
+    t = (next((x for x in trials()
+               if cert["hash"] in (x.get("detail") or {}).get("certificates", [])), {})
+         if chain == "study" else {})
     title = titles().get(t.get("entry", ""), "")
     capture = cert.get("capture") or {}
     req = capture.get("request") or {}
@@ -828,7 +913,7 @@ def certificate(seq: int):
         cands.append(f'<li><b>Try {cand.get("attempt")}</b>: '
                      f'{"accepted" if ok else "turned down"}<ul class="conds">{chips}</ul></li>')
 
-    ver = verification().get("by_sequence", {}).get(cert["sequence"])
+    ver = verification().get("by_sequence", {}).get(cert["sequence"]) if chain == "study" else None
     if ver:
         replay = ("<p><b>Checked again separately.</b> Using only this certificate "
                   "and a fresh copy of the broken app, "
@@ -840,21 +925,21 @@ def certificate(seq: int):
                   "again: the error should happen before the fix and stop after it.</p>")
     links = []
     if seq - 1 in certs:
-        links.append(f'<a href="/certificates/{seq - 1}">Previous certificate</a>')
-    links.append('<a href="/certificates">All certificates</a>')
+        links.append(f'<a href="{base}/{seq - 1}">Previous certificate</a>')
+    links.append(f'<a href="{base}">All certificates</a>')
     if seq + 1 in certs:
-        links.append(f'<a href="/certificates/{seq + 1}">Next certificate</a>')
+        links.append(f'<a href="{base}/{seq + 1}">Next certificate</a>')
     bug_link = (f', <a href="/bugs/{E(t["entry"])}">bug {E(t["entry"])}</a>'
                 if t.get("entry") else "")
 
-    check = (f'<div class="verify-box" data-verify="{cert["sequence"]}">'
+    check = (f'<div class="verify-box" data-verify="{cert["sequence"]}" data-base="{base}">'
              '<button class="btn" type="button" data-verify-go>Check it yourself</button>'
              '<span class="muted small">Your browser recomputes the fingerprint, the link '
              'to the previous certificate and the signature. Nothing is taken on trust. '
              '<a href="/trust">How this works</a></span><ol class="verify-out" hidden></ol></div>')
     body = f"""
 <div class="cert-head"><div>
-<p class="muted" style="margin:0">Repair certificate</p>
+<p class="muted" style="margin:0">Repair certificate{", live chain" if chain == "live" else ""}</p>
 <h1 style="margin:4px 0 12px">{seq:06d}</h1>
 <p class="lede">{E(title or cert.get("signature") or "")}</p>
 <p class="faint small">Written {E(cert["issued_at"].replace("T", " at "))}{bug_link}</p>
