@@ -138,6 +138,20 @@ def titles() -> dict[str, str]:
         return {}
 
 
+@lru_cache(maxsize=1)
+def origins() -> dict[str, int]:
+    """How many corpus bugs were mined from real fixes and how many seeded."""
+    try:
+        from corpus import load_corpus
+        counts: dict[str, int] = {}
+        for e in load_corpus():
+            o = (e.provenance or {}).get("origin", "unknown")
+            counts[o] = counts.get(o, 0) + 1
+        return counts
+    except Exception:
+        return {}
+
+
 @lru_cache(maxsize=4)
 def _cert_seq(cert_dir: str, mtime: float) -> dict[str, int]:
     try:
@@ -238,7 +252,7 @@ def results(request: Request):
     q = D.Query.parse(dict(request.query_params))
     t = titles()
     body = (
-        V.hero(ts, check)
+        V.hero(ts, check, origins())
         + '<div class="divider">' + V.seam() + "</div>"
         + '<section class="section" aria-labelledby="grid-title">'
         '<div class="section-head"><h2 id="grid-title">Every bug, every approach</h2>'

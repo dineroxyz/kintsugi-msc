@@ -81,6 +81,7 @@ def test_static_assets_are_served(empty):
 def test_results_page_on_real_data(real):
     text = real.get("/results").text
     assert "Data check passed: 720 test records" in text
+    assert "39 were taken from real bug fixes" in text and "21 were written" in text
     assert len(re.findall(r'class="mx-cell"', text)) == 240      # 60 bugs x 4
     assert text.count('role="row"') == 4
     for label in ("Fixed", "Left alone", "Gave up", "Still broken"):

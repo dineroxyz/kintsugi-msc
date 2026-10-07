@@ -163,7 +163,7 @@ MAIN_OUTCOMES = ["recovered", "refused", "escalated", "unrecovered"]
 
 # ------------------------------------------------------------------- hero
 
-def hero(trials: list[dict], check: dict) -> str:
+def hero(trials: list[dict], check: dict, origins: dict | None = None) -> str:
     leave = D.correct_leave_alone(trials)
     summaries = D.by_approach(trials)
     bad = sum(s.count("false_fix") for s in summaries.values())
@@ -187,14 +187,19 @@ def hero(trials: list[dict], check: dict) -> str:
             '<div class="integrity bad" role="alert"><div><b>The test records '
             "do not add up.</b> The numbers below are shown exactly as "
             f"recorded, but check these first:<ul>{items}</ul></div></div>")
+    origin_note = ""
+    if origins and origins.get("mined"):
+        origin_note = (f" Of the {check['bugs']} bugs, {origins['mined']} were taken "
+                       "from real bug fixes in open-source projects and "
+                       f"{origins.get('seeded', 0)} were written for the study.")
     return f"""
 <section class="hero" aria-labelledby="hero-title">
 <h1 id="hero-title">60 bugs, four ways to deal with them</h1>
 <p class="lede">When a live app crashes, someone has to decide what to do.
-This experiment planted real kinds of software bugs into a running app, one at
-a time, and compared four responses: doing nothing, restarting and rolling
-back, letting an AI write a fix, and letting an AI write a fix that has to
-pass a safety check first.</p>
+This experiment planted software bugs into a running app, one at a time, and
+compared four responses: doing nothing, restarting and rolling back, letting an
+AI write a fix, and letting an AI write a fix that has to pass a safety check
+first.{origin_note}</p>
 <p class="muted">A bug only counts as fixed when the app works again and no
 new errors appear. {E(finding)}</p>
 <dl class="facts">
