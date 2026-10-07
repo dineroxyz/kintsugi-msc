@@ -57,14 +57,16 @@ ICON_MOON = ('<svg class="moon" viewBox="0 0 24 24" aria-hidden="true"><path '
 ICON_CLOSE = ('<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 '
               '6L6 18"/></svg>')
 
-NAV = [("/results", "results", "Results"),
+NAV = [("/live", "live", "Live"),
+       ("/results", "results", "Results"),
        ("/certificates", "certificates", "Certificates"),
        ("/practice", "practice", "Practice"),
        ("/guide", "guide", "Guide")]
 
 
 def shell(title: str, active: str, body: str, *, description: str = "",
-          user: str | None = None, csrf: str = "", wide: bool = False) -> str:
+          user: str | None = None, csrf: str = "", wide: bool = False,
+          extra_head: str = "") -> str:
     links = list(NAV)
     if user:
         links.append(("/incidents", "errors", "Errors"))
@@ -94,7 +96,8 @@ def shell(title: str, active: str, body: str, *, description: str = "",
 <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/static/console.css">
 <script src="/static/console.js" defer></script>
-</head><body>
+{extra_head}
+</head><body{' class="wide"' if wide else ""}>
 <a class="skip" href="#main">Skip to content</a>
 <header class="site-head"><div class="wrap">
 <div class="bar"><a class="mark" href="/" aria-label="Kintsugi, home">Kintsugi</a>

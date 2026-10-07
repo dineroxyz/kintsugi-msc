@@ -378,3 +378,96 @@ required{disabled}></div>
 </div>
 <div class="auth-art" aria-hidden="true">{bowl(animate=False)}</div>
 </div>"""
+
+
+# ------------------------------------------------------------------ live
+
+def live(entries: list, recordings: list[dict], *, live_enabled: bool,
+         repairs: int, csrf: str, signed_in: bool, needs_sign_in: bool) -> str:
+    """The Live view: break a bug, watch the platform mend it."""
+    by_entry: dict[str, dict] = {}
+    for r in recordings:                      # newest first: keep the latest
+        by_entry.setdefault(r["entry"], r)
+    fixable = [e for e in entries if e.expected_c3 == "healed"]
+    alone = [e for e in entries if e.expected_c3 != "healed"]
+    if not live_enabled:                      # replays only: offer recorded bugs
+        fixable = [e for e in fixable if e.id in by_entry]
+        alone = [e for e in alone if e.id in by_entry]
+
+    def opts(group):
+        return "".join(f'<option value="{E(e.id)}"{" selected" if e.id == "F03" else ""}>'
+                       f'{E(e.id)}: {E(e.title)}</option>' for e in group)
+
+    rec_json = E(json.dumps({k: v["name"] for k, v in by_entry.items()}))
+    rec_meta = E(json.dumps({k: {"recorded": v.get("recorded"), "model": v.get("model")}
+                             for k, v in by_entry.items()}))
+    can_run = live_enabled and (signed_in or not needs_sign_in)
+    if live_enabled and not can_run:
+        mode_note = ('Live runs need the operator to <a href="/login?next=/live">sign in</a>. '
+                     "Recorded runs can be replayed now.")
+    elif live_enabled:
+        mode_note = "Live: this runs the real platform and the real AI model, now."
+    else:
+        mode_note = ("Replay: this copy of the site has no test rig or AI key, so "
+                     "each run shown is a recording of a real live run, played back "
+                     "at the pace it happened.")
+    empty = not (fixable or alone)
+    return f"""
+<div class="live" data-live="{"1" if can_run else "0"}" data-recordings="{rec_json}"
+     data-meta="{rec_meta}" data-repairs="{repairs}" data-csrf="{E(csrf)}">
+<div class="live-head">
+<div><h1>Break it, and watch it mend</h1>
+<p class="muted">Pick a bug, plant it in the running shop, and watch Kintsugi catch
+it, prove it, fix it and sign for it.</p></div>
+<form class="live-controls" id="live-form" onsubmit="return false">
+<label class="sr-only" for="live-bug">Bug to plant</label>
+<select id="live-bug"{" disabled" if empty else ""}>
+<optgroup label="Bugs that can be fixed">{opts(fixable)}</optgroup>
+<optgroup label="Bugs it should leave alone">{opts(alone)}</optgroup>
+</select>
+<button class="btn btn-primary break" id="live-go" type="button"{" disabled" if empty else ""}>Break it</button>
+{'<button class="btn" id="live-replay" type="button">Replay a recorded run</button>' if live_enabled else ""}
+</form></div>
+<p class="live-mode" id="live-mode">{mode_note}</p>
+
+<div class="live-grid">
+<section class="panel traffic" aria-labelledby="t-title">
+<div class="panel-head"><h2 id="t-title">Live traffic to the shop</h2>
+<span class="state" id="live-state" role="status" aria-live="polite">Waiting</span></div>
+<canvas id="live-canvas" aria-label="Each dot is one request to the shop: green succeeded, red failed." role="img"></canvas>
+<div class="rate"><span>Failing requests</span><canvas id="live-rate" aria-hidden="true"></canvas>
+<b id="live-rate-num">0%</b></div>
+</section>
+
+<section class="panel steps-panel" aria-labelledby="s-title">
+<div class="panel-head"><h2 id="s-title">What Kintsugi is doing</h2>
+<span class="clock" id="live-clock">0.0 s</span></div>
+<ol class="lsteps" id="live-steps">
+<li data-step="fault"><b>The bug goes live</b><span>A new version with the bug replaces the working one.</span></li>
+<li data-step="captured"><b>The error is caught</b><span id="st-captured">Kintsugi records the failing request.</span></li>
+<li data-step="replay"><b>It is repeated on purpose</b><span id="st-replay">Five replays in a safe copy must all fail.</span>
+<i class="dots" id="st-dots"><i></i><i></i><i></i><i></i><i></i></i></li>
+<li data-step="ai"><b>The AI writes a fix</b><span id="st-ai">The model sees the evidence and proposes a patch.</span></li>
+<li data-step="gate"><b>The fix is checked</b><span id="st-gate">It must apply, stop the error, break nothing and not hide the error.</span>
+<i class="chips" id="st-chips"></i></li>
+<li data-step="deploy"><b>The fix goes live</b><span id="st-deploy">Only a signed, checked fix can be deployed.</span></li>
+<li data-step="recovered"><b>The app works again</b><span id="st-recovered">Checked on the failing request and on live traffic.</span></li>
+<li data-step="certificate"><b>A certificate is signed</b><span id="st-cert">A tamper-evident record of the whole repair.</span></li>
+</ol>
+</section>
+
+<section class="panel patch" aria-labelledby="p-title">
+<div class="panel-head"><h2 id="p-title">The AI's patch</h2><span class="muted small" id="p-attempt"></span></div>
+<pre id="live-patch" aria-live="off"><span class="muted">The patch appears here as the model writes it.</span></pre>
+</section>
+
+<section class="panel mend" aria-labelledby="m-title">
+<div class="panel-head"><h2 id="m-title">Mended in gold</h2>
+<span class="muted small"><b id="live-repairs">{repairs:,}</b> repairs</span></div>
+<div class="mend-art"><svg id="live-bowl" viewBox="0 0 420 300" role="img"
+aria-label="A bowl with one gold seam for every repair Kintsugi has made"></svg>
+<div class="stamp" id="live-stamp" hidden></div></div>
+<p class="muted small" id="live-outcome">Every repair adds a seam.</p>
+</section>
+</div>
+</div>"""

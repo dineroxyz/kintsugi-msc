@@ -18,11 +18,12 @@ from functools import lru_cache
 
 from fastapi import FastAPI, Request
 from fastapi.responses import (FileResponse, HTMLResponse, JSONResponse,
-                               RedirectResponse)
+                               RedirectResponse, StreamingResponse)
 from fastapi.staticfiles import StaticFiles
 
 from console import auth
 from console import data as D
+from console import live as L
 from console import pages as P
 from console import views as V
 from control_plane.api.main import app as control_plane_api
@@ -95,11 +96,12 @@ async def _context(request: Request, call_next):
 
 
 def page(title: str, active: str, body: str, status: int = 200,
-         wide: bool = False) -> HTMLResponse:
+         wide: bool = False, extra_head: str = "") -> HTMLResponse:
     request = _request.get()
     user = auth.current_user(request) if request else None
     html = V.shell(title, active, body, user=user, wide=wide,
-                   csrf=auth.form_token("logout") if user else "")
+                   csrf=auth.form_token("logout") if user else "",
+                   extra_head=extra_head)
     return HTMLResponse(html, status_code=status,
                         headers={"Cache-Control": "no-store"} if user else None)
 
@@ -246,6 +248,97 @@ async def logout(request: Request):
     if auth.check_form_token(form.get("csrf", ""), "logout"):
         auth.end_session(response)
     return response
+
+
+# ------------------------------------------------------------------- live
+
+def _live_allowed(request: Request) -> bool:
+    """Live runs cost model calls and start processes: when an operator
+    password is set, only the signed-in operator may start one."""
+    return L.enabled() and (not auth.configured() or bool(auth.current_user(request)))
+
+
+@app.get("/live", response_class=HTMLResponse)
+def live_page(request: Request):
+    from corpus import load_corpus
+    try:
+        entries = load_corpus()
+    except Exception:
+        entries = []
+    os.environ.setdefault("KINTSUGI_CERT_DIR", CERT_DIR)
+    body = P.live(entries, L.recordings(), live_enabled=L.enabled(),
+                  repairs=L.repair_count(), csrf=auth.form_token("live"),
+                  signed_in=bool(auth.current_user(request)),
+                  needs_sign_in=auth.configured())
+    return page("Break it, and watch it mend", "live", body, wide=True,
+                extra_head='<link rel="stylesheet" href="/static/live.css">\n'
+                           '<script src="/static/live.js" defer></script>')
+
+
+@app.post("/live/run")
+async def live_run(request: Request):
+    form = await auth.read_form(request)
+    if not auth.check_form_token(form.get("csrf", ""), "live"):
+        return JSONResponse({"error": "This page expired. Reload it and try again."},
+                            status_code=400)
+    if not _live_allowed(request):
+        return JSONResponse({"error": "Live runs are not available here."}, status_code=403)
+    if L.busy():
+        return JSONResponse({"error": "A run is already in progress."}, status_code=409)
+    entry = form.get("entry", "")
+    try:
+        run = L.start(entry)
+    except Exception as exc:
+        return JSONResponse({"error": str(exc)[:200]}, status_code=400)
+    return {"run": run.id}
+
+
+def _sse(events):
+    for e in events:
+        yield f"data: {json.dumps(e)}\n\n"
+
+
+SSE_HEADERS = {"Cache-Control": "no-cache", "X-Accel-Buffering": "no"}
+
+
+@app.get("/live/stream/{run_id}")
+def live_stream(run_id: str):
+    run = L.get(run_id)
+    if run is None:
+        return JSONResponse({"error": "no such run"}, status_code=404)
+
+    def gen():
+        i = 0
+        while True:
+            fresh = run.wait_from(i)
+            i += len(fresh)
+            yield from _sse(fresh)
+            if not fresh:
+                yield ": keep-alive\n\n"
+            if run.done and i >= len(run.events):
+                return
+    return StreamingResponse(gen(), media_type="text/event-stream",
+                             headers=SSE_HEADERS)
+
+
+@app.get("/live/replay/{name}")
+def live_replay(name: str):
+    rec = L.load_recording(name)
+    if rec is None:
+        return JSONResponse({"error": "no such recording"}, status_code=404)
+    meta, events = rec
+
+    def gen():
+        import time as _t
+        yield from _sse([{**meta, "t": 0, "kind": "replay"}])
+        start = _t.time()
+        for e in events:
+            delay = e.get("t", 0) - (_t.time() - start)
+            if delay > 0:
+                _t.sleep(delay)
+            yield from _sse([e])
+    return StreamingResponse(gen(), media_type="text/event-stream",
+                             headers=SSE_HEADERS)
 
 
 @app.get("/results", response_class=HTMLResponse)

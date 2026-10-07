@@ -91,6 +91,28 @@ def anthropic_complete(evidence_text: str) -> str:
     return "".join(b.text for b in response.content if b.type == "text")
 
 
+def anthropic_streaming_complete(on_text):
+    """The production completion, streamed: `on_text` receives each piece
+    of the patch as the model writes it (the live view types it out). The
+    returned text is identical to anthropic_complete's."""
+    def complete(evidence_text: str) -> str:
+        import anthropic
+
+        client = anthropic.Anthropic()
+        model = os.environ.get("KINTSUGI_MODEL", "claude-opus-5")
+        with client.messages.stream(
+            model=model,
+            max_tokens=16000,
+            system=SYSTEM_PROMPT,
+            messages=[{"role": "user", "content": evidence_text}],
+        ) as stream:
+            for piece in stream.text_stream:
+                on_text(piece)
+            response = stream.get_final_message()
+        return "".join(b.text for b in response.content if b.type == "text")
+    return complete
+
+
 def propose(package: dict, complete=None) -> dict:
     """One diagnosis attempt. Returns {'diff': str, 'evidence_text': str}."""
     evidence_text = render_evidence(package)

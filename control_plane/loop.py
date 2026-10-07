@@ -37,7 +37,8 @@ def heal(capture: dict, service_spec: str, workdir: str, *,
          suite_path: str | None = "tests",
          memory_notes: list[str] | None = None,
          require_reproduction: bool = True,
-         max_candidates: int | None = None) -> Outcome:
+         max_candidates: int | None = None,
+         on_event=None) -> Outcome:
     """Run the loop for one captured incident.
 
     `complete` is the diagnosis completion function (None = production model).
@@ -48,12 +49,18 @@ def heal(capture: dict, service_spec: str, workdir: str, *,
     """
     budget = max_candidates if max_candidates is not None else MAX_CANDIDATES
     trail: list[dict] = []
+    emit = on_event or (lambda kind, **data: None)   # live view only; study ignores
 
+    emit("reproduce_start")
     result = reproduce(capture, service_spec, workdir=workdir)
     repro = {"status": result.status, "reason": result.reason,
              "signature": result.signature, "verdicts": result.verdicts}
+    emit("reproduce_done", reproduced=result.reproduced, reason=result.reason,
+         signature=result.signature,
+         replays=[bool(v.get("failed")) for v in result.verdicts])
 
     if require_reproduction and not result.reproduced:
+        emit("refused", reason=f"reproduction refused: {result.reason}")
         return Outcome("escalated",
                        f"reproduction refused: {result.reason}",
                        reproduction=repro)
@@ -62,6 +69,7 @@ def heal(capture: dict, service_spec: str, workdir: str, *,
     prior_failures: list[dict] = []
 
     for attempt in range(1, budget + 1):
+        emit("candidate_start", attempt=attempt)
         package = pack(capture, signature, workdir,
                        prior_failures=prior_failures,
                        memory_notes=memory_notes)
@@ -92,6 +100,8 @@ def heal(capture: dict, service_spec: str, workdir: str, *,
         candidate["conditions"] = {k: v.get("passed") for k, v in
                                    verdict.conditions.items()}
         trail.append(candidate)
+        emit("gate_result", attempt=attempt, diff=proposal["diff"],
+             conditions=candidate["conditions"], admitted=verdict.admitted)
 
         if verdict.admitted:
             regression = compile_reproduction(
@@ -111,6 +121,7 @@ def heal(capture: dict, service_spec: str, workdir: str, *,
         from control_plane.gate.verifier import discard_patched_tree
         discard_patched_tree(verdict.patched_tree)   # rejected: nothing needs it
 
+    emit("escalated", reason=f"no candidate passed the gate in {budget} attempts")
     return Outcome("escalated",
                    f"no candidate passed the gate in {budget} attempts",
                    signature=signature, reproduction=repro, candidates=trail)
