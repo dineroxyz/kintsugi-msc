@@ -351,7 +351,7 @@ GUIDE_TOC = [("about", "What this site is"), ("grid", "Reading the grid"),
              ("table", "The comparison table"), ("tests", "Finding one test"),
              ("certificates", "Reading a certificate"),
              ("verify", "Check a certificate yourself"),
-             ("operators", "Errors and signing in"),
+             ("operators", "Accounts and signing in"),
              ("keys", "Keyboard and display"), ("glossary", "Glossary")]
 
 
@@ -429,10 +429,14 @@ report is public: <a href="/data/verification.json">certificate check report</a>
 With the project's code, the same checks can be run again with
 <code>python study/verify_certificates.py</code>.</p></section>
 
-<section id="operators"><h2>Errors and signing in</h2>
-<p>The results, certificates, practice log and this guide are public. The
-<b>Errors</b> page, which shows failures reported by the live demo app, is for
-the project's operator and needs signing in. If you are reviewing the project
+<section id="operators"><h2>Accounts and signing in</h2>
+<p>The results, certificates, practice log and this guide are public, and
+anyone can replay recorded runs on the Live page. A free account lets you break
+a bug <b>for real</b>: the platform and a live AI model run while you watch.
+Each account has a small daily allowance of real runs, and your runs are kept on
+your account page with their recordings and certificates. The <b>Errors</b>
+page, which shows failures reported by the live demo app, is for the project's
+operator only. If you are reviewing the project
 and need access, email the author at
 <a href="mailto:oluwaseyiabe0@gmail.com">oluwaseyiabe0@gmail.com</a>.</p></section>
 
@@ -458,8 +462,9 @@ def privacy() -> str:
 <div class="page-head"><h1>Privacy policy</h1>
 <p class="lede">The short version: this site does not track you. It sets no
 cookies unless you sign in, uses no analytics or advertising, and loads nothing
-from other companies.</p>
-<p class="faint small">Last updated 3 October 2026.</p></div>
+from other companies. If you create an account, we keep your email address and
+the runs you start, and you can delete all of it at any time.</p>
+<p class="faint small">Last updated 7 October 2026.</p></div>
 <article class="prose narrow">
 
 <section><h2>Who runs this site</h2>
@@ -484,14 +489,29 @@ itself. There are no analytics, advertising, social media widgets or tracking
 pixels.</li>
 </ul></section>
 
+<section><h2>If you create an account</h2>
+<p>An account lets you start real runs on the Live page. To provide it we store:</p>
+<ul>
+<li><b>Your email address</b>, used only to sign you in. We do not send marketing
+email and do not share it with anyone.</li>
+<li><b>A scrambled form of your password</b> (a salted scrypt hash). The password
+itself is never stored and cannot be recovered from what is stored.</li>
+<li><b>The runs you start</b>: which bug, when, the result, and the recording and
+certificate it produced, so they appear on your account page and count towards
+your daily allowance. Recordings of runs may also be replayed publicly on the
+Live page; they contain the bug and the platform's steps, not your email.</li>
+</ul>
+<p>These are held in the project's database on Railway. You can delete your
+account from your account page at any time; that removes your email, password
+hash and run history immediately.</p></section>
+
 <section><h2>If you sign in</h2>
-<p>Signing in is only for the project's operator. When the operator signs in,
-the site sets one cookie, <code>kintsugi_session</code>, which proves the
+<p>Signing in sets one cookie, <code>kintsugi_session</code>, which proves the
 sign-in for up to eight hours. It is signed so that it cannot be forged, cannot
 be read by scripts on the page, and is only sent over a secure connection.
-Signing out deletes it. To protect against password guessing, the site briefly
-remembers the network address of repeated failed attempts; this is held in
-memory only and forgotten within ten minutes.</p></section>
+Signing out deletes it. To protect against password guessing and mass sign-ups,
+the site briefly remembers the network address of repeated failed attempts and
+of new accounts; this is held in memory only and forgotten within an hour.</p></section>
 
 <section><h2>The data shown on this site</h2>
 <p>The results come from demo apps built for the experiment, with made-up
@@ -500,8 +520,9 @@ platform records a failing request, it removes sensitive fields such as
 passwords and access keys before anything is stored.</p></section>
 
 <section><h2>Your rights</h2>
-<p>Because the site collects no personal information about visitors beyond the
-hosting provider's standard logs, there is normally nothing held about you. If
+<p>If you have no account, the site holds nothing about you beyond the hosting
+provider's standard logs. If you have one, you can see what is held on your
+account page and delete it there. If
 you have a question about privacy, or believe something here is wrong, email
 the author at <a href="mailto:oluwaseyiabe0@gmail.com">oluwaseyiabe0@gmail.com</a>.
 This policy is written with the Nigeria Data Protection Act 2023 in mind.</p></section>
@@ -513,58 +534,120 @@ This policy is written with the Nigeria Data Protection Act 2023 in mind.</p></s
 
 # ----------------------------------------------------------------- login
 
-def login(token: str, next_url: str, *, error: str = "", user: str = "",
-          configured: bool = True, locked: int = 0) -> str:
-    if not configured:
-        notice = ('<p class="form-note" role="status">Signing in is switched off '
-                  "on this copy of the site because no operator password has been "
-                  "set. Everything public is available without signing in.</p>")
-        disabled = " disabled"
-    elif locked:
-        mins = max(1, round(locked / 60))
-        notice = (f'<p class="form-error" role="alert">Too many attempts. For '
-                  f"your security, try again in about {mins} minute"
-                  f'{"s" if mins != 1 else ""}.</p>')
-        disabled = " disabled"
-    else:
-        notice = (f'<p class="form-error" role="alert">{E(error)}</p>' if error else "")
-        disabled = ""
+def _auth_card(title: str, intro: str, notice: str, form: str, foot: str) -> str:
     return f"""
 <div class="auth">
 <div class="auth-card">
-<h1>Sign in</h1>
-<p class="muted">For the project's operator. Results, certificates and the guide
-are public and need no account.</p>
+<h1>{title}</h1>
+<p class="muted">{intro}</p>
 {notice}
-<form method="post" action="/login" class="auth-form" novalidate>
-<input type="hidden" name="csrf" value="{E(token)}">
-<input type="hidden" name="next" value="{E(next_url)}">
-<div class="field"><label for="user">User name</label>
-<input id="user" name="user" type="text" autocomplete="username" required
-value="{E(user)}" autocapitalize="none" spellcheck="false"{disabled}></div>
-<div class="field"><label for="password">Password</label>
-<input id="password" name="password" type="password" autocomplete="current-password"
-required{disabled}></div>
-<button class="btn btn-primary" type="submit"{disabled}>Sign in</button>
-</form>
-<p class="faint small">Signing in sets one cookie that lasts up to eight hours.
-<a href="/privacy">Privacy policy</a></p>
+{form}
+<p class="faint small">{foot}</p>
 </div>
 <div class="auth-art" aria-hidden="true">{bowl(animate=False)}</div>
 </div>"""
 
 
+def login(token: str, next_url: str, *, error: str = "", user: str = "",
+          locked: int = 0) -> str:
+    disabled = ""
+    if locked:
+        mins = max(1, round(locked / 60))
+        notice = (f'<p class="form-error" role="alert">Too many attempts. For your '
+                  f'security, try again in about {mins} minute{"s" if mins != 1 else ""}.</p>')
+        disabled = " disabled"
+    else:
+        notice = f'<p class="form-error" role="alert">{E(error)}</p>' if error else ""
+    form = f"""<form method="post" action="/login" class="auth-form" novalidate>
+<input type="hidden" name="csrf" value="{E(token)}">
+<input type="hidden" name="next" value="{E(next_url)}">
+<div class="field"><label for="user">Email</label>
+<input id="user" name="user" type="text" inputmode="email" autocomplete="username" required
+value="{E(user)}" autocapitalize="none" spellcheck="false"{disabled}></div>
+<div class="field"><label for="password">Password</label>
+<input id="password" name="password" type="password" autocomplete="current-password"
+required{disabled}></div>
+<button class="btn btn-primary" type="submit"{disabled}>Sign in</button>
+</form>"""
+    return _auth_card(
+        "Sign in", "Sign in to run real heals on the Live page.", notice, form,
+        'New here? <a href="/signup">Create a free account</a>. '
+        'Signing in sets one cookie. <a href="/privacy">Privacy policy</a>')
+
+
+def signup(token: str, *, runs: int, error: str = "", email: str = "") -> str:
+    notice = f'<p class="form-error" role="alert">{E(error)}</p>' if error else ""
+    form = f"""<form method="post" action="/signup" class="auth-form" novalidate>
+<input type="hidden" name="csrf" value="{E(token)}">
+<div class="field"><label for="email">Email</label>
+<input id="email" name="email" type="email" autocomplete="email" required
+value="{E(email)}" autocapitalize="none" spellcheck="false"></div>
+<div class="field"><label for="password">Password</label>
+<input id="password" name="password" type="password" autocomplete="new-password"
+minlength="10" required aria-describedby="pw-help">
+<span class="faint small" id="pw-help">At least 10 characters.</span></div>
+<label class="check"><input type="checkbox" name="agree" value="yes" required>
+<span>I have read the <a href="/privacy">privacy policy</a>.</span></label>
+<button class="btn btn-primary" type="submit">Create account</button>
+</form>"""
+    return _auth_card(
+        "Create an account",
+        f"A free account lets you break a bug for real, {runs} times a day, and watch "
+        "Kintsugi mend it with a live AI model. Every run you start is kept on your "
+        "account with its certificate.",
+        notice, form,
+        'Already have an account? <a href="/login">Sign in</a>. We store your email '
+        "and a scrambled form of your password, nothing else.")
+
+
+def account(user, runs: list, left: dict, titles: dict, delete_token: str, *,
+            live_enabled: bool) -> str:
+    rows = "".join(
+        f'<tr><td class="mono">{E(r.entry)}</td><td class="muted small">{E(titles.get(r.entry, ""))}</td>'
+        f'<td>{E({"recovered": "Mended", "refused": "Left alone", "escalated": "Gave up", "false_fix": "Bad fix", None: "Running"}.get(r.outcome, r.outcome or ""))}'
+        f'{f" in {r.mttr:.1f} s" if r.mttr else ""}</td>'
+        f'<td class="faint small num">{E(r.started_at[:16].replace("T", " "))}</td>'
+        f'<td>{f"<a href=\"/live?replay={E(r.recording)}\">Replay</a>" if r.recording else ""}</td></tr>'
+        for r in runs)
+    table = (f'<div class="table-scroll"><table class="ex-table"><thead><tr><th scope="col">Bug</th>'
+             '<th scope="col">What was wrong</th><th scope="col">Result</th>'
+             '<th scope="col" class="num">When (UTC)</th><th scope="col"><span class="sr-only">Replay</span></th>'
+             f'</tr></thead><tbody>{rows}</tbody></table></div>' if runs else
+             '<p class="muted">No runs yet. <a href="/live">Break your first bug</a>.</p>')
+    allowance = (f"You have <b>{left['account']}</b> of {left['per_account']} runs left in "
+                 "the last 24 hours." if live_enabled else
+                 "Live runs are switched off on this copy of the site; replays still work.")
+    return f"""
+<div class="page-head"><h1>Your account</h1>
+<p class="lede">{E(user.email)}</p>
+<p class="muted">{allowance}</p>
+<p><a class="btn btn-primary" href="/live">Break a bug</a></p></div>
+<h2 style="font-size:22px;margin:0 0 12px">Your runs</h2>
+{table}
+<section class="danger" aria-labelledby="del-title">
+<h2 id="del-title" style="font-size:22px;margin:48px 0 8px">Delete your account</h2>
+<p class="muted">This removes your email, your password and your run history. Recordings
+already shown on the public Live page stay, but no longer point to you.</p>
+<form method="post" action="/account/delete" class="auth-form" style="max-width:420px">
+<input type="hidden" name="csrf" value="{E(delete_token)}">
+<div class="field"><label for="confirm">Type your email to confirm</label>
+<input id="confirm" name="confirm" type="email" autocomplete="off" required></div>
+<button class="btn" type="submit">Delete my account</button></form>
+</section>"""
+
+
 # ------------------------------------------------------------------ live
 
 def live(entries: list, recordings: list[dict], *, live_enabled: bool,
-         repairs: int, csrf: str, signed_in: bool, needs_sign_in: bool) -> str:
+         repairs: int, csrf: str, status: dict, welcome: bool = False) -> str:
     """The Live view: break a bug, watch the platform mend it."""
     by_entry: dict[str, dict] = {}
     for r in recordings:                      # newest first: keep the latest
         by_entry.setdefault(r["entry"], r)
     fixable = [e for e in entries if e.expected_c3 == "healed"]
     alone = [e for e in entries if e.expected_c3 != "healed"]
-    if not live_enabled:                      # replays only: offer recorded bugs
+    can_run = bool(status.get("can"))
+    if not can_run:                           # replays only: offer recorded bugs
         fixable = [e for e in fixable if e.id in by_entry]
         alone = [e for e in alone if e.id in by_entry]
 
@@ -575,16 +658,26 @@ def live(entries: list, recordings: list[dict], *, live_enabled: bool,
     rec_json = E(json.dumps({k: v["name"] for k, v in by_entry.items()}))
     rec_meta = E(json.dumps({k: {"recorded": v.get("recorded"), "model": v.get("model")}
                              for k, v in by_entry.items()}))
-    can_run = live_enabled and (signed_in or not needs_sign_in)
-    if live_enabled and not can_run:
-        mode_note = ('Live runs need the operator to <a href="/login?next=/live">sign in</a>. '
-                     "Recorded runs can be replayed now.")
-    elif live_enabled:
-        mode_note = "Live: this runs the real platform and the real AI model, now."
-    else:
-        mode_note = ("Replay: this copy of the site has no test rig or AI key, so "
-                     "each run shown is a recording of a real live run, played back "
-                     "at the pace it happened.")
+    why = status.get("why")
+    left = (f" You have {status['account']} of {status['per_account']} runs left today."
+            if why == "account" else "")
+    mode_note = {
+        "replay": ("Replay: this copy of the site has no test rig or AI key, so each run "
+                   "shown is a recording of a real live run, played back at the pace it "
+                   "happened."),
+        "signin": ('Watch a recorded run now, or <a href="/signup">create a free account</a> '
+                   'to break a bug for real with a live AI model. Already have one? '
+                   '<a href="/login?next=/live">Sign in</a>.'),
+        "account_cap": ("You have used today's real runs. They refresh 24 hours after each "
+                        "run; recorded runs can be replayed any time."),
+        "site_cap": ("Today's real runs for the whole site are used up, to keep costs "
+                     "bounded. Recorded runs can be replayed any time."),
+        "account": "Live: this runs the real platform and a real AI model, now." + left,
+        "operator": "Live: operator run, no daily limit.",
+        "local": "Live: this runs the real platform and the real AI model, now.",
+    }.get(why, "")
+    if welcome:
+        mode_note = "Welcome. Your account is ready. " + mode_note
     empty = not (fixable or alone)
     return f"""
 <div class="live" data-live="{"1" if can_run else "0"}" data-recordings="{rec_json}"
@@ -599,8 +692,8 @@ it, prove it, fix it and sign for it.</p></div>
 <optgroup label="Bugs that can be fixed">{opts(fixable)}</optgroup>
 <optgroup label="Bugs it should leave alone">{opts(alone)}</optgroup>
 </select>
-<button class="btn btn-primary break" id="live-go" type="button"{" disabled" if empty else ""}>Break it</button>
-{'<button class="btn" id="live-replay" type="button">Replay a recorded run</button>' if live_enabled else ""}
+<button class="btn btn-primary break" id="live-go" type="button"{" disabled" if empty else ""}>{"Break it" if can_run else "Watch a replay"}</button>
+{'<button class="btn" id="live-replay" type="button">Replay a recorded run</button>' if can_run else ""}
 </form></div>
 <p class="live-mode" id="live-mode">{mode_note}</p>
 

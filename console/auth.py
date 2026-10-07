@@ -9,8 +9,9 @@ One operator account, configured by environment variables:
                               on every restart
 
 Public pages (results, certificates, practice, guide, privacy) need no
-sign-in. The live operations data (the Errors page and the incident API)
-does. Sessions are signed, time-limited cookies (HttpOnly, SameSite=Lax,
+sign-in. Visitor accounts (console/accounts.py) may start real live runs
+within a daily allowance. The live operations data (the Errors page and the
+incident API) is for the operator only. Sessions are signed, time-limited cookies (HttpOnly, SameSite=Lax,
 Secure over HTTPS); every form carries a signed anti-forgery token; and
 repeated wrong passwords from one address are locked out for a while.
 """
@@ -64,7 +65,8 @@ def check_credentials(user: str, password: str) -> bool:
 
 # ------------------------------------------------------------ sessions
 
-def current_user(request: Request) -> str | None:
+def identity(request: Request) -> dict | None:
+    """{"u": name or email, "r": "operator" | "user"} for a valid session."""
     token = request.cookies.get(COOKIE)
     if not token:
         return None
@@ -72,7 +74,19 @@ def current_user(request: Request) -> str | None:
         data = _signer.loads(token, max_age=SESSION_SECONDS)
     except (BadSignature, SignatureExpired):
         return None
-    return data.get("u") if isinstance(data, dict) else None
+    if not isinstance(data, dict) or not data.get("u"):
+        return None
+    return {"u": data["u"], "r": data.get("r", "operator")}
+
+
+def current_user(request: Request) -> str | None:
+    who = identity(request)
+    return who["u"] if who else None
+
+
+def is_operator(request: Request) -> bool:
+    who = identity(request)
+    return bool(who) and who["r"] == "operator"
 
 
 def _secure(request: Request) -> bool:
@@ -80,8 +94,9 @@ def _secure(request: Request) -> bool:
     return proto == "https"
 
 
-def start_session(response, request: Request, user: str) -> None:
-    response.set_cookie(COOKIE, _signer.dumps({"u": user, "n": secrets.token_hex(8)}),
+def start_session(response, request: Request, user: str, role: str = "operator") -> None:
+    response.set_cookie(COOKIE, _signer.dumps({"u": user, "r": role,
+                                               "n": secrets.token_hex(8)}),
                         max_age=SESSION_SECONDS, httponly=True, samesite="lax",
                         secure=_secure(request), path="/")
 

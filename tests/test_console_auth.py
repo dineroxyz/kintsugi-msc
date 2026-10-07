@@ -87,7 +87,7 @@ def test_correct_sign_in_sets_a_secure_session(client):
 def test_wrong_password_is_rejected_without_saying_which_field(client):
     r = sign_in(client, password="nope")
     assert r.status_code == 401
-    assert "user name and password do not match" in r.text
+    assert "email and password do not match" in r.text
     assert "kintsugi_session" not in r.headers.get("set-cookie", "")
 
 
@@ -128,12 +128,11 @@ def test_sign_out_needs_the_form_token(client):
     assert client.get("/incidents", follow_redirects=False).status_code == 303
 
 
-def test_sign_in_is_switched_off_without_a_password(monkeypatch, tmp_path):
+def test_operator_sign_in_is_impossible_without_a_password(monkeypatch, tmp_path):
     client = _client(monkeypatch, tmp_path, password=None)
-    assert "switched off" in client.get("/login").text
     r = client.post("/login", data={"csrf": csrf(client), "user": "operator",
                                     "password": "anything"}, follow_redirects=False)
-    assert r.status_code == 403
+    assert r.status_code == 401 and "kintsugi_session" not in r.headers.get("set-cookie", "")
 
 
 def test_security_headers(client):

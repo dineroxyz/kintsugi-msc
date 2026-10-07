@@ -21,6 +21,7 @@ from fastapi.responses import (FileResponse, HTMLResponse, JSONResponse,
                                RedirectResponse, StreamingResponse)
 from fastapi.staticfiles import StaticFiles
 
+from console import accounts as A          # noqa: F401  (registers its tables)
 from console import auth
 from console import data as D
 from console import live as L
@@ -85,7 +86,7 @@ async def _context(request: Request, call_next):
         # the live incident data is for the signed-in operator only;
         # ingest (POST) stays open so the services can report failures
         if (request.method == "GET" and request.url.path.startswith("/api/incidents")
-                and not auth.current_user(request)):
+                and not auth.is_operator(request)):
             return JSONResponse({"error": "sign in required"}, status_code=401)
         response = await call_next(request)
     finally:
@@ -98,10 +99,11 @@ async def _context(request: Request, call_next):
 def page(title: str, active: str, body: str, status: int = 200,
          wide: bool = False, extra_head: str = "") -> HTMLResponse:
     request = _request.get()
-    user = auth.current_user(request) if request else None
+    who = auth.identity(request) if request else None
+    user = who["u"] if who else None
     html = V.shell(title, active, body, user=user, wide=wide,
                    csrf=auth.form_token("logout") if user else "",
-                   extra_head=extra_head)
+                   extra_head=extra_head, role=who["r"] if who else None)
     return HTMLResponse(html, status_code=status,
                         headers={"Cache-Control": "no-store"} if user else None)
 
@@ -214,12 +216,11 @@ def privacy():
 
 
 @app.get("/login", response_class=HTMLResponse)
-def login_form(request: Request, next: str = "/results"):
+def login_form(request: Request, next: str = "/live"):
     if auth.current_user(request):
         return RedirectResponse(auth.safe_next(next), status_code=303)
     return page("Sign in", "login",
                 P.login(auth.form_token("login"), auth.safe_next(next),
-                        configured=auth.configured(),
                         locked=auth.locked_for(auth.client_ip(request))))
 
 
@@ -233,22 +234,93 @@ async def login_submit(request: Request):
         return page("Sign in", "login",
                     P.login(auth.form_token("login"), nxt, error=error,
                             user=form.get("user", "")[:80],
-                            configured=auth.configured(),
                             locked=auth.locked_for(ip)), status=status)
 
     if not auth.check_form_token(form.get("csrf", ""), "login"):
         return again("This form expired. Please try again.", 400)
-    if not auth.configured():
-        return again("", 403)
     if auth.locked_for(ip):
         return again("", 429)
-    if not auth.check_credentials(form.get("user", ""), form.get("password", "")):
+    name, password = form.get("user", "").strip(), form.get("password", "")
+    if auth.configured() and name == auth.admin_user():
+        role = "operator" if auth.check_credentials(name, password) else None
+    else:
+        role = "user" if A.authenticate(name, password) else None
+    if role is None:
         auth.record_failure(ip)
-        return again("That user name and password do not match. Check them "
-                     "and try again.", 401)
+        return again("That email and password do not match. Check them and try "
+                     "again.", 401)
     auth.clear_failures(ip)
     response = RedirectResponse(nxt, status_code=303)
-    auth.start_session(response, request, auth.admin_user())
+    auth.start_session(response, request,
+                       auth.admin_user() if role == "operator" else A.normalise(name), role)
+    return response
+
+
+@app.get("/signup", response_class=HTMLResponse)
+def signup_form(request: Request):
+    if auth.current_user(request):
+        return RedirectResponse("/account", status_code=303)
+    return page("Create an account", "signup",
+                P.signup(auth.form_token("signup"), runs=A.RUNS_PER_ACCOUNT_PER_DAY))
+
+
+@app.post("/signup", response_class=HTMLResponse)
+async def signup_submit(request: Request):
+    form = await auth.read_form(request)
+    ip = auth.client_ip(request)
+    email = form.get("email", "")[:254]
+
+    def again(error: str, status: int):
+        return page("Create an account", "signup",
+                    P.signup(auth.form_token("signup"), runs=A.RUNS_PER_ACCOUNT_PER_DAY,
+                             error=error, email=email), status=status)
+
+    if not auth.check_form_token(form.get("csrf", ""), "signup"):
+        return again("This form expired. Please try again.", 400)
+    if form.get("agree") != "yes":
+        return again("Please confirm you have read the privacy policy.", 400)
+    if not A.signup_allowed(ip):
+        return again("Too many new accounts from this network. Try again in an hour.", 429)
+    try:
+        A.create_user(email, form.get("password", ""))
+    except ValueError as exc:
+        return again(str(exc), 400)
+    A.record_signup(ip)
+    response = RedirectResponse("/live?welcome=1", status_code=303)
+    auth.start_session(response, request, A.normalise(email), "user")
+    return response
+
+
+@app.get("/account", response_class=HTMLResponse)
+def account(request: Request):
+    who = auth.identity(request)
+    if not who:
+        return auth.login_redirect(request)
+    if who["r"] == "operator":
+        return RedirectResponse("/incidents", status_code=303)
+    user = A.get_user(who["u"])
+    if user is None:                                   # deleted elsewhere
+        response = RedirectResponse("/", status_code=303)
+        auth.end_session(response)
+        return response
+    return page("Your account", "account",
+                P.account(user, A.user_runs(user.id), A.runs_left(user.id),
+                          titles(), auth.form_token("delete"), live_enabled=L.enabled()))
+
+
+@app.post("/account/delete")
+async def account_delete(request: Request):
+    who = auth.identity(request)
+    form = await auth.read_form(request)
+    if not who or who["r"] != "user" or not auth.check_form_token(form.get("csrf", ""), "delete"):
+        return RedirectResponse("/account", status_code=303)
+    if form.get("confirm", "").strip().lower() != who["u"]:
+        return RedirectResponse("/account?confirm=1", status_code=303)
+    user = A.get_user(who["u"])
+    if user:
+        A.delete_user(user.id)
+    response = RedirectResponse("/?deleted=1", status_code=303)
+    auth.end_session(response)
     return response
 
 
@@ -263,10 +335,28 @@ async def logout(request: Request):
 
 # ------------------------------------------------------------------- live
 
-def _live_allowed(request: Request) -> bool:
-    """Live runs cost model calls and start processes: when an operator
-    password is set, only the signed-in operator may start one."""
-    return L.enabled() and (not auth.configured() or bool(auth.current_user(request)))
+def live_status(request: Request) -> dict:
+    """Whether this visitor may start a real run now, and why not if not.
+    The operator is unlimited; an account has a daily allowance; the site
+    has a daily ceiling; without live runs enabled, only replays exist."""
+    if not L.enabled():
+        return {"can": False, "why": "replay"}
+    who = auth.identity(request)
+    if who and who["r"] == "operator":
+        return {"can": True, "why": "operator", "user_id": None}
+    if not auth.configured() and not who:
+        return {"can": True, "why": "local", "user_id": None}   # laptop, no accounts
+    if not who:
+        return {"can": False, "why": "signin"}
+    user = A.get_user(who["u"])
+    if user is None:
+        return {"can": False, "why": "signin"}
+    left = A.runs_left(user.id)
+    if left["site"] <= 0:
+        return {"can": False, "why": "site_cap", **left}
+    if left["account"] <= 0:
+        return {"can": False, "why": "account_cap", **left}
+    return {"can": True, "why": "account", "user_id": user.id, **left}
 
 
 @app.get("/live", response_class=HTMLResponse)
@@ -279,8 +369,8 @@ def live_page(request: Request):
     os.environ.setdefault("KINTSUGI_CERT_DIR", CERT_DIR)
     body = P.live(entries, L.recordings(), live_enabled=L.enabled(),
                   repairs=L.repair_count(), csrf=auth.form_token("live"),
-                  signed_in=bool(auth.current_user(request)),
-                  needs_sign_in=auth.configured())
+                  status=live_status(request),
+                  welcome=request.query_params.get("welcome") == "1")
     return page("Break it, and watch it mend", "live", body, wide=True,
                 extra_head='<link rel="stylesheet" href="/static/live.css">\n'
                            '<script src="/static/live.js" defer></script>')
@@ -292,13 +382,25 @@ async def live_run(request: Request):
     if not auth.check_form_token(form.get("csrf", ""), "live"):
         return JSONResponse({"error": "This page expired. Reload it and try again."},
                             status_code=400)
-    if not _live_allowed(request):
-        return JSONResponse({"error": "Live runs are not available here."}, status_code=403)
+    st = live_status(request)
+    if not st["can"]:
+        why = {"replay": "Live runs are not available here.",
+               "signin": "Create a free account or sign in to run it for real.",
+               "account_cap": "You have used today's runs. They refresh 24 hours after each run.",
+               "site_cap": "Today's runs for the whole site are used up. Try again tomorrow."}
+        return JSONResponse({"error": why.get(st["why"], "Not available.")}, status_code=403)
     if L.busy():
-        return JSONResponse({"error": "A run is already in progress."}, status_code=409)
+        return JSONResponse({"error": "Someone else's run is in progress. Try again in a minute."},
+                            status_code=409)
     entry = form.get("entry", "")
     try:
-        run = L.start(entry)
+        from corpus import load_entry
+        load_entry(entry)
+    except Exception:
+        return JSONResponse({"error": "Pick a bug from the list."}, status_code=400)
+    record = A.start_run(st.get("user_id"), entry)
+    try:
+        run = L.start(entry, on_finish=lambda **kw: A.finish_run(record, **kw))
     except Exception as exc:
         return JSONResponse({"error": str(exc)[:200]}, status_code=400)
     return {"run": run.id}
@@ -638,7 +740,12 @@ def practice():
 
 @app.get("/incidents", response_class=HTMLResponse)
 def incidents(request: Request):
-    if not auth.current_user(request):
+    if not auth.is_operator(request):
+        if auth.current_user(request):
+            return page("Operators only", "errors",
+                        "<h1>Operators only</h1><p class=lede>The live error feed is "
+                        "for the project's operator. Your account can run real heals "
+                        'on the <a href="/live">Live</a> page.</p>', status=403)
         return auth.login_redirect(request)
     try:
         from control_plane.api.main import list_incidents

@@ -17,8 +17,8 @@ import time
 import uuid
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-RECORDINGS = os.environ.get("KINTSUGI_LIVE_RECORDINGS",
-                            os.path.join(ROOT, "demo", "recordings", "live"))
+BUNDLED = os.path.join(ROOT, "demo", "recordings", "live")      # shipped with the code
+RECORDINGS = os.environ.get("KINTSUGI_LIVE_RECORDINGS", BUNDLED)   # where new runs go
 LIVE_CERTS = os.environ.get("KINTSUGI_LIVE_CERTS",
                             os.path.join(ROOT, "study", "live", "certificates"))
 
@@ -60,7 +60,7 @@ def busy() -> bool:
     return run is not None and not run.done
 
 
-def start(entry_id: str, *, complete=None) -> Run:
+def start(entry_id: str, *, complete=None, on_finish=None) -> Run:
     """Start a live run in the background; one at a time."""
     from control_plane.certificates.issuer import CertificateStore
     from control_plane.study.live import run_live
@@ -84,7 +84,17 @@ def start(entry_id: str, *, complete=None) -> Run:
             run.add({"t": time.time() - run.started, "kind": "end",
                      "outcome": "error", "mttr": None})
         finally:
-            save(run)
+            path = save(run)
+            if on_finish is not None:
+                end = run.events[-1] if run.events else {}
+                cert = next((e.get("sequence") for e in reversed(run.events)
+                             if e.get("kind") == "certificate"), None)
+                try:
+                    on_finish(outcome=end.get("outcome"), mttr=end.get("mttr"),
+                              recording=os.path.basename(path)[:-6] if path else None,
+                              certificate=cert)
+                except Exception:
+                    pass
 
     threading.Thread(target=work, daemon=True).start()
     return run
@@ -114,29 +124,33 @@ def save(run: Run) -> str | None:
     return path
 
 
+def _dirs() -> list[str]:
+    return [d for d in dict.fromkeys([RECORDINGS, BUNDLED]) if os.path.isdir(d)]
+
+
 def recordings() -> list[dict]:
-    """Saved runs, newest first, each with its metadata line."""
-    out = []
-    if not os.path.isdir(RECORDINGS):
-        return out
-    for name in sorted(os.listdir(RECORDINGS), reverse=True):
-        if not name.endswith(".jsonl"):
-            continue
-        try:
-            with open(os.path.join(RECORDINGS, name)) as fh:
-                meta = json.loads(fh.readline())
-        except Exception:
-            continue
-        if meta.get("kind") == "meta" and meta.get("outcome") != "error":
-            out.append({"name": name[:-6], **meta})
-    return out
+    """Saved runs from every recording folder, newest first."""
+    seen: dict[str, dict] = {}
+    for d in _dirs():
+        for name in os.listdir(d):
+            if not name.endswith(".jsonl") or name[:-6] in seen:
+                continue
+            try:
+                with open(os.path.join(d, name)) as fh:
+                    meta = json.loads(fh.readline())
+            except Exception:
+                continue
+            if meta.get("kind") == "meta" and meta.get("outcome") != "error":
+                seen[name[:-6]] = {"name": name[:-6], **meta}
+    return [seen[k] for k in sorted(seen, reverse=True)]
 
 
 def load_recording(name: str) -> tuple[dict, list[dict]] | None:
     if not name or "/" in name or ".." in name:
         return None
-    path = os.path.join(RECORDINGS, name + ".jsonl")
-    if not os.path.exists(path):
+    path = next((os.path.join(d, name + ".jsonl") for d in _dirs()
+                 if os.path.exists(os.path.join(d, name + ".jsonl"))), None)
+    if path is None:
         return None
     with open(path) as fh:
         rows = [json.loads(line) for line in fh if line.strip()]

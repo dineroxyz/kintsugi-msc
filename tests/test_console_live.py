@@ -64,8 +64,9 @@ def test_replay_only_mode_offers_only_recorded_bugs(monkeypatch, tmp_path):
     c = client(monkeypatch, tmp_path)
     text = c.get("/live").text
     assert 'data-live="0"' in text and "recording of a real live run" in text
-    options = re.findall(r'<option value="([A-Z0-9]+)"', text)
-    assert options == ["F03"]
+    import console.live as live_mod
+    options = set(re.findall(r'<option value="([A-Z0-9]+)"', text))
+    assert options and options == {r["entry"] for r in live_mod.recordings()}
     assert "Replay a recorded run" not in text      # Break it already replays
 
 
@@ -83,7 +84,7 @@ def test_live_run_needs_a_valid_form_token(monkeypatch, tmp_path):
 def test_live_run_needs_sign_in_when_a_password_is_set(monkeypatch, tmp_path):
     c = client(monkeypatch, tmp_path, live=True, password="pw")
     text = c.get("/live").text
-    assert 'data-live="0"' in text and "sign in" in text
+    assert 'data-live="0"' in text and "create a free account" in text
     assert c.post("/live/run", data={"csrf": token(c), "entry": "F03"}).status_code == 403
 
 

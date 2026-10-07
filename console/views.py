@@ -66,10 +66,12 @@ NAV = [("/live", "live", "Live"),
 
 def shell(title: str, active: str, body: str, *, description: str = "",
           user: str | None = None, csrf: str = "", wide: bool = False,
-          extra_head: str = "") -> str:
+          extra_head: str = "", role: str | None = None) -> str:
     links = list(NAV)
-    if user:
+    if user and role == "operator":
         links.append(("/incidents", "errors", "Errors"))
+    elif user:
+        links.append(("/account", "account", "Account"))
     nav = "".join(
         f'<a href="{href}"{" aria-current=page" if key == active else ""}>'
         f"{label}</a>" for href, key, label in links)
@@ -79,8 +81,10 @@ def shell(title: str, active: str, body: str, *, description: str = "",
                    f'<button class="nav-btn" type="submit" title="Signed in as {E(user)}">'
                    f'Sign out</button></form>')
     else:
-        account = (f'<a class="nav-btn" href="/login"'
-                   f'{" aria-current=page" if active == "login" else ""}>Sign in</a>')
+        account = (f'<a class="nav-link" href="/login"'
+                   f'{" aria-current=page" if active == "login" else ""}>Sign in</a>'
+                   f'<a class="nav-btn nav-cta" href="/signup"'
+                   f'{" aria-current=page" if active == "signup" else ""}>Create account</a>')
     desc = description or ("Kintsugi is a self-healing software platform: it "
                            "repairs live apps with AI, but only with proof.")
     return f"""<!doctype html>

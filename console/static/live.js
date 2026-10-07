@@ -330,7 +330,7 @@
     if (source) { source.close(); source = null; }
     go.disabled = false; pick.disabled = false;
     if (replayBtn) replayBtn.disabled = false;
-    go.textContent = "Break it again";
+    go.textContent = canLive ? "Break it again" : "Watch another replay";
   }
 
   function listen(url) {
@@ -371,5 +371,8 @@
       .catch(function () { modeEl.textContent = "The run could not start."; go.disabled = false; });
   });
   if (replayBtn) replayBtn.addEventListener("click", function () { replay(pick.value); });
-  pick.addEventListener("change", function () { go.textContent = "Break it"; });
+  // /live?replay=<recording> plays one specific recorded run (from an account page)
+  var asked = new URLSearchParams(location.search).get("replay");
+  if (asked && /^[0-9A-Za-z-]+$/.test(asked)) listen("/live/replay/" + encodeURIComponent(asked));
+  pick.addEventListener("change", function () { go.textContent = canLive ? "Break it" : "Watch a replay"; });
 })();
