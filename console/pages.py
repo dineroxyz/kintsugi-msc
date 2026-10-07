@@ -929,9 +929,9 @@ so from that date anyone can check that each one is unchanged.
     anchor_html = ("""
 <section id="anchor"><h2>Anchored to Bitcoin</h2>
 <p>The signed list was also timestamped with OpenTimestamps, which records a
-fingerprint of it in the Bitcoin blockchain. Once confirmed (usually a few
-hours after stamping), this proves the list existed, unchanged, at that time,
-without trusting this site, its owner, or anyone else.</p>
+fingerprint of it in the Bitcoin blockchain. The timestamp is confirmed in
+Bitcoin block 970,366, mined on 7 October 2026, so it proves the list existed,
+unchanged, by that date, without trusting this site, its owner, or anyone else.</p>
 <p><a href="/data/attestation.json.ots">Download the timestamp proof</a>, then check it
 with the open-source OpenTimestamps tool:</p>
 <pre>pip install opentimestamps-client
