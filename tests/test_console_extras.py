@@ -258,3 +258,13 @@ def test_verification_report_is_readable(site):
     assert "Caught: its contents no longer matched its fingerprint" in text
     assert 'href="/data/verification.json" download' in text
     assert c.get("/data/verification.json").json()["replay"]["verified"] == 130
+
+
+
+def test_correctness_section_is_honest(site):
+    c, _ = site
+    text = c.get("/results").text
+    assert "Did the fixes change anything else?" in text and "Wrong elsewhere" in text
+    assert "/results#correct-title" in c.get("/").text
+    data = c.get("/data/correctness.json").json()
+    assert data["totals"]["main"] == 127

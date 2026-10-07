@@ -684,3 +684,49 @@ in bad fixes falls just short of the usual statistical threshold (p = {w["p"]:.3
 the bug properly or left it for a person. Once, its check caught a fix that looked fine and
 applied cleanly but did not actually stop the failure.</p>
 </section>"""
+
+
+
+CORRECT_WORDS = {"correct": "Correct", "correct (alternative)": "Correct, different but defensible",
+                 "partial": "Partly fixed", "incorrect": "Wrong elsewhere"}
+
+
+def correctness_section(c: dict | None) -> str:
+    """Did the fixes Kintsugi accepted change anything else? (dissertation 4.2.7)"""
+    if not c:
+        return ""
+    studies = [("main", "Frontier model"), ("weaker_model", "Smaller model")]
+    order = ["correct", "correct (alternative)", "partial", "incorrect"]
+    head = "".join(f'<th scope="col" class="num">{E(n)}</th>' for _, n in studies)
+    body = ""
+    for v in order:
+        cells = ""
+        for k, _ in studies:
+            n, tot = c["by_study"].get(k, {}).get(v, 0), c["totals"].get(k, 0)
+            cells += f'<td class="num">{n}<span class="pct">{pct(n, tot)}</span></td>'
+        body += f'<tr><td class="appr"><b>{E(CORRECT_WORDS[v])}</b></td>{cells}</tr>'
+    wrong = [r for r in c["rows"] if r["verdict"] in ("incorrect", "partial")]
+    seen, items = set(), []
+    for r in wrong:
+        key = (r["study"], r["entry"], r["reason"])
+        if key in seen:
+            continue
+        seen.add(key)
+        model = "frontier" if r["study"] == "main" else "smaller"
+        items.append(f'<li><a class="mono" href="/bugs/{E(r["entry"])}">{E(r["entry"])}</a> '
+                     f'({model} model, {E(CORRECT_WORDS[r["verdict"]].lower())}): {E(r["reason"])}.</li>')
+    return f"""
+<section class="section" aria-labelledby="correct-title">
+<div class="section-head"><h2 id="correct-title">Did the fixes change anything else?</h2>
+<p>Kintsugi proves that a fix stops the failure it caught. To see whether the fixes were also
+correct, every fix it put live was run side by side with the original, correct code on the same
+116 requests, covering every part of the shop. Most behaved exactly the same. Some stopped the
+crash but quietly changed something else, and the safety check could not see that, because it
+only tests the failure that happened.</p></div>
+<div class="table-scroll"><table class="compare">
+<caption>Every fix Kintsugi put live, compared with the original code. Different error messages
+for bad input count as correct.</caption>
+<thead><tr><th scope="col">Verdict</th>{head}</tr></thead><tbody>{body}</tbody></table></div>
+<details class="more"><summary>What went wrong in each case</summary><ul class="vr-list">{"".join(items)}</ul></details>
+<p class="muted">For programmers: <a href="/data/correctness.json" download>download every verdict (JSON)</a>.</p>
+</section>"""

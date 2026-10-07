@@ -1,0 +1,6335 @@
+{
+ "battery_size": 116,
+ "summary": {
+  "main": {
+   "distinct_patch_sets": 97,
+   "trials": 127,
+   "by_verdict_trials": {
+    "behaviour": 14,
+    "same": 93,
+    "wording": 14,
+    "error_code": 6
+   },
+   "by_verdict_patch_sets": {
+    "behaviour": 12,
+    "same": 69,
+    "wording": 11,
+    "error_code": 5
+   }
+  },
+  "weaker_model": {
+   "distinct_patch_sets": 55,
+   "trials": 66,
+   "by_verdict_trials": {
+    "behaviour": 10,
+    "same": 47,
+    "error_code": 3,
+    "wording": 6
+   },
+   "by_verdict_patch_sets": {
+    "behaviour": 8,
+    "same": 39,
+    "error_code": 3,
+    "wording": 5
+   }
+  }
+ },
+ "results": [
+  {
+   "study": "main",
+   "entry": "F01",
+   "trials": 1,
+   "seeds": [
+    3
+   ],
+   "sequences": [
+    [
+     88
+    ]
+   ],
+   "verdict": "behaviour",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": [
+    {
+     "request": "GET /quote {\"sku\": \"WIDGET\", \"quantity\": 3, \"code\": \"PCT15\"}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 21.25,
+       "total": 63.75,
+       "reference": "Q003"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 25.0,
+       "total": 75.0,
+       "reference": "Q003"
+      }
+     ]
+    },
+    {
+     "request": "GET /quote {\"sku\": \"WIDGET\", \"quantity\": 3, \"code\": \"PCT95\"}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 2.5,
+       "total": 7.5,
+       "reference": "Q003"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 25.0,
+       "total": 75.0,
+       "reference": "Q003"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "study": "main",
+   "entry": "F01",
+   "trials": 1,
+   "seeds": [
+    2
+   ],
+   "sequences": [
+    [
+     47
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "F01",
+   "trials": 1,
+   "seeds": [
+    1
+   ],
+   "sequences": [
+    [
+     4
+    ]
+   ],
+   "verdict": "behaviour",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": [
+    {
+     "request": "GET /quote {\"sku\": \"WIDGET\", \"quantity\": 3, \"code\": \"PCT15\"}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 21.25,
+       "total": 63.75,
+       "reference": "Q003"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 25.0,
+       "total": 75.0,
+       "reference": "Q003"
+      }
+     ]
+    },
+    {
+     "request": "GET /quote {\"sku\": \"WIDGET\", \"quantity\": 3, \"code\": \"PCT95\"}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 2.5,
+       "total": 7.5,
+       "reference": "Q003"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 25.0,
+       "total": 75.0,
+       "reference": "Q003"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "study": "main",
+   "entry": "F03",
+   "trials": 1,
+   "seeds": [
+    1
+   ],
+   "sequences": [
+    [
+     0
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "F03",
+   "trials": 2,
+   "seeds": [
+    2,
+    3
+   ],
+   "sequences": [
+    [
+     48
+    ],
+    [
+     89
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "F04",
+   "trials": 1,
+   "seeds": [
+    1
+   ],
+   "sequences": [
+    [
+     5
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "F04",
+   "trials": 1,
+   "seeds": [
+    3
+   ],
+   "sequences": [
+    [
+     90
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "F05",
+   "trials": 1,
+   "seeds": [
+    3
+   ],
+   "sequences": [
+    [
+     91
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "F05",
+   "trials": 1,
+   "seeds": [
+    2
+   ],
+   "sequences": [
+    [
+     49
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "F05",
+   "trials": 1,
+   "seeds": [
+    1
+   ],
+   "sequences": [
+    [
+     6
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "F07",
+   "trials": 1,
+   "seeds": [
+    3
+   ],
+   "sequences": [
+    [
+     92
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "F07",
+   "trials": 1,
+   "seeds": [
+    2
+   ],
+   "sequences": [
+    [
+     50
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "F07",
+   "trials": 1,
+   "seeds": [
+    1
+   ],
+   "sequences": [
+    [
+     7
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "F08",
+   "trials": 1,
+   "seeds": [
+    1
+   ],
+   "sequences": [
+    [
+     8
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "F08",
+   "trials": 2,
+   "seeds": [
+    2,
+    3
+   ],
+   "sequences": [
+    [
+     51
+    ],
+    [
+     93
+    ]
+   ],
+   "verdict": "behaviour",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": [
+    {
+     "request": "GET /quote {\"sku\": \"WIDGET\", \"quantity\": 3, \"code\": \"PCTXX\"}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 25.0,
+       "total": 75.0,
+       "reference": "Q003"
+      }
+     ],
+     "patched": [
+      422,
+      {
+       "detail": "invalid discount code 'PCTXX'"
+      }
+     ]
+    },
+    {
+     "request": "GET /quote {\"sku\": \"SPROCKET\", \"code\": \"PCTXX\"}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "SPROCKET",
+       "quantity": 1,
+       "per_unit": 9.5,
+       "total": 9.5,
+       "reference": "Q001"
+      }
+     ],
+     "patched": [
+      422,
+      {
+       "detail": "invalid discount code 'PCTXX'"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "study": "main",
+   "entry": "F10",
+   "trials": 1,
+   "seeds": [
+    2
+   ],
+   "sequences": [
+    [
+     52
+    ]
+   ],
+   "verdict": "behaviour",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": [
+    {
+     "request": "POST /orders {\"lines\": []}",
+     "kind": "behaviour",
+     "reference": [
+      422,
+      {
+       "detail": "order has no lines"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "id": 4,
+       "first_sku": null,
+       "lines": [],
+       "total": 0.0
+      }
+     ]
+    },
+    {
+     "request": "POST /orders \"\"",
+     "kind": "behaviour",
+     "reference": [
+      422,
+      {
+       "detail": "order has no lines"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "id": 5,
+       "first_sku": null,
+       "lines": [],
+       "total": 0.0
+      }
+     ]
+    },
+    {
+     "request": "GET /summary {\"min_total\": \"0\"}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "count": 3,
+       "grand_total": 112.25
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "count": 5,
+       "grand_total": 112.25
+      }
+     ]
+    },
+    {
+     "request": "GET /summary \"\"",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "count": 2,
+       "grand_total": 69.0
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "count": 4,
+       "grand_total": 69.0
+      }
+     ]
+    },
+    {
+     "request": "POST /orders {\"lines\": []}",
+     "kind": "behaviour",
+     "reference": [
+      422,
+      {
+       "detail": "order has no lines"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "id": 6,
+       "first_sku": null,
+       "lines": [],
+       "total": 0.0
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "study": "main",
+   "entry": "F10",
+   "trials": 1,
+   "seeds": [
+    1
+   ],
+   "sequences": [
+    [
+     9
+    ]
+   ],
+   "verdict": "behaviour",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": [
+    {
+     "request": "POST /orders {\"lines\": []}",
+     "kind": "behaviour",
+     "reference": [
+      422,
+      {
+       "detail": "order has no lines"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "id": 4,
+       "first_sku": null,
+       "lines": [],
+       "total": 0.0
+      }
+     ]
+    },
+    {
+     "request": "POST /orders \"\"",
+     "kind": "behaviour",
+     "reference": [
+      422,
+      {
+       "detail": "order has no lines"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "id": 5,
+       "first_sku": null,
+       "lines": [],
+       "total": 0.0
+      }
+     ]
+    },
+    {
+     "request": "GET /summary {\"min_total\": \"0\"}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "count": 3,
+       "grand_total": 112.25
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "count": 5,
+       "grand_total": 112.25
+      }
+     ]
+    },
+    {
+     "request": "GET /summary \"\"",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "count": 2,
+       "grand_total": 69.0
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "count": 4,
+       "grand_total": 69.0
+      }
+     ]
+    },
+    {
+     "request": "POST /orders {\"lines\": []}",
+     "kind": "behaviour",
+     "reference": [
+      422,
+      {
+       "detail": "order has no lines"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "id": 6,
+       "first_sku": null,
+       "lines": [],
+       "total": 0.0
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "study": "main",
+   "entry": "F10",
+   "trials": 1,
+   "seeds": [
+    3
+   ],
+   "sequences": [
+    [
+     94
+    ]
+   ],
+   "verdict": "behaviour",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": [
+    {
+     "request": "POST /orders {\"lines\": []}",
+     "kind": "behaviour",
+     "reference": [
+      422,
+      {
+       "detail": "order has no lines"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "id": 4,
+       "first_sku": null,
+       "lines": [],
+       "total": 0.0
+      }
+     ]
+    },
+    {
+     "request": "POST /orders \"\"",
+     "kind": "behaviour",
+     "reference": [
+      422,
+      {
+       "detail": "order has no lines"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "id": 5,
+       "first_sku": null,
+       "lines": [],
+       "total": 0.0
+      }
+     ]
+    },
+    {
+     "request": "GET /summary {\"min_total\": \"0\"}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "count": 3,
+       "grand_total": 112.25
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "count": 5,
+       "grand_total": 112.25
+      }
+     ]
+    },
+    {
+     "request": "GET /summary \"\"",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "count": 2,
+       "grand_total": 69.0
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "count": 4,
+       "grand_total": 69.0
+      }
+     ]
+    },
+    {
+     "request": "POST /orders {\"lines\": []}",
+     "kind": "behaviour",
+     "reference": [
+      422,
+      {
+       "detail": "order has no lines"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "id": 6,
+       "first_sku": null,
+       "lines": [],
+       "total": 0.0
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "study": "main",
+   "entry": "F12",
+   "trials": 1,
+   "seeds": [
+    3
+   ],
+   "sequences": [
+    [
+     95
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "F12",
+   "trials": 1,
+   "seeds": [
+    1
+   ],
+   "sequences": [
+    [
+     10
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "F12",
+   "trials": 1,
+   "seeds": [
+    2
+   ],
+   "sequences": [
+    [
+     53
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "F13",
+   "trials": 2,
+   "seeds": [
+    1,
+    3
+   ],
+   "sequences": [
+    [
+     11
+    ],
+    [
+     96
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "F13",
+   "trials": 1,
+   "seeds": [
+    2
+   ],
+   "sequences": [
+    [
+     54
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "F14",
+   "trials": 2,
+   "seeds": [
+    1,
+    3
+   ],
+   "sequences": [
+    [
+     12
+    ],
+    [
+     97
+    ]
+   ],
+   "verdict": "wording",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": [
+    {
+     "request": "POST /reserve/UNOBTAINIUM \"\"",
+     "kind": "wording",
+     "reference": [
+      404,
+      {
+       "detail": "unknown sku 'UNOBTAINIUM'"
+      }
+     ],
+     "patched": [
+      404,
+      {
+       "detail": "no sku UNOBTAINIUM"
+      }
+     ]
+    },
+    {
+     "request": "POST /reserve/UNOBTAINIUM \"\"",
+     "kind": "wording",
+     "reference": [
+      404,
+      {
+       "detail": "unknown sku 'UNOBTAINIUM'"
+      }
+     ],
+     "patched": [
+      404,
+      {
+       "detail": "no sku UNOBTAINIUM"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "study": "main",
+   "entry": "F14",
+   "trials": 1,
+   "seeds": [
+    2
+   ],
+   "sequences": [
+    [
+     55
+    ]
+   ],
+   "verdict": "wording",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": [
+    {
+     "request": "POST /reserve/UNOBTAINIUM \"\"",
+     "kind": "wording",
+     "reference": [
+      404,
+      {
+       "detail": "unknown sku 'UNOBTAINIUM'"
+      }
+     ],
+     "patched": [
+      404,
+      {
+       "detail": "no sku UNOBTAINIUM"
+      }
+     ]
+    },
+    {
+     "request": "POST /reserve/UNOBTAINIUM \"\"",
+     "kind": "wording",
+     "reference": [
+      404,
+      {
+       "detail": "unknown sku 'UNOBTAINIUM'"
+      }
+     ],
+     "patched": [
+      404,
+      {
+       "detail": "no sku UNOBTAINIUM"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "study": "main",
+   "entry": "F15",
+   "trials": 3,
+   "seeds": [
+    1,
+    2,
+    3
+   ],
+   "sequences": [
+    [
+     13
+    ],
+    [
+     56
+    ],
+    [
+     98
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "F17",
+   "trials": 1,
+   "seeds": [
+    3
+   ],
+   "sequences": [
+    [
+     99
+    ]
+   ],
+   "verdict": "wording",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": [
+    {
+     "request": "POST /orders {\"lines\": [{\"quantity\": 2}]}",
+     "kind": "wording",
+     "reference": [
+      422,
+      {
+       "detail": "line missing sku"
+      }
+     ],
+     "patched": [
+      422,
+      {
+       "detail": "order line missing sku"
+      }
+     ]
+    },
+    {
+     "request": "POST /orders {\"lines\": [{\"quantity\": 2}]}",
+     "kind": "wording",
+     "reference": [
+      422,
+      {
+       "detail": "line missing sku"
+      }
+     ],
+     "patched": [
+      422,
+      {
+       "detail": "order line missing sku"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "study": "main",
+   "entry": "F17",
+   "trials": 1,
+   "seeds": [
+    2
+   ],
+   "sequences": [
+    [
+     57
+    ]
+   ],
+   "verdict": "wording",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": [
+    {
+     "request": "POST /orders {\"lines\": [{\"quantity\": 2}]}",
+     "kind": "wording",
+     "reference": [
+      422,
+      {
+       "detail": "line missing sku"
+      }
+     ],
+     "patched": [
+      422,
+      {
+       "detail": "order line missing sku"
+      }
+     ]
+    },
+    {
+     "request": "POST /orders {\"lines\": [{\"quantity\": 2}]}",
+     "kind": "wording",
+     "reference": [
+      422,
+      {
+       "detail": "line missing sku"
+      }
+     ],
+     "patched": [
+      422,
+      {
+       "detail": "order line missing sku"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "study": "main",
+   "entry": "F17",
+   "trials": 1,
+   "seeds": [
+    1
+   ],
+   "sequences": [
+    [
+     14
+    ]
+   ],
+   "verdict": "wording",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": [
+    {
+     "request": "POST /orders {\"lines\": [{\"quantity\": 2}]}",
+     "kind": "wording",
+     "reference": [
+      422,
+      {
+       "detail": "line missing sku"
+      }
+     ],
+     "patched": [
+      422,
+      {
+       "detail": "order line is missing 'sku'"
+      }
+     ]
+    },
+    {
+     "request": "POST /orders {\"lines\": [{\"quantity\": 2}]}",
+     "kind": "wording",
+     "reference": [
+      422,
+      {
+       "detail": "line missing sku"
+      }
+     ],
+     "patched": [
+      422,
+      {
+       "detail": "order line is missing 'sku'"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "study": "main",
+   "entry": "F18",
+   "trials": 3,
+   "seeds": [
+    1,
+    2,
+    3
+   ],
+   "sequences": [
+    [
+     15
+    ],
+    [
+     58
+    ],
+    [
+     100
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "F19",
+   "trials": 2,
+   "seeds": [
+    1,
+    2
+   ],
+   "sequences": [
+    [
+     16
+    ],
+    [
+     59
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "F19",
+   "trials": 1,
+   "seeds": [
+    3
+   ],
+   "sequences": [
+    [
+     101
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "F20",
+   "trials": 1,
+   "seeds": [
+    3
+   ],
+   "sequences": [
+    [
+     102
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "F20",
+   "trials": 2,
+   "seeds": [
+    1,
+    2
+   ],
+   "sequences": [
+    [
+     17
+    ],
+    [
+     60
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "F21",
+   "trials": 1,
+   "seeds": [
+    1
+   ],
+   "sequences": [
+    [
+     18,
+     19
+    ]
+   ],
+   "verdict": "behaviour",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": [
+    {
+     "request": "GET /price/WIDGET \"\"",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "WIDGET",
+       "price": 25.0
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "WIDGET",
+       "price": "25.0"
+      }
+     ]
+    },
+    {
+     "request": "GET /price/GADGET \"\"",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "GADGET",
+       "price": 40.0
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "GADGET",
+       "price": "40.0"
+      }
+     ]
+    },
+    {
+     "request": "GET /price/SPROCKET \"\"",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "SPROCKET",
+       "price": 9.5
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "SPROCKET",
+       "price": "9.5"
+      }
+     ]
+    },
+    {
+     "request": "GET /price/DOODAD \"\"",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "DOODAD",
+       "price": 3.25
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "DOODAD",
+       "price": "3.25"
+      }
+     ]
+    },
+    {
+     "request": "POST /carts/k2/checkout \"\"",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "cart": "k2",
+       "lines": 1,
+       "total": 9.75
+      }
+     ],
+     "patched": [
+      500,
+      "Internal Server Error"
+     ]
+    },
+    {
+     "request": "POST /carts/k1/checkout \"\"",
+     "kind": "behaviour",
+     "reference": [
+      422,
+      {
+       "detail": "unknown sku 'UNOBTAINIUM'"
+      }
+     ],
+     "patched": [
+      500,
+      "Internal Server Error"
+     ]
+    }
+   ]
+  },
+  {
+   "study": "main",
+   "entry": "F21",
+   "trials": 1,
+   "seeds": [
+    3
+   ],
+   "sequences": [
+    [
+     103,
+     104
+    ]
+   ],
+   "verdict": "behaviour",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": [
+    {
+     "request": "GET /price/WIDGET \"\"",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "WIDGET",
+       "price": 25.0
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "WIDGET",
+       "price": "25.0"
+      }
+     ]
+    },
+    {
+     "request": "GET /price/GADGET \"\"",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "GADGET",
+       "price": 40.0
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "GADGET",
+       "price": "40.0"
+      }
+     ]
+    },
+    {
+     "request": "GET /price/SPROCKET \"\"",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "SPROCKET",
+       "price": 9.5
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "SPROCKET",
+       "price": "9.5"
+      }
+     ]
+    },
+    {
+     "request": "GET /price/DOODAD \"\"",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "DOODAD",
+       "price": 3.25
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "DOODAD",
+       "price": "3.25"
+      }
+     ]
+    },
+    {
+     "request": "POST /carts/k2/checkout \"\"",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "cart": "k2",
+       "lines": 1,
+       "total": 9.75
+      }
+     ],
+     "patched": [
+      500,
+      "Internal Server Error"
+     ]
+    },
+    {
+     "request": "POST /carts/k1/checkout \"\"",
+     "kind": "behaviour",
+     "reference": [
+      422,
+      {
+       "detail": "unknown sku 'UNOBTAINIUM'"
+      }
+     ],
+     "patched": [
+      500,
+      "Internal Server Error"
+     ]
+    }
+   ]
+  },
+  {
+   "study": "main",
+   "entry": "F21",
+   "trials": 1,
+   "seeds": [
+    2
+   ],
+   "sequences": [
+    [
+     61,
+     62
+    ]
+   ],
+   "verdict": "behaviour",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": [
+    {
+     "request": "GET /price/WIDGET \"\"",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "WIDGET",
+       "price": 25.0
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "WIDGET",
+       "price": "25.0"
+      }
+     ]
+    },
+    {
+     "request": "GET /price/GADGET \"\"",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "GADGET",
+       "price": 40.0
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "GADGET",
+       "price": "40.0"
+      }
+     ]
+    },
+    {
+     "request": "GET /price/SPROCKET \"\"",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "SPROCKET",
+       "price": 9.5
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "SPROCKET",
+       "price": "9.5"
+      }
+     ]
+    },
+    {
+     "request": "GET /price/DOODAD \"\"",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "DOODAD",
+       "price": 3.25
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "DOODAD",
+       "price": "3.25"
+      }
+     ]
+    },
+    {
+     "request": "POST /carts/k2/checkout \"\"",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "cart": "k2",
+       "lines": 1,
+       "total": 9.75
+      }
+     ],
+     "patched": [
+      500,
+      "Internal Server Error"
+     ]
+    },
+    {
+     "request": "POST /carts/k1/checkout \"\"",
+     "kind": "behaviour",
+     "reference": [
+      422,
+      {
+       "detail": "unknown sku 'UNOBTAINIUM'"
+      }
+     ],
+     "patched": [
+      500,
+      "Internal Server Error"
+     ]
+    }
+   ]
+  },
+  {
+   "study": "main",
+   "entry": "M01",
+   "trials": 2,
+   "seeds": [
+    1,
+    2
+   ],
+   "sequences": [
+    [
+     20
+    ],
+    [
+     63
+    ]
+   ],
+   "verdict": "wording",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": [
+    {
+     "request": "GET /summary {\"min_total\": \"abc\"}",
+     "kind": "wording",
+     "reference": [
+      422,
+      {
+       "detail": "min_total must be numeric"
+      }
+     ],
+     "patched": [
+      422,
+      {
+       "detail": "min_total must be a number, got 'abc'"
+      }
+     ]
+    },
+    {
+     "request": "GET /summary {\"min_total\": \"abc\"}",
+     "kind": "wording",
+     "reference": [
+      422,
+      {
+       "detail": "min_total must be numeric"
+      }
+     ],
+     "patched": [
+      422,
+      {
+       "detail": "min_total must be a number, got 'abc'"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "study": "main",
+   "entry": "M01",
+   "trials": 1,
+   "seeds": [
+    3
+   ],
+   "sequences": [
+    [
+     105
+    ]
+   ],
+   "verdict": "wording",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": [
+    {
+     "request": "GET /summary {\"min_total\": \"abc\"}",
+     "kind": "wording",
+     "reference": [
+      422,
+      {
+       "detail": "min_total must be numeric"
+      }
+     ],
+     "patched": [
+      422,
+      {
+       "detail": "min_total must be a number, got 'abc'"
+      }
+     ]
+    },
+    {
+     "request": "GET /summary {\"min_total\": \"abc\"}",
+     "kind": "wording",
+     "reference": [
+      422,
+      {
+       "detail": "min_total must be numeric"
+      }
+     ],
+     "patched": [
+      422,
+      {
+       "detail": "min_total must be a number, got 'abc'"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "study": "main",
+   "entry": "M03",
+   "trials": 1,
+   "seeds": [
+    2
+   ],
+   "sequences": [
+    [
+     64
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "M03",
+   "trials": 1,
+   "seeds": [
+    3
+   ],
+   "sequences": [
+    [
+     106
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "M03",
+   "trials": 1,
+   "seeds": [
+    1
+   ],
+   "sequences": [
+    [
+     21
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "M05",
+   "trials": 1,
+   "seeds": [
+    2
+   ],
+   "sequences": [
+    [
+     65
+    ]
+   ],
+   "verdict": "error_code",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": [
+    {
+     "request": "GET /price/WIDGET/converted {\"currency\": \"GBP\"}",
+     "kind": "error_code",
+     "reference": [
+      422,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ],
+     "patched": [
+      404,
+      {
+       "detail": "unknown currency 'GBP'"
+      }
+     ]
+    },
+    {
+     "request": "GET /price/GADGET/converted {\"currency\": \"GBP\"}",
+     "kind": "error_code",
+     "reference": [
+      422,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ],
+     "patched": [
+      404,
+      {
+       "detail": "unknown currency 'GBP'"
+      }
+     ]
+    },
+    {
+     "request": "GET /price/SPROCKET/converted {\"currency\": \"GBP\"}",
+     "kind": "error_code",
+     "reference": [
+      422,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ],
+     "patched": [
+      404,
+      {
+       "detail": "unknown currency 'GBP'"
+      }
+     ]
+    },
+    {
+     "request": "GET /price/DOODAD/converted {\"currency\": \"GBP\"}",
+     "kind": "error_code",
+     "reference": [
+      422,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ],
+     "patched": [
+      404,
+      {
+       "detail": "unknown currency 'GBP'"
+      }
+     ]
+    },
+    {
+     "request": "GET /price/WIDGET/converted {\"currency\": \"GBP\"}",
+     "kind": "error_code",
+     "reference": [
+      422,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ],
+     "patched": [
+      404,
+      {
+       "detail": "unknown currency 'GBP'"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "study": "main",
+   "entry": "M05",
+   "trials": 1,
+   "seeds": [
+    3
+   ],
+   "sequences": [
+    [
+     107
+    ]
+   ],
+   "verdict": "error_code",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": [
+    {
+     "request": "GET /price/WIDGET/converted {\"currency\": \"GBP\"}",
+     "kind": "error_code",
+     "reference": [
+      422,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ],
+     "patched": [
+      404,
+      {
+       "detail": "unknown currency 'GBP'"
+      }
+     ]
+    },
+    {
+     "request": "GET /price/GADGET/converted {\"currency\": \"GBP\"}",
+     "kind": "error_code",
+     "reference": [
+      422,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ],
+     "patched": [
+      404,
+      {
+       "detail": "unknown currency 'GBP'"
+      }
+     ]
+    },
+    {
+     "request": "GET /price/SPROCKET/converted {\"currency\": \"GBP\"}",
+     "kind": "error_code",
+     "reference": [
+      422,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ],
+     "patched": [
+      404,
+      {
+       "detail": "unknown currency 'GBP'"
+      }
+     ]
+    },
+    {
+     "request": "GET /price/DOODAD/converted {\"currency\": \"GBP\"}",
+     "kind": "error_code",
+     "reference": [
+      422,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ],
+     "patched": [
+      404,
+      {
+       "detail": "unknown currency 'GBP'"
+      }
+     ]
+    },
+    {
+     "request": "GET /price/WIDGET/converted {\"currency\": \"GBP\"}",
+     "kind": "error_code",
+     "reference": [
+      422,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ],
+     "patched": [
+      404,
+      {
+       "detail": "unknown currency 'GBP'"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "study": "main",
+   "entry": "M05",
+   "trials": 1,
+   "seeds": [
+    1
+   ],
+   "sequences": [
+    [
+     22
+    ]
+   ],
+   "verdict": "error_code",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": [
+    {
+     "request": "GET /price/WIDGET/converted {\"currency\": \"GBP\"}",
+     "kind": "error_code",
+     "reference": [
+      422,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ],
+     "patched": [
+      400,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ]
+    },
+    {
+     "request": "GET /price/GADGET/converted {\"currency\": \"GBP\"}",
+     "kind": "error_code",
+     "reference": [
+      422,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ],
+     "patched": [
+      400,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ]
+    },
+    {
+     "request": "GET /price/SPROCKET/converted {\"currency\": \"GBP\"}",
+     "kind": "error_code",
+     "reference": [
+      422,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ],
+     "patched": [
+      400,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ]
+    },
+    {
+     "request": "GET /price/DOODAD/converted {\"currency\": \"GBP\"}",
+     "kind": "error_code",
+     "reference": [
+      422,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ],
+     "patched": [
+      400,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ]
+    },
+    {
+     "request": "GET /price/WIDGET/converted {\"currency\": \"GBP\"}",
+     "kind": "error_code",
+     "reference": [
+      422,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ],
+     "patched": [
+      400,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "study": "main",
+   "entry": "M07",
+   "trials": 1,
+   "seeds": [
+    1
+   ],
+   "sequences": [
+    [
+     23
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "M07",
+   "trials": 2,
+   "seeds": [
+    2,
+    3
+   ],
+   "sequences": [
+    [
+     66
+    ],
+    [
+     108
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "M08",
+   "trials": 2,
+   "seeds": [
+    1,
+    2
+   ],
+   "sequences": [
+    [
+     24
+    ],
+    [
+     67
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "M08",
+   "trials": 1,
+   "seeds": [
+    3
+   ],
+   "sequences": [
+    [
+     109
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "M09",
+   "trials": 2,
+   "seeds": [
+    1,
+    3
+   ],
+   "sequences": [
+    [
+     25
+    ],
+    [
+     110
+    ]
+   ],
+   "verdict": "error_code",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": [
+    {
+     "request": "GET /price/WIDGET/converted {\"currency\": \"GBP\"}",
+     "kind": "error_code",
+     "reference": [
+      422,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ],
+     "patched": [
+      400,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ]
+    },
+    {
+     "request": "GET /price/GADGET/converted {\"currency\": \"GBP\"}",
+     "kind": "error_code",
+     "reference": [
+      422,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ],
+     "patched": [
+      400,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ]
+    },
+    {
+     "request": "GET /price/SPROCKET/converted {\"currency\": \"GBP\"}",
+     "kind": "error_code",
+     "reference": [
+      422,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ],
+     "patched": [
+      400,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ]
+    },
+    {
+     "request": "GET /price/DOODAD/converted {\"currency\": \"GBP\"}",
+     "kind": "error_code",
+     "reference": [
+      422,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ],
+     "patched": [
+      400,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ]
+    },
+    {
+     "request": "GET /price/GADGET/converted {\"currency\": \"GBP\"}",
+     "kind": "error_code",
+     "reference": [
+      422,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ],
+     "patched": [
+      400,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "study": "main",
+   "entry": "M09",
+   "trials": 1,
+   "seeds": [
+    2
+   ],
+   "sequences": [
+    [
+     68
+    ]
+   ],
+   "verdict": "error_code",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": [
+    {
+     "request": "GET /price/WIDGET/converted {\"currency\": \"GBP\"}",
+     "kind": "error_code",
+     "reference": [
+      422,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ],
+     "patched": [
+      400,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ]
+    },
+    {
+     "request": "GET /price/GADGET/converted {\"currency\": \"GBP\"}",
+     "kind": "error_code",
+     "reference": [
+      422,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ],
+     "patched": [
+      400,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ]
+    },
+    {
+     "request": "GET /price/SPROCKET/converted {\"currency\": \"GBP\"}",
+     "kind": "error_code",
+     "reference": [
+      422,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ],
+     "patched": [
+      400,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ]
+    },
+    {
+     "request": "GET /price/DOODAD/converted {\"currency\": \"GBP\"}",
+     "kind": "error_code",
+     "reference": [
+      422,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ],
+     "patched": [
+      400,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ]
+    },
+    {
+     "request": "GET /price/GADGET/converted {\"currency\": \"GBP\"}",
+     "kind": "error_code",
+     "reference": [
+      422,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ],
+     "patched": [
+      400,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "study": "main",
+   "entry": "M10",
+   "trials": 2,
+   "seeds": [
+    1,
+    3
+   ],
+   "sequences": [
+    [
+     26
+    ],
+    [
+     111
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "M10",
+   "trials": 1,
+   "seeds": [
+    2
+   ],
+   "sequences": [
+    [
+     69
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "M11",
+   "trials": 1,
+   "seeds": [
+    1
+   ],
+   "sequences": [
+    [
+     27
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "M11",
+   "trials": 2,
+   "seeds": [
+    2,
+    3
+   ],
+   "sequences": [
+    [
+     70
+    ],
+    [
+     112
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "M12",
+   "trials": 1,
+   "seeds": [
+    1
+   ],
+   "sequences": [
+    [
+     28
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "M12",
+   "trials": 2,
+   "seeds": [
+    2,
+    3
+   ],
+   "sequences": [
+    [
+     71
+    ],
+    [
+     113
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "M13",
+   "trials": 3,
+   "seeds": [
+    1,
+    2,
+    3
+   ],
+   "sequences": [
+    [
+     29
+    ],
+    [
+     72
+    ],
+    [
+     114
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "M14",
+   "trials": 1,
+   "seeds": [
+    2
+   ],
+   "sequences": [
+    [
+     73
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "M14",
+   "trials": 1,
+   "seeds": [
+    1
+   ],
+   "sequences": [
+    [
+     30
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "M14",
+   "trials": 1,
+   "seeds": [
+    3
+   ],
+   "sequences": [
+    [
+     115
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "M15",
+   "trials": 1,
+   "seeds": [
+    2
+   ],
+   "sequences": [
+    [
+     74
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "M15",
+   "trials": 1,
+   "seeds": [
+    1
+   ],
+   "sequences": [
+    [
+     31
+    ]
+   ],
+   "verdict": "wording",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": [
+    {
+     "request": "GET /orders/999999/receipt \"\"",
+     "kind": "wording",
+     "reference": [
+      404,
+      {
+       "detail": "no order 999999"
+      }
+     ],
+     "patched": [
+      404,
+      {
+       "detail": "unknown order 999999"
+      }
+     ]
+    },
+    {
+     "request": "GET /orders/999999/receipt \"\"",
+     "kind": "wording",
+     "reference": [
+      404,
+      {
+       "detail": "no order 999999"
+      }
+     ],
+     "patched": [
+      404,
+      {
+       "detail": "unknown order 999999"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "study": "main",
+   "entry": "M15",
+   "trials": 1,
+   "seeds": [
+    3
+   ],
+   "sequences": [
+    [
+     116
+    ]
+   ],
+   "verdict": "wording",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": [
+    {
+     "request": "GET /orders/999999/receipt \"\"",
+     "kind": "wording",
+     "reference": [
+      404,
+      {
+       "detail": "no order 999999"
+      }
+     ],
+     "patched": [
+      404,
+      {
+       "detail": "unknown order 999999"
+      }
+     ]
+    },
+    {
+     "request": "GET /orders/999999/receipt \"\"",
+     "kind": "wording",
+     "reference": [
+      404,
+      {
+       "detail": "no order 999999"
+      }
+     ],
+     "patched": [
+      404,
+      {
+       "detail": "unknown order 999999"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "study": "main",
+   "entry": "M16",
+   "trials": 2,
+   "seeds": [
+    1,
+    3
+   ],
+   "sequences": [
+    [
+     32
+    ],
+    [
+     117
+    ]
+   ],
+   "verdict": "behaviour",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": [
+    {
+     "request": "GET /quote {\"sku\": \"WIDGET\", \"quantity\": 1}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 1,
+       "per_unit": 25.0,
+       "total": 25.0,
+       "reference": "Q001"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 1,
+       "per_unit": 25.0,
+       "total": 25.0,
+       "reference": "QWIDGET"
+      }
+     ]
+    },
+    {
+     "request": "GET /quote {\"sku\": \"WIDGET\", \"quantity\": 2}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 2,
+       "per_unit": 25.0,
+       "total": 50.0,
+       "reference": "Q002"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 2,
+       "per_unit": 25.0,
+       "total": 50.0,
+       "reference": "QWIDGET"
+      }
+     ]
+    },
+    {
+     "request": "GET /quote {\"sku\": \"GADGET\", \"quantity\": 1}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "GADGET",
+       "quantity": 1,
+       "per_unit": 40.0,
+       "total": 40.0,
+       "reference": "Q001"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "GADGET",
+       "quantity": 1,
+       "per_unit": 40.0,
+       "total": 40.0,
+       "reference": "QGADGET"
+      }
+     ]
+    },
+    {
+     "request": "GET /quote {\"sku\": \"GADGET\", \"quantity\": 2}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "GADGET",
+       "quantity": 2,
+       "per_unit": 40.0,
+       "total": 80.0,
+       "reference": "Q002"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "GADGET",
+       "quantity": 2,
+       "per_unit": 40.0,
+       "total": 80.0,
+       "reference": "QGADGET"
+      }
+     ]
+    },
+    {
+     "request": "GET /quote {\"sku\": \"SPROCKET\", \"quantity\": 1}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "SPROCKET",
+       "quantity": 1,
+       "per_unit": 9.5,
+       "total": 9.5,
+       "reference": "Q001"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "SPROCKET",
+       "quantity": 1,
+       "per_unit": 9.5,
+       "total": 9.5,
+       "reference": "QSPROCKET"
+      }
+     ]
+    },
+    {
+     "request": "GET /quote {\"sku\": \"SPROCKET\", \"quantity\": 2}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "SPROCKET",
+       "quantity": 2,
+       "per_unit": 9.5,
+       "total": 19.0,
+       "reference": "Q002"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "SPROCKET",
+       "quantity": 2,
+       "per_unit": 9.5,
+       "total": 19.0,
+       "reference": "QSPROCKET"
+      }
+     ]
+    },
+    {
+     "request": "GET /quote {\"sku\": \"DOODAD\", \"quantity\": 1}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "DOODAD",
+       "quantity": 1,
+       "per_unit": 3.25,
+       "total": 3.25,
+       "reference": "Q001"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "DOODAD",
+       "quantity": 1,
+       "per_unit": 3.25,
+       "total": 3.25,
+       "reference": "QDOODAD"
+      }
+     ]
+    },
+    {
+     "request": "GET /quote {\"sku\": \"DOODAD\", \"quantity\": 2}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "DOODAD",
+       "quantity": 2,
+       "per_unit": 3.25,
+       "total": 6.5,
+       "reference": "Q002"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "DOODAD",
+       "quantity": 2,
+       "per_unit": 3.25,
+       "total": 6.5,
+       "reference": "QDOODAD"
+      }
+     ]
+    },
+    {
+     "request": "GET /quote {\"sku\": \"WIDGET\", \"quantity\": 3, \"code\": \"\"}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 25.0,
+       "total": 75.0,
+       "reference": "Q003"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 25.0,
+       "total": 75.0,
+       "reference": "QWIDGET"
+      }
+     ]
+    },
+    {
+     "request": "GET /quote {\"sku\": \"WIDGET\", \"quantity\": 3, \"code\": \"SAVE10\"}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 22.5,
+       "total": 67.5,
+       "reference": "Q003"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 22.5,
+       "total": 67.5,
+       "reference": "QWIDGET"
+      }
+     ]
+    },
+    {
+     "request": "GET /quote {\"sku\": \"WIDGET\", \"quantity\": 3, \"code\": \"SAVE20\"}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 20.0,
+       "total": 60.0,
+       "reference": "Q003"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 20.0,
+       "total": 60.0,
+       "reference": "QWIDGET"
+      }
+     ]
+    },
+    {
+     "request": "GET /quote {\"sku\": \"WIDGET\", \"quantity\": 3, \"code\": \"PCT15\"}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 21.25,
+       "total": 63.75,
+       "reference": "Q003"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 21.25,
+       "total": 63.75,
+       "reference": "QWIDGET"
+      }
+     ]
+    },
+    {
+     "request": "GET /quote {\"sku\": \"WIDGET\", \"quantity\": 3, \"code\": \"PCT95\"}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 2.5,
+       "total": 7.5,
+       "reference": "Q003"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 2.5,
+       "total": 7.5,
+       "reference": "QWIDGET"
+      }
+     ]
+    },
+    {
+     "request": "GET /quote {\"sku\": \"WIDGET\", \"quantity\": 3, \"code\": \"PCTXX\"}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 25.0,
+       "total": 75.0,
+       "reference": "Q003"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 25.0,
+       "total": 75.0,
+       "reference": "QWIDGET"
+      }
+     ]
+    },
+    {
+     "request": "GET /quote {\"sku\": \"WIDGET\", \"quantity\": 3, \"code\": \"BOGUS\"}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 25.0,
+       "total": 75.0,
+       "reference": "Q003"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 25.0,
+       "total": 75.0,
+       "reference": "QWIDGET"
+      }
+     ]
+    },
+    {
+     "request": "GET /quote {\"sku\": \"WIDGET\"}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 1,
+       "per_unit": 25.0,
+       "total": 25.0,
+       "reference": "Q001"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 1,
+       "per_unit": 25.0,
+       "total": 25.0,
+       "reference": "QWIDGET"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "study": "main",
+   "entry": "M17",
+   "trials": 1,
+   "seeds": [
+    3
+   ],
+   "sequences": [
+    [
+     118
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "M17",
+   "trials": 2,
+   "seeds": [
+    1,
+    2
+   ],
+   "sequences": [
+    [
+     33
+    ],
+    [
+     75
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "M18",
+   "trials": 1,
+   "seeds": [
+    3
+   ],
+   "sequences": [
+    [
+     119
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "M18",
+   "trials": 2,
+   "seeds": [
+    1,
+    2
+   ],
+   "sequences": [
+    [
+     34
+    ],
+    [
+     76
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "M19",
+   "trials": 1,
+   "seeds": [
+    1
+   ],
+   "sequences": [
+    [
+     35
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "M19",
+   "trials": 1,
+   "seeds": [
+    2
+   ],
+   "sequences": [
+    [
+     77
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "M19",
+   "trials": 1,
+   "seeds": [
+    3
+   ],
+   "sequences": [
+    [
+     120
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "N02",
+   "trials": 1,
+   "seeds": [
+    2
+   ],
+   "sequences": [
+    [
+     78
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "N02",
+   "trials": 1,
+   "seeds": [
+    3
+   ],
+   "sequences": [
+    [
+     121
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "N02",
+   "trials": 1,
+   "seeds": [
+    1
+   ],
+   "sequences": [
+    [
+     36
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "N03",
+   "trials": 3,
+   "seeds": [
+    1,
+    2,
+    3
+   ],
+   "sequences": [
+    [
+     37
+    ],
+    [
+     79
+    ],
+    [
+     122
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "N05",
+   "trials": 2,
+   "seeds": [
+    1,
+    2
+   ],
+   "sequences": [
+    [
+     38
+    ],
+    [
+     80
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "N05",
+   "trials": 1,
+   "seeds": [
+    3
+   ],
+   "sequences": [
+    [
+     123
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "N06",
+   "trials": 1,
+   "seeds": [
+    1
+   ],
+   "sequences": [
+    [
+     39
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "N06",
+   "trials": 1,
+   "seeds": [
+    2
+   ],
+   "sequences": [
+    [
+     81
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "N06",
+   "trials": 1,
+   "seeds": [
+    3
+   ],
+   "sequences": [
+    [
+     124
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "N09",
+   "trials": 3,
+   "seeds": [
+    1,
+    2,
+    3
+   ],
+   "sequences": [
+    [
+     40
+    ],
+    [
+     82
+    ],
+    [
+     125
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "N12",
+   "trials": 1,
+   "seeds": [
+    1
+   ],
+   "sequences": [
+    [
+     41
+    ]
+   ],
+   "verdict": "behaviour",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": [
+    {
+     "request": "GET /bundles/PRO \"\"",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "bundle": "PRO",
+       "size": 3,
+       "leader_price": 40.0,
+       "total": 68.25
+      }
+     ],
+     "patched": [
+      422,
+      {
+       "detail": "bundle 'PRO' references unknown sku(s) ['PHANTOM']"
+      }
+     ]
+    },
+    {
+     "request": "GET /bundles/PRO \"\"",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "bundle": "PRO",
+       "size": 3,
+       "leader_price": 40.0,
+       "total": 68.25
+      }
+     ],
+     "patched": [
+      422,
+      {
+       "detail": "bundle 'PRO' references unknown sku(s) ['PHANTOM']"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "study": "main",
+   "entry": "N12",
+   "trials": 1,
+   "seeds": [
+    3
+   ],
+   "sequences": [
+    [
+     126
+    ]
+   ],
+   "verdict": "behaviour",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": [
+    {
+     "request": "GET /bundles/PRO \"\"",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "bundle": "PRO",
+       "size": 3,
+       "leader_price": 40.0,
+       "total": 68.25
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "bundle": "PRO",
+       "size": 2,
+       "leader_price": 40.0,
+       "total": 65.0
+      }
+     ]
+    },
+    {
+     "request": "GET /bundles/PRO \"\"",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "bundle": "PRO",
+       "size": 3,
+       "leader_price": 40.0,
+       "total": 68.25
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "bundle": "PRO",
+       "size": 2,
+       "leader_price": 40.0,
+       "total": 65.0
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "study": "main",
+   "entry": "N14",
+   "trials": 1,
+   "seeds": [
+    3
+   ],
+   "sequences": [
+    [
+     127
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "N14",
+   "trials": 1,
+   "seeds": [
+    2
+   ],
+   "sequences": [
+    [
+     83
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "N15",
+   "trials": 1,
+   "seeds": [
+    3
+   ],
+   "sequences": [
+    [
+     128
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "N15",
+   "trials": 1,
+   "seeds": [
+    2
+   ],
+   "sequences": [
+    [
+     84
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "N15",
+   "trials": 1,
+   "seeds": [
+    1
+   ],
+   "sequences": [
+    [
+     42
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "N17",
+   "trials": 1,
+   "seeds": [
+    1
+   ],
+   "sequences": [
+    [
+     43
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "N17",
+   "trials": 1,
+   "seeds": [
+    2
+   ],
+   "sequences": [
+    [
+     85
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "N17",
+   "trials": 1,
+   "seeds": [
+    3
+   ],
+   "sequences": [
+    [
+     129
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "N18",
+   "trials": 1,
+   "seeds": [
+    2
+   ],
+   "sequences": [
+    [
+     86
+    ]
+   ],
+   "verdict": "wording",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": [
+    {
+     "request": "POST /carts/k1/items {\"quantity\": 2}",
+     "kind": "wording",
+     "reference": [
+      422,
+      {
+       "detail": "item missing sku"
+      }
+     ],
+     "patched": [
+      422,
+      {
+       "detail": "item requires a 'sku'"
+      }
+     ]
+    },
+    {
+     "request": "POST /carts/c18/items {\"quantity\": 2}",
+     "kind": "wording",
+     "reference": [
+      422,
+      {
+       "detail": "item missing sku"
+      }
+     ],
+     "patched": [
+      422,
+      {
+       "detail": "item requires a 'sku'"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "study": "main",
+   "entry": "N18",
+   "trials": 2,
+   "seeds": [
+    1,
+    3
+   ],
+   "sequences": [
+    [
+     44
+    ],
+    [
+     130
+    ]
+   ],
+   "verdict": "wording",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": [
+    {
+     "request": "POST /carts/k1/items {\"quantity\": 2}",
+     "kind": "wording",
+     "reference": [
+      422,
+      {
+       "detail": "item missing sku"
+      }
+     ],
+     "patched": [
+      422,
+      {
+       "detail": "item requires a 'sku'"
+      }
+     ]
+    },
+    {
+     "request": "POST /carts/c18/items {\"quantity\": 2}",
+     "kind": "wording",
+     "reference": [
+      422,
+      {
+       "detail": "item missing sku"
+      }
+     ],
+     "patched": [
+      422,
+      {
+       "detail": "item requires a 'sku'"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "study": "main",
+   "entry": "N19",
+   "trials": 1,
+   "seeds": [
+    3
+   ],
+   "sequences": [
+    [
+     131
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "N19",
+   "trials": 1,
+   "seeds": [
+    1
+   ],
+   "sequences": [
+    [
+     45
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "main",
+   "entry": "N20",
+   "trials": 3,
+   "seeds": [
+    1,
+    2,
+    3
+   ],
+   "sequences": [
+    [
+     46
+    ],
+    [
+     87
+    ],
+    [
+     132
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "weaker_model",
+   "entry": "F01",
+   "trials": 1,
+   "seeds": [
+    3
+   ],
+   "sequences": [
+    [
+     46
+    ]
+   ],
+   "verdict": "behaviour",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": [
+    {
+     "request": "GET /quote {\"sku\": \"WIDGET\", \"quantity\": 3, \"code\": \"PCT15\"}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 21.25,
+       "total": 63.75,
+       "reference": "Q003"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 25.0,
+       "total": 75.0,
+       "reference": "Q003"
+      }
+     ]
+    },
+    {
+     "request": "GET /quote {\"sku\": \"WIDGET\", \"quantity\": 3, \"code\": \"PCT95\"}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 2.5,
+       "total": 7.5,
+       "reference": "Q003"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 25.0,
+       "total": 75.0,
+       "reference": "Q003"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "study": "weaker_model",
+   "entry": "F03",
+   "trials": 1,
+   "seeds": [
+    2
+   ],
+   "sequences": [
+    [
+     22
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "weaker_model",
+   "entry": "F03",
+   "trials": 1,
+   "seeds": [
+    3
+   ],
+   "sequences": [
+    [
+     47
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "weaker_model",
+   "entry": "F03",
+   "trials": 1,
+   "seeds": [
+    1
+   ],
+   "sequences": [
+    [
+     0
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "weaker_model",
+   "entry": "F07",
+   "trials": 2,
+   "seeds": [
+    1,
+    3
+   ],
+   "sequences": [
+    [
+     1
+    ],
+    [
+     67
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "weaker_model",
+   "entry": "F07",
+   "trials": 1,
+   "seeds": [
+    2
+   ],
+   "sequences": [
+    [
+     23
+    ]
+   ],
+   "verdict": "error_code",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": [
+    {
+     "request": "GET /quote {\"sku\": \"UNOBTAINIUM\", \"quantity\": 0}",
+     "kind": "error_code",
+     "reference": [
+      422,
+      {
+       "detail": "quantity must be at least 1"
+      }
+     ],
+     "patched": [
+      404,
+      {
+       "detail": "unknown sku 'UNOBTAINIUM'"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "study": "weaker_model",
+   "entry": "F12",
+   "trials": 3,
+   "seeds": [
+    1,
+    2,
+    3
+   ],
+   "sequences": [
+    [
+     2
+    ],
+    [
+     24
+    ],
+    [
+     48
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "weaker_model",
+   "entry": "F13",
+   "trials": 1,
+   "seeds": [
+    1
+   ],
+   "sequences": [
+    [
+     3
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "weaker_model",
+   "entry": "F14",
+   "trials": 1,
+   "seeds": [
+    2
+   ],
+   "sequences": [
+    [
+     25
+    ]
+   ],
+   "verdict": "error_code",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": [
+    {
+     "request": "POST /reserve/UNOBTAINIUM \"\"",
+     "kind": "error_code",
+     "reference": [
+      404,
+      {
+       "detail": "unknown sku 'UNOBTAINIUM'"
+      }
+     ],
+     "patched": [
+      409,
+      {
+       "detail": "UNOBTAINIUM out of stock"
+      }
+     ]
+    },
+    {
+     "request": "POST /reserve/UNOBTAINIUM \"\"",
+     "kind": "error_code",
+     "reference": [
+      404,
+      {
+       "detail": "unknown sku 'UNOBTAINIUM'"
+      }
+     ],
+     "patched": [
+      409,
+      {
+       "detail": "UNOBTAINIUM out of stock"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "study": "weaker_model",
+   "entry": "F15",
+   "trials": 1,
+   "seeds": [
+    1
+   ],
+   "sequences": [
+    [
+     4
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "weaker_model",
+   "entry": "F15",
+   "trials": 2,
+   "seeds": [
+    2,
+    3
+   ],
+   "sequences": [
+    [
+     26
+    ],
+    [
+     49
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "weaker_model",
+   "entry": "F17",
+   "trials": 1,
+   "seeds": [
+    2
+   ],
+   "sequences": [
+    [
+     27
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "weaker_model",
+   "entry": "F17",
+   "trials": 1,
+   "seeds": [
+    3
+   ],
+   "sequences": [
+    [
+     50
+    ]
+   ],
+   "verdict": "wording",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": [
+    {
+     "request": "POST /orders {\"lines\": [{\"quantity\": 2}]}",
+     "kind": "wording",
+     "reference": [
+      422,
+      {
+       "detail": "line missing sku"
+      }
+     ],
+     "patched": [
+      422,
+      {
+       "detail": "line missing required field: sku"
+      }
+     ]
+    },
+    {
+     "request": "POST /orders {\"lines\": [{\"quantity\": 2}]}",
+     "kind": "wording",
+     "reference": [
+      422,
+      {
+       "detail": "line missing sku"
+      }
+     ],
+     "patched": [
+      422,
+      {
+       "detail": "line missing required field: sku"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "study": "weaker_model",
+   "entry": "F17",
+   "trials": 1,
+   "seeds": [
+    1
+   ],
+   "sequences": [
+    [
+     5
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "weaker_model",
+   "entry": "F18",
+   "trials": 1,
+   "seeds": [
+    1
+   ],
+   "sequences": [
+    [
+     6
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "weaker_model",
+   "entry": "F18",
+   "trials": 1,
+   "seeds": [
+    2
+   ],
+   "sequences": [
+    [
+     28
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "weaker_model",
+   "entry": "F18",
+   "trials": 1,
+   "seeds": [
+    3
+   ],
+   "sequences": [
+    [
+     51
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "weaker_model",
+   "entry": "F20",
+   "trials": 1,
+   "seeds": [
+    1
+   ],
+   "sequences": [
+    [
+     7
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "weaker_model",
+   "entry": "F20",
+   "trials": 1,
+   "seeds": [
+    2
+   ],
+   "sequences": [
+    [
+     29
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "weaker_model",
+   "entry": "F20",
+   "trials": 1,
+   "seeds": [
+    3
+   ],
+   "sequences": [
+    [
+     52
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "weaker_model",
+   "entry": "F21",
+   "trials": 1,
+   "seeds": [
+    3
+   ],
+   "sequences": [
+    [
+     53,
+     54
+    ]
+   ],
+   "verdict": "behaviour",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": [
+    {
+     "request": "GET /price/WIDGET \"\"",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "WIDGET",
+       "price": 25.0
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "WIDGET",
+       "price": "25.0"
+      }
+     ]
+    },
+    {
+     "request": "GET /price/GADGET \"\"",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "GADGET",
+       "price": 40.0
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "GADGET",
+       "price": "40.0"
+      }
+     ]
+    },
+    {
+     "request": "GET /price/SPROCKET \"\"",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "SPROCKET",
+       "price": 9.5
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "SPROCKET",
+       "price": "9.5"
+      }
+     ]
+    },
+    {
+     "request": "GET /price/DOODAD \"\"",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "DOODAD",
+       "price": 3.25
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "DOODAD",
+       "price": "3.25"
+      }
+     ]
+    },
+    {
+     "request": "POST /carts/k2/checkout \"\"",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "cart": "k2",
+       "lines": 1,
+       "total": 9.75
+      }
+     ],
+     "patched": [
+      500,
+      "Internal Server Error"
+     ]
+    },
+    {
+     "request": "POST /carts/k1/checkout \"\"",
+     "kind": "behaviour",
+     "reference": [
+      422,
+      {
+       "detail": "unknown sku 'UNOBTAINIUM'"
+      }
+     ],
+     "patched": [
+      500,
+      "Internal Server Error"
+     ]
+    }
+   ]
+  },
+  {
+   "study": "weaker_model",
+   "entry": "F21",
+   "trials": 1,
+   "seeds": [
+    1
+   ],
+   "sequences": [
+    [
+     8,
+     9
+    ]
+   ],
+   "verdict": "behaviour",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": [
+    {
+     "request": "GET /price/WIDGET \"\"",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "WIDGET",
+       "price": 25.0
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "WIDGET",
+       "price": "25.0"
+      }
+     ]
+    },
+    {
+     "request": "GET /price/GADGET \"\"",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "GADGET",
+       "price": 40.0
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "GADGET",
+       "price": "40.0"
+      }
+     ]
+    },
+    {
+     "request": "GET /price/SPROCKET \"\"",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "SPROCKET",
+       "price": 9.5
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "SPROCKET",
+       "price": "9.5"
+      }
+     ]
+    },
+    {
+     "request": "GET /price/DOODAD \"\"",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "DOODAD",
+       "price": 3.25
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "DOODAD",
+       "price": "3.25"
+      }
+     ]
+    },
+    {
+     "request": "POST /carts/k2/checkout \"\"",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "cart": "k2",
+       "lines": 1,
+       "total": 9.75
+      }
+     ],
+     "patched": [
+      500,
+      "Internal Server Error"
+     ]
+    },
+    {
+     "request": "POST /carts/k1/checkout \"\"",
+     "kind": "behaviour",
+     "reference": [
+      422,
+      {
+       "detail": "unknown sku 'UNOBTAINIUM'"
+      }
+     ],
+     "patched": [
+      500,
+      "Internal Server Error"
+     ]
+    }
+   ]
+  },
+  {
+   "study": "weaker_model",
+   "entry": "M08",
+   "trials": 1,
+   "seeds": [
+    3
+   ],
+   "sequences": [
+    [
+     55
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "weaker_model",
+   "entry": "M08",
+   "trials": 1,
+   "seeds": [
+    2
+   ],
+   "sequences": [
+    [
+     30
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "weaker_model",
+   "entry": "M08",
+   "trials": 1,
+   "seeds": [
+    1
+   ],
+   "sequences": [
+    [
+     10
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "weaker_model",
+   "entry": "M09",
+   "trials": 2,
+   "seeds": [
+    1,
+    3
+   ],
+   "sequences": [
+    [
+     11
+    ],
+    [
+     56
+    ]
+   ],
+   "verdict": "behaviour",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": [
+    {
+     "request": "GET /price/WIDGET/converted {\"currency\": \"GBP\"}",
+     "kind": "behaviour",
+     "reference": [
+      422,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "WIDGET",
+       "currency": "GBP",
+       "price": 21.5
+      }
+     ]
+    },
+    {
+     "request": "GET /price/GADGET/converted {\"currency\": \"GBP\"}",
+     "kind": "behaviour",
+     "reference": [
+      422,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "GADGET",
+       "currency": "GBP",
+       "price": 34.4
+      }
+     ]
+    },
+    {
+     "request": "GET /price/SPROCKET/converted {\"currency\": \"GBP\"}",
+     "kind": "behaviour",
+     "reference": [
+      422,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "SPROCKET",
+       "currency": "GBP",
+       "price": 8.17
+      }
+     ]
+    },
+    {
+     "request": "GET /price/DOODAD/converted {\"currency\": \"GBP\"}",
+     "kind": "behaviour",
+     "reference": [
+      422,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "DOODAD",
+       "currency": "GBP",
+       "price": 2.79
+      }
+     ]
+    },
+    {
+     "request": "GET /price/GADGET/converted {\"currency\": \"GBP\"}",
+     "kind": "behaviour",
+     "reference": [
+      422,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "GADGET",
+       "currency": "GBP",
+       "price": 34.4
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "study": "weaker_model",
+   "entry": "M09",
+   "trials": 1,
+   "seeds": [
+    2
+   ],
+   "sequences": [
+    [
+     31
+    ]
+   ],
+   "verdict": "behaviour",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": [
+    {
+     "request": "GET /price/WIDGET/converted {\"currency\": \"GBP\"}",
+     "kind": "behaviour",
+     "reference": [
+      422,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "WIDGET",
+       "currency": "GBP",
+       "price": 21.75
+      }
+     ]
+    },
+    {
+     "request": "GET /price/GADGET/converted {\"currency\": \"GBP\"}",
+     "kind": "behaviour",
+     "reference": [
+      422,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "GADGET",
+       "currency": "GBP",
+       "price": 34.8
+      }
+     ]
+    },
+    {
+     "request": "GET /price/SPROCKET/converted {\"currency\": \"GBP\"}",
+     "kind": "behaviour",
+     "reference": [
+      422,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "SPROCKET",
+       "currency": "GBP",
+       "price": 8.27
+      }
+     ]
+    },
+    {
+     "request": "GET /price/DOODAD/converted {\"currency\": \"GBP\"}",
+     "kind": "behaviour",
+     "reference": [
+      422,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "DOODAD",
+       "currency": "GBP",
+       "price": 2.83
+      }
+     ]
+    },
+    {
+     "request": "GET /price/GADGET/converted {\"currency\": \"GBP\"}",
+     "kind": "behaviour",
+     "reference": [
+      422,
+      {
+       "detail": "unsupported currency 'GBP'"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "GADGET",
+       "currency": "GBP",
+       "price": 34.8
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "study": "weaker_model",
+   "entry": "M10",
+   "trials": 2,
+   "seeds": [
+    1,
+    3
+   ],
+   "sequences": [
+    [
+     12
+    ],
+    [
+     57
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "weaker_model",
+   "entry": "M10",
+   "trials": 1,
+   "seeds": [
+    2
+   ],
+   "sequences": [
+    [
+     32
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "weaker_model",
+   "entry": "M12",
+   "trials": 1,
+   "seeds": [
+    2
+   ],
+   "sequences": [
+    [
+     33
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "weaker_model",
+   "entry": "M12",
+   "trials": 1,
+   "seeds": [
+    1
+   ],
+   "sequences": [
+    [
+     13
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "weaker_model",
+   "entry": "M13",
+   "trials": 1,
+   "seeds": [
+    2
+   ],
+   "sequences": [
+    [
+     34
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "weaker_model",
+   "entry": "M13",
+   "trials": 1,
+   "seeds": [
+    1
+   ],
+   "sequences": [
+    [
+     14
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "weaker_model",
+   "entry": "M14",
+   "trials": 1,
+   "seeds": [
+    3
+   ],
+   "sequences": [
+    [
+     58
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "weaker_model",
+   "entry": "M15",
+   "trials": 2,
+   "seeds": [
+    1,
+    3
+   ],
+   "sequences": [
+    [
+     15
+    ],
+    [
+     59
+    ]
+   ],
+   "verdict": "wording",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": [
+    {
+     "request": "GET /orders/999999/receipt \"\"",
+     "kind": "wording",
+     "reference": [
+      404,
+      {
+       "detail": "no order 999999"
+      }
+     ],
+     "patched": [
+      404,
+      {
+       "detail": "unknown order 999999"
+      }
+     ]
+    },
+    {
+     "request": "GET /orders/999999/receipt \"\"",
+     "kind": "wording",
+     "reference": [
+      404,
+      {
+       "detail": "no order 999999"
+      }
+     ],
+     "patched": [
+      404,
+      {
+       "detail": "unknown order 999999"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "study": "weaker_model",
+   "entry": "M15",
+   "trials": 1,
+   "seeds": [
+    2
+   ],
+   "sequences": [
+    [
+     35
+    ]
+   ],
+   "verdict": "wording",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": [
+    {
+     "request": "GET /orders/999999/receipt \"\"",
+     "kind": "wording",
+     "reference": [
+      404,
+      {
+       "detail": "no order 999999"
+      }
+     ],
+     "patched": [
+      404,
+      {
+       "detail": "unknown order 999999"
+      }
+     ]
+    },
+    {
+     "request": "GET /orders/999999/receipt \"\"",
+     "kind": "wording",
+     "reference": [
+      404,
+      {
+       "detail": "no order 999999"
+      }
+     ],
+     "patched": [
+      404,
+      {
+       "detail": "unknown order 999999"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "study": "weaker_model",
+   "entry": "M16",
+   "trials": 2,
+   "seeds": [
+    1,
+    2
+   ],
+   "sequences": [
+    [
+     16
+    ],
+    [
+     36
+    ]
+   ],
+   "verdict": "behaviour",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": [
+    {
+     "request": "GET /quote {\"sku\": \"WIDGET\", \"quantity\": 1}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 1,
+       "per_unit": 25.0,
+       "total": 25.0,
+       "reference": "Q001"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 1,
+       "per_unit": 25.0,
+       "total": 25.0,
+       "reference": "QWIDGET"
+      }
+     ]
+    },
+    {
+     "request": "GET /quote {\"sku\": \"WIDGET\", \"quantity\": 2}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 2,
+       "per_unit": 25.0,
+       "total": 50.0,
+       "reference": "Q002"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 2,
+       "per_unit": 25.0,
+       "total": 50.0,
+       "reference": "QWIDGET"
+      }
+     ]
+    },
+    {
+     "request": "GET /quote {\"sku\": \"GADGET\", \"quantity\": 1}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "GADGET",
+       "quantity": 1,
+       "per_unit": 40.0,
+       "total": 40.0,
+       "reference": "Q001"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "GADGET",
+       "quantity": 1,
+       "per_unit": 40.0,
+       "total": 40.0,
+       "reference": "QGADGET"
+      }
+     ]
+    },
+    {
+     "request": "GET /quote {\"sku\": \"GADGET\", \"quantity\": 2}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "GADGET",
+       "quantity": 2,
+       "per_unit": 40.0,
+       "total": 80.0,
+       "reference": "Q002"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "GADGET",
+       "quantity": 2,
+       "per_unit": 40.0,
+       "total": 80.0,
+       "reference": "QGADGET"
+      }
+     ]
+    },
+    {
+     "request": "GET /quote {\"sku\": \"SPROCKET\", \"quantity\": 1}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "SPROCKET",
+       "quantity": 1,
+       "per_unit": 9.5,
+       "total": 9.5,
+       "reference": "Q001"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "SPROCKET",
+       "quantity": 1,
+       "per_unit": 9.5,
+       "total": 9.5,
+       "reference": "QSPROCKET"
+      }
+     ]
+    },
+    {
+     "request": "GET /quote {\"sku\": \"SPROCKET\", \"quantity\": 2}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "SPROCKET",
+       "quantity": 2,
+       "per_unit": 9.5,
+       "total": 19.0,
+       "reference": "Q002"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "SPROCKET",
+       "quantity": 2,
+       "per_unit": 9.5,
+       "total": 19.0,
+       "reference": "QSPROCKET"
+      }
+     ]
+    },
+    {
+     "request": "GET /quote {\"sku\": \"DOODAD\", \"quantity\": 1}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "DOODAD",
+       "quantity": 1,
+       "per_unit": 3.25,
+       "total": 3.25,
+       "reference": "Q001"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "DOODAD",
+       "quantity": 1,
+       "per_unit": 3.25,
+       "total": 3.25,
+       "reference": "QDOODAD"
+      }
+     ]
+    },
+    {
+     "request": "GET /quote {\"sku\": \"DOODAD\", \"quantity\": 2}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "DOODAD",
+       "quantity": 2,
+       "per_unit": 3.25,
+       "total": 6.5,
+       "reference": "Q002"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "DOODAD",
+       "quantity": 2,
+       "per_unit": 3.25,
+       "total": 6.5,
+       "reference": "QDOODAD"
+      }
+     ]
+    },
+    {
+     "request": "GET /quote {\"sku\": \"WIDGET\", \"quantity\": 3, \"code\": \"\"}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 25.0,
+       "total": 75.0,
+       "reference": "Q003"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 25.0,
+       "total": 75.0,
+       "reference": "QWIDGET"
+      }
+     ]
+    },
+    {
+     "request": "GET /quote {\"sku\": \"WIDGET\", \"quantity\": 3, \"code\": \"SAVE10\"}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 22.5,
+       "total": 67.5,
+       "reference": "Q003"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 22.5,
+       "total": 67.5,
+       "reference": "QWIDGET"
+      }
+     ]
+    },
+    {
+     "request": "GET /quote {\"sku\": \"WIDGET\", \"quantity\": 3, \"code\": \"SAVE20\"}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 20.0,
+       "total": 60.0,
+       "reference": "Q003"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 20.0,
+       "total": 60.0,
+       "reference": "QWIDGET"
+      }
+     ]
+    },
+    {
+     "request": "GET /quote {\"sku\": \"WIDGET\", \"quantity\": 3, \"code\": \"PCT15\"}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 21.25,
+       "total": 63.75,
+       "reference": "Q003"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 21.25,
+       "total": 63.75,
+       "reference": "QWIDGET"
+      }
+     ]
+    },
+    {
+     "request": "GET /quote {\"sku\": \"WIDGET\", \"quantity\": 3, \"code\": \"PCT95\"}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 2.5,
+       "total": 7.5,
+       "reference": "Q003"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 2.5,
+       "total": 7.5,
+       "reference": "QWIDGET"
+      }
+     ]
+    },
+    {
+     "request": "GET /quote {\"sku\": \"WIDGET\", \"quantity\": 3, \"code\": \"PCTXX\"}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 25.0,
+       "total": 75.0,
+       "reference": "Q003"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 25.0,
+       "total": 75.0,
+       "reference": "QWIDGET"
+      }
+     ]
+    },
+    {
+     "request": "GET /quote {\"sku\": \"WIDGET\", \"quantity\": 3, \"code\": \"BOGUS\"}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 25.0,
+       "total": 75.0,
+       "reference": "Q003"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 25.0,
+       "total": 75.0,
+       "reference": "QWIDGET"
+      }
+     ]
+    },
+    {
+     "request": "GET /quote {\"sku\": \"WIDGET\"}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 1,
+       "per_unit": 25.0,
+       "total": 25.0,
+       "reference": "Q001"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 1,
+       "per_unit": 25.0,
+       "total": 25.0,
+       "reference": "QWIDGET"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "study": "weaker_model",
+   "entry": "M16",
+   "trials": 1,
+   "seeds": [
+    3
+   ],
+   "sequences": [
+    [
+     60
+    ]
+   ],
+   "verdict": "behaviour",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": [
+    {
+     "request": "GET /quote {\"sku\": \"WIDGET\", \"quantity\": 1}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 1,
+       "per_unit": 25.0,
+       "total": 25.0,
+       "reference": "Q001"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 1,
+       "per_unit": 25.0,
+       "total": 25.0,
+       "reference": "QWIDGET"
+      }
+     ]
+    },
+    {
+     "request": "GET /quote {\"sku\": \"WIDGET\", \"quantity\": 2}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 2,
+       "per_unit": 25.0,
+       "total": 50.0,
+       "reference": "Q002"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 2,
+       "per_unit": 25.0,
+       "total": 50.0,
+       "reference": "QWIDGET"
+      }
+     ]
+    },
+    {
+     "request": "GET /quote {\"sku\": \"GADGET\", \"quantity\": 1}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "GADGET",
+       "quantity": 1,
+       "per_unit": 40.0,
+       "total": 40.0,
+       "reference": "Q001"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "GADGET",
+       "quantity": 1,
+       "per_unit": 40.0,
+       "total": 40.0,
+       "reference": "QGADGET"
+      }
+     ]
+    },
+    {
+     "request": "GET /quote {\"sku\": \"GADGET\", \"quantity\": 2}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "GADGET",
+       "quantity": 2,
+       "per_unit": 40.0,
+       "total": 80.0,
+       "reference": "Q002"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "GADGET",
+       "quantity": 2,
+       "per_unit": 40.0,
+       "total": 80.0,
+       "reference": "QGADGET"
+      }
+     ]
+    },
+    {
+     "request": "GET /quote {\"sku\": \"SPROCKET\", \"quantity\": 1}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "SPROCKET",
+       "quantity": 1,
+       "per_unit": 9.5,
+       "total": 9.5,
+       "reference": "Q001"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "SPROCKET",
+       "quantity": 1,
+       "per_unit": 9.5,
+       "total": 9.5,
+       "reference": "QSPROCKET"
+      }
+     ]
+    },
+    {
+     "request": "GET /quote {\"sku\": \"SPROCKET\", \"quantity\": 2}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "SPROCKET",
+       "quantity": 2,
+       "per_unit": 9.5,
+       "total": 19.0,
+       "reference": "Q002"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "SPROCKET",
+       "quantity": 2,
+       "per_unit": 9.5,
+       "total": 19.0,
+       "reference": "QSPROCKET"
+      }
+     ]
+    },
+    {
+     "request": "GET /quote {\"sku\": \"DOODAD\", \"quantity\": 1}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "DOODAD",
+       "quantity": 1,
+       "per_unit": 3.25,
+       "total": 3.25,
+       "reference": "Q001"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "DOODAD",
+       "quantity": 1,
+       "per_unit": 3.25,
+       "total": 3.25,
+       "reference": "QDOODAD"
+      }
+     ]
+    },
+    {
+     "request": "GET /quote {\"sku\": \"DOODAD\", \"quantity\": 2}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "DOODAD",
+       "quantity": 2,
+       "per_unit": 3.25,
+       "total": 6.5,
+       "reference": "Q002"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "DOODAD",
+       "quantity": 2,
+       "per_unit": 3.25,
+       "total": 6.5,
+       "reference": "QDOODAD"
+      }
+     ]
+    },
+    {
+     "request": "GET /quote {\"sku\": \"WIDGET\", \"quantity\": 3, \"code\": \"\"}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 25.0,
+       "total": 75.0,
+       "reference": "Q003"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 25.0,
+       "total": 75.0,
+       "reference": "QWIDGET"
+      }
+     ]
+    },
+    {
+     "request": "GET /quote {\"sku\": \"WIDGET\", \"quantity\": 3, \"code\": \"SAVE10\"}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 22.5,
+       "total": 67.5,
+       "reference": "Q003"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 22.5,
+       "total": 67.5,
+       "reference": "QWIDGET"
+      }
+     ]
+    },
+    {
+     "request": "GET /quote {\"sku\": \"WIDGET\", \"quantity\": 3, \"code\": \"SAVE20\"}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 20.0,
+       "total": 60.0,
+       "reference": "Q003"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 20.0,
+       "total": 60.0,
+       "reference": "QWIDGET"
+      }
+     ]
+    },
+    {
+     "request": "GET /quote {\"sku\": \"WIDGET\", \"quantity\": 3, \"code\": \"PCT15\"}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 21.25,
+       "total": 63.75,
+       "reference": "Q003"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 21.25,
+       "total": 63.75,
+       "reference": "QWIDGET"
+      }
+     ]
+    },
+    {
+     "request": "GET /quote {\"sku\": \"WIDGET\", \"quantity\": 3, \"code\": \"PCT95\"}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 2.5,
+       "total": 7.5,
+       "reference": "Q003"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 2.5,
+       "total": 7.5,
+       "reference": "QWIDGET"
+      }
+     ]
+    },
+    {
+     "request": "GET /quote {\"sku\": \"WIDGET\", \"quantity\": 3, \"code\": \"PCTXX\"}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 25.0,
+       "total": 75.0,
+       "reference": "Q003"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 25.0,
+       "total": 75.0,
+       "reference": "QWIDGET"
+      }
+     ]
+    },
+    {
+     "request": "GET /quote {\"sku\": \"WIDGET\", \"quantity\": 3, \"code\": \"BOGUS\"}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 25.0,
+       "total": 75.0,
+       "reference": "Q003"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 3,
+       "per_unit": 25.0,
+       "total": 75.0,
+       "reference": "QWIDGET"
+      }
+     ]
+    },
+    {
+     "request": "GET /quote {\"sku\": \"WIDGET\"}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 1,
+       "per_unit": 25.0,
+       "total": 25.0,
+       "reference": "Q001"
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "WIDGET",
+       "quantity": 1,
+       "per_unit": 25.0,
+       "total": 25.0,
+       "reference": "QWIDGET"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "study": "weaker_model",
+   "entry": "M17",
+   "trials": 2,
+   "seeds": [
+    1,
+    3
+   ],
+   "sequences": [
+    [
+     17
+    ],
+    [
+     61
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "weaker_model",
+   "entry": "M17",
+   "trials": 1,
+   "seeds": [
+    2
+   ],
+   "sequences": [
+    [
+     37
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "weaker_model",
+   "entry": "M18",
+   "trials": 1,
+   "seeds": [
+    2
+   ],
+   "sequences": [
+    [
+     38
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "weaker_model",
+   "entry": "M18",
+   "trials": 1,
+   "seeds": [
+    1
+   ],
+   "sequences": [
+    [
+     18
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "weaker_model",
+   "entry": "N02",
+   "trials": 1,
+   "seeds": [
+    2
+   ],
+   "sequences": [
+    [
+     39
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "weaker_model",
+   "entry": "N02",
+   "trials": 1,
+   "seeds": [
+    1
+   ],
+   "sequences": [
+    [
+     19
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "weaker_model",
+   "entry": "N03",
+   "trials": 1,
+   "seeds": [
+    2
+   ],
+   "sequences": [
+    [
+     40
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "weaker_model",
+   "entry": "N03",
+   "trials": 1,
+   "seeds": [
+    3
+   ],
+   "sequences": [
+    [
+     62
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "weaker_model",
+   "entry": "N05",
+   "trials": 1,
+   "seeds": [
+    3
+   ],
+   "sequences": [
+    [
+     63
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "weaker_model",
+   "entry": "N06",
+   "trials": 1,
+   "seeds": [
+    3
+   ],
+   "sequences": [
+    [
+     64
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "weaker_model",
+   "entry": "N06",
+   "trials": 1,
+   "seeds": [
+    2
+   ],
+   "sequences": [
+    [
+     41
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "weaker_model",
+   "entry": "N15",
+   "trials": 3,
+   "seeds": [
+    1,
+    2,
+    3
+   ],
+   "sequences": [
+    [
+     20
+    ],
+    [
+     42
+    ],
+    [
+     65
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  },
+  {
+   "study": "weaker_model",
+   "entry": "N18",
+   "trials": 1,
+   "seeds": [
+    2
+   ],
+   "sequences": [
+    [
+     43
+    ]
+   ],
+   "verdict": "wording",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": [
+    {
+     "request": "POST /carts/k1/items {\"quantity\": 2}",
+     "kind": "wording",
+     "reference": [
+      422,
+      {
+       "detail": "item missing sku"
+      }
+     ],
+     "patched": [
+      422,
+      {
+       "detail": "sku is required"
+      }
+     ]
+    },
+    {
+     "request": "POST /carts/c18/items {\"quantity\": 2}",
+     "kind": "wording",
+     "reference": [
+      422,
+      {
+       "detail": "item missing sku"
+      }
+     ],
+     "patched": [
+      422,
+      {
+       "detail": "sku is required"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "study": "weaker_model",
+   "entry": "N18",
+   "trials": 1,
+   "seeds": [
+    1
+   ],
+   "sequences": [
+    [
+     21
+    ]
+   ],
+   "verdict": "error_code",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": [
+    {
+     "request": "POST /carts/k1/items {\"quantity\": 2}",
+     "kind": "error_code",
+     "reference": [
+      422,
+      {
+       "detail": "item missing sku"
+      }
+     ],
+     "patched": [
+      400,
+      {
+       "detail": "missing required field: sku"
+      }
+     ]
+    },
+    {
+     "request": "POST /carts/c18/items {\"quantity\": 2}",
+     "kind": "error_code",
+     "reference": [
+      422,
+      {
+       "detail": "item missing sku"
+      }
+     ],
+     "patched": [
+      400,
+      {
+       "detail": "missing required field: sku"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "study": "weaker_model",
+   "entry": "N18",
+   "trials": 1,
+   "seeds": [
+    3
+   ],
+   "sequences": [
+    [
+     66
+    ]
+   ],
+   "verdict": "wording",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": [
+    {
+     "request": "POST /carts/k1/items {\"quantity\": 2}",
+     "kind": "wording",
+     "reference": [
+      422,
+      {
+       "detail": "item missing sku"
+      }
+     ],
+     "patched": [
+      422,
+      {
+       "detail": "sku is required"
+      }
+     ]
+    },
+    {
+     "request": "POST /carts/c18/items {\"quantity\": 2}",
+     "kind": "wording",
+     "reference": [
+      422,
+      {
+       "detail": "item missing sku"
+      }
+     ],
+     "patched": [
+      422,
+      {
+       "detail": "sku is required"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "study": "weaker_model",
+   "entry": "N19",
+   "trials": 1,
+   "seeds": [
+    2
+   ],
+   "sequences": [
+    [
+     44
+    ]
+   ],
+   "verdict": "behaviour",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": [
+    {
+     "request": "GET /price/GADGET/converted {\"currency\": \"EUR\"}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "GADGET",
+       "currency": "EUR",
+       "price": 36.8
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "GADGET",
+       "currency": "EUR",
+       "price": 37
+      }
+     ]
+    },
+    {
+     "request": "GET /price/SPROCKET/converted {\"currency\": \"USD\"}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "SPROCKET",
+       "currency": "USD",
+       "price": 9.5
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "SPROCKET",
+       "currency": "USD",
+       "price": 10
+      }
+     ]
+    },
+    {
+     "request": "GET /price/SPROCKET/converted {\"currency\": \"EUR\"}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "SPROCKET",
+       "currency": "EUR",
+       "price": 8.74
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "SPROCKET",
+       "currency": "EUR",
+       "price": 9
+      }
+     ]
+    },
+    {
+     "request": "GET /price/DOODAD/converted {\"currency\": \"USD\"}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "DOODAD",
+       "currency": "USD",
+       "price": 3.25
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "DOODAD",
+       "currency": "USD",
+       "price": 3
+      }
+     ]
+    },
+    {
+     "request": "GET /price/DOODAD/converted {\"currency\": \"EUR\"}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "DOODAD",
+       "currency": "EUR",
+       "price": 2.99
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "DOODAD",
+       "currency": "EUR",
+       "price": 3
+      }
+     ]
+    },
+    {
+     "request": "GET /price/DOODAD/converted {\"currency\": \"EUR\"}",
+     "kind": "behaviour",
+     "reference": [
+      200,
+      {
+       "sku": "DOODAD",
+       "currency": "EUR",
+       "price": 2.99
+      }
+     ],
+     "patched": [
+      200,
+      {
+       "sku": "DOODAD",
+       "currency": "EUR",
+       "price": 3
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "study": "weaker_model",
+   "entry": "N20",
+   "trials": 1,
+   "seeds": [
+    2
+   ],
+   "sequences": [
+    [
+     45
+    ]
+   ],
+   "verdict": "same",
+   "requests": 117,
+   "excluded_reference_errors": 0,
+   "differences": []
+  }
+ ]
+}

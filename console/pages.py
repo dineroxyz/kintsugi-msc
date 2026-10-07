@@ -132,6 +132,15 @@ def weaker_model(haiku_dir: str) -> dict | None:
         return None
 
 
+def correctness(path: str) -> dict | None:
+    """The behavioural check of admitted repairs (study/correctness_summary.json)."""
+    try:
+        with open(path) as fh:
+            return json.load(fh)
+    except Exception:
+        return None
+
+
 def home(trials: list[dict], cert_count: int, supp_dir: str,
          hero_replay: str | None = None, hero_meta: dict | None = None,
          weak: dict | None = None) -> str:
@@ -152,7 +161,7 @@ def home(trials: list[dict], cert_count: int, supp_dir: str,
 
     proof = [
         (f"{len(trials):,}", "tests run in a pre-registered study"),
-        (f"{gated_bad}", f"bad fixes put live by Kintsugi, with either AI model"),
+        (f"{gated_bad}", "fixes put live by Kintsugi that then failed, with either AI model"),
         (f"{cert_count:,}", "repair certificates, every one verified"),
         (f"{by_bug['every_run']} of {by_bug['risky']}", "untestable bugs correctly left alone"),
     ]
@@ -196,23 +205,25 @@ def home(trials: list[dict], cert_count: int, supp_dir: str,
     weak_html = ""
     if weak:
         weak_html = f"""<article class="feat feat-wide">
-<div class="feat-art"><div class="bars" aria-label="Bad fixes put live with a smaller AI model: {weak['c2_bad']} without the check, {weak['c3_bad']} with Kintsugi">
+<div class="feat-art"><div class="bars" aria-label="Failed fixes put live with a smaller AI model: {weak['c2_bad']} without the check, {weak['c3_bad']} with Kintsugi">
 <div><span>AI fix, no check</span><i class="red" style="--w:{min(100, weak['c2_bad'] * 18)}%"></i><b>{weak['c2_bad']}</b></div>
 <div><span>With Kintsugi</span><i style="--w:2%"></i><b>{weak['c3_bad']}</b></div></div>
-<p class="feat-small">Bad fixes put live, smaller AI model, {weak['trials']} tests</p></div>
-<h3>Makes cheaper AI safe to use</h3>
-<p>With a frontier model, neither approach shipped a bad fix. With a smaller, cheaper model,
-the unchecked approach put {weak['c2_bad']} bad fixes live and Kintsugi put {weak['c3_bad']}: on
-every one of those bugs it either fixed the bug properly or left it for a person. It also fixed
-more bugs overall ({weak['c3_fixed']} against {weak['c2_fixed']}). The difference in bad fixes
-falls just short of the usual statistical threshold (p = {weak['p']:.3f}), so the study reports it
-as a strong lead rather than a proof.</p></article>"""
+<p class="feat-small">Fixes put live that then failed, smaller AI model, {weak['trials']} tests</p></div>
+<h3>Catches the failed fixes a cheaper AI makes</h3>
+<p>With a frontier model, neither approach put live a fix that then failed. With a smaller,
+cheaper model, the unchecked approach put {weak['c2_bad']} such fixes live and Kintsugi put
+{weak['c3_bad']}: on every one of those bugs it either fixed the bug properly or left it for a
+person. The difference falls just short of the usual statistical threshold
+(p = {weak['p']:.3f}), so the study reports it as a strong lead rather than a proof.</p>
+<p>It cannot catch everything. A separate check found that some fixes it accepted, with either
+model, stopped the crash but quietly changed something else.
+<a href="/results#correct-title">See which ones</a>.</p></article>"""
 
     pipeline = [
         ("catch", "Catch", "The failing request is recorded with everything the app called."),
         ("repeat", "Reproduce", "It is replayed in a sealed copy until it fails the same way every time."),
         ("write", "Diagnose", "An AI model reads the evidence and writes one small patch."),
-        ("prove", "Prove", "The patch must stop the failure, break nothing and hide nothing."),
+        ("prove", "Prove", "The patch must stop the failure, pass the existing tests and hide nothing."),
         ("ship", "Ship", "Only a signed, proven patch is allowed to go live."),
         ("certify", "Certify", "The repair is written into a tamper-evident chain."),
     ]

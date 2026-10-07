@@ -45,6 +45,7 @@ VERIFY_PATH = os.path.join(os.path.dirname(CERT_DIR),
                            "certificate_verification.json")
 SUPP_DIR = os.environ.get("KINTSUGI_SUPP_DIR",
                           os.path.join(os.path.dirname(STUDY_DIR), "supp"))
+CORRECTNESS_PATH = os.path.join(os.path.dirname(STUDY_DIR), "correctness_summary.json")
 HAIKU_DIR = os.environ.get("KINTSUGI_HAIKU_DIR",
                            os.path.join(os.path.dirname(STUDY_DIR), "haiku"))
 _request: ContextVar[Request | None] = ContextVar("request", default=None)
@@ -575,6 +576,7 @@ def results(request: Request):
         "matter when it is not.</p></div>"
         + V.compare_table(ts) + "</section>"
         + V.weaker_model_section(P.weaker_model(HAIKU_DIR))
+        + V.correctness_section(P.correctness(CORRECTNESS_PATH))
         + V.ablation(ts)
         + V.explorer(ts, q, t))
     return page("Results", "results", body)
@@ -791,6 +793,13 @@ def verification_page():
     v = verification()
     v.pop("by_sequence", None)
     return page("Certificate check report", "certificates", P.verification_report(v, cert_seq()))
+
+
+@app.get("/data/correctness.json")
+def correctness_json():
+    if not os.path.exists(CORRECTNESS_PATH):
+        return JSONResponse({"error": "no correctness check yet"}, status_code=404)
+    return FileResponse(CORRECTNESS_PATH, media_type="application/json")
 
 
 @app.get("/data/verification.json")
