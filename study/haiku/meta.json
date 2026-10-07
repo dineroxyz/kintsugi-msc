@@ -1,0 +1,15 @@
+{
+  "started_at": "2026-10-07T21:06:23",
+  "model": "claude-haiku-4-5-20251001",
+  "arms": [
+    "C2",
+    "C3"
+  ],
+  "seeds": [
+    1,
+    2,
+    3
+  ],
+  "corpus_size": 60,
+  "amendment": "A3"
+}

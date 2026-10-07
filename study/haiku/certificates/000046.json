@@ -1,0 +1,257 @@
+{
+  "version": 1,
+  "sequence": 46,
+  "issued_at": "2026-10-07T18:08:42",
+  "service_spec": "alpha.main:app",
+  "signature": "TypeError@main.py:132",
+  "capture": {
+    "service": "alpha",
+    "release": "r2",
+    "exception_type": "TypeError",
+    "exception_message": "unsupported operand type(s) for -: 'int' and 'NoneType'",
+    "frames": [
+      {
+        "file": "/Users/ssheyii/kintsugi/libs/kintsugi_capture/__init__.py",
+        "line": 158,
+        "function": "__call__",
+        "code": "await self.app(scope, buffering_receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py",
+        "line": 63,
+        "function": "__call__",
+        "code": "await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 53,
+        "function": "wrapped_app",
+        "code": "raise exc"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 42,
+        "function": "wrapped_app",
+        "code": "await app(scope, receive, sender)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py",
+        "line": 18,
+        "function": "__call__",
+        "code": "await self.app(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/routing.py",
+        "line": 670,
+        "function": "__call__",
+        "code": "await self.middleware_stack(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 2734,
+        "function": "app",
+        "code": "await route.handle(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 1281,
+        "function": "handle",
+        "code": "await super().handle(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/routing.py",
+        "line": 280,
+        "function": "handle",
+        "code": "await self.app(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 158,
+        "function": "app",
+        "code": "await wrap_app_handling_exceptions(app, request)(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 53,
+        "function": "wrapped_app",
+        "code": "raise exc"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 42,
+        "function": "wrapped_app",
+        "code": "await app(scope, receive, sender)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 144,
+        "function": "app",
+        "code": "response = await f(request)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 706,
+        "function": "app",
+        "code": "raw_response = await run_endpoint_function("
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 354,
+        "function": "run_endpoint_function",
+        "code": "return await run_in_threadpool(dependant.call, **values)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/concurrency.py",
+        "line": 34,
+        "function": "run_in_threadpool",
+        "code": "return await anyio.to_thread.run_sync(func)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/to_thread.py",
+        "line": 65,
+        "function": "run_sync",
+        "code": "return await get_async_backend().run_sync_in_worker_thread("
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py",
+        "line": 2641,
+        "function": "run_sync_in_worker_thread",
+        "code": "return await future"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py",
+        "line": 1033,
+        "function": "run",
+        "code": "result = context.run(func, *args)"
+      },
+      {
+        "file": "/private/var/folders/mv/mzz_q2mn3q3c827r6pfcby640000gn/T/main-F01-C3-s3-gib4d4rd/live_alpha/alpha/main.py",
+        "line": 132,
+        "function": "quote",
+        "code": "total = unit * quantity * (1 - rate)"
+      }
+    ],
+    "request": {
+      "method": "GET",
+      "path": "/quote",
+      "query": "sku=WIDGET&code=BOGUS",
+      "headers": {
+        "host": "127.0.0.1:56179",
+        "accept": "*/*",
+        "accept-encoding": "gzip, deflate, br",
+        "connection": "keep-alive",
+        "user-agent": "python-httpx/0.28.1"
+      },
+      "body": ""
+    },
+    "external_calls": [
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:56180/price/WIDGET",
+        "request_headers": {
+          "host": "127.0.0.1:56180",
+          "accept": "*/*",
+          "accept-encoding": "gzip, deflate, br",
+          "connection": "keep-alive",
+          "user-agent": "python-httpx/0.28.1"
+        },
+        "request_body": "",
+        "status": 200,
+        "response_headers": {
+          "date": "Wed, 07 Oct 2026 17:08:31 GMT",
+          "server": "uvicorn",
+          "content-length": "29",
+          "content-type": "application/json"
+        },
+        "response_body": "{\"sku\":\"WIDGET\",\"price\":25.0}"
+      }
+    ]
+  },
+  "reproduction": {
+    "status": "reproduced",
+    "reason": "failed identically on 5/5 replays",
+    "signature": "TypeError@main.py:132",
+    "verdicts": [
+      {
+        "failed": true,
+        "exception_type": "TypeError",
+        "top_frame": "main.py:132",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "TypeError",
+        "top_frame": "main.py:132",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "TypeError",
+        "top_frame": "main.py:132",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "TypeError",
+        "top_frame": "main.py:132",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "TypeError",
+        "top_frame": "main.py:132",
+        "status_code": 500,
+        "hermetic_violation": false
+      }
+    ]
+  },
+  "candidates": [
+    {
+      "attempt": 1,
+      "diff": "The TypeError indicates that `rate` is `NoneType`. This happens because:\n\n1. Line 131: `rate = DISCOUNTS.get(code)` - when `code=\"BOGUS\"` (from the provoking request), this returns `None` since \"BOGUS\" is not a valid discount code\n2. Line 132: The code attempts `(1 - rate)` which fails because `rate` is `None`\n\nLooking at line 145, there's a helper function `discount_rate(code)` being used in the `/discounted` endpoint that likely handles this case properly.\n\nThe fix is to use a similar approach: default `rate` to `0` (no discount) when the code is not found, rather than `None`.\n\n",
+      "conditions": {
+        "structural": true,
+        "applies": false
+      }
+    },
+    {
+      "attempt": 2,
+      "diff": "--- a/main.py\n+++ b/main.py\n@@ -128,7 +128,7 @@ def quote(sku: str, quantity: int = 1, code: str = \"\") -> dict:\n     if resp.status_code == 404:\n         raise HTTPException(status_code=404, detail=f\"unknown sku {sku!r}\")\n     resp.raise_for_status()\n     unit = resp.json()[\"price\"]\n-    rate = DISCOUNTS.get(code)\n+    rate = DISCOUNTS.get(code, 0)\n     total = unit * quantity * (1 - rate)\n     return {\"sku\": sku, \"quantity\": quantity,\n             \"per_unit\": round(total / quantity, 2),\n",
+      "conditions": {
+        "structural": true,
+        "applies": false
+      }
+    },
+    {
+      "attempt": 3,
+      "diff": "--- a/alpha/main.py\n+++ b/alpha/main.py\n@@ -129,7 +129,7 @@ def quote(sku: str, quantity: int = 1, code: str = \"\") -> dict:\n         raise HTTPException(status_code=404, detail=f\"unknown sku {sku!r}\")\n     resp.raise_for_status()\n     unit = resp.json()[\"price\"]\n-    rate = DISCOUNTS.get(code)\n+    rate = DISCOUNTS.get(code, 0)\n     total = unit * quantity * (1 - rate)\n     return {\"sku\": sku, \"quantity\": quantity,\n             \"per_unit\": round(total / quantity, 2),",
+      "conditions": {
+        "structural": true,
+        "applies": true,
+        "reproduction": true,
+        "suite": true
+      }
+    }
+  ],
+  "patch": "--- a/alpha/main.py\n+++ b/alpha/main.py\n@@ -129,7 +129,7 @@ def quote(sku: str, quantity: int = 1, code: str = \"\") -> dict:\n         raise HTTPException(status_code=404, detail=f\"unknown sku {sku!r}\")\n     resp.raise_for_status()\n     unit = resp.json()[\"price\"]\n-    rate = DISCOUNTS.get(code)\n+    rate = DISCOUNTS.get(code, 0)\n     total = unit * quantity * (1 - rate)\n     return {\"sku\": sku, \"quantity\": quantity,\n             \"per_unit\": round(total / quantity, 2),",
+  "verification_record": {
+    "payload": {
+      "signature": "TypeError@main.py:132",
+      "diff_sha256": "380fd22382e4f7c8985607ab5204e0f88d421419fba8baa73bc7f66d339428c7",
+      "conditions": {
+        "structural": true,
+        "applies": true,
+        "reproduction": true,
+        "suite": true
+      }
+    },
+    "hmac": "56c94b4450ac89de7a21c821ceec6e5f95b2cb842a808fb1bdf0ae40daae7410"
+  },
+  "prev_hash": "7ae2cca5e41b32d5b85bdfeb070b2101cbfca06b712548ba7fb89235ec552817",
+  "hash": "471bc57e538aae8dc9580ae5c164c66cb7d33a29df9361958ea5bcb0843986c7",
+  "hmac": "392e05ee997e9b0918d21000f9d70e0d20b2e07e3130714fcc436f34d2959bdc"
+}

@@ -45,6 +45,8 @@ VERIFY_PATH = os.path.join(os.path.dirname(CERT_DIR),
                            "certificate_verification.json")
 SUPP_DIR = os.environ.get("KINTSUGI_SUPP_DIR",
                           os.path.join(os.path.dirname(STUDY_DIR), "supp"))
+HAIKU_DIR = os.environ.get("KINTSUGI_HAIKU_DIR",
+                           os.path.join(os.path.dirname(STUDY_DIR), "haiku"))
 _request: ContextVar[Request | None] = ContextVar("request", default=None)
 PAGE_SIZE = 50
 
@@ -199,7 +201,8 @@ def home():
         (r for r in L.recordings() if r.get("outcome") == "recovered"), None)
     return page("Production software that mends itself", "home",
                 P.home(trials(), len(cert_seq()), SUPP_DIR,
-                       hero_replay=rec["name"] if rec else None, hero_meta=rec),
+                       hero_replay=rec["name"] if rec else None, hero_meta=rec,
+                       weak=P.weaker_model(HAIKU_DIR)),
                 wide=True,
                 extra_head='<link rel="stylesheet" href="/static/home.css">\n'
                            '<script src="/static/home.js" defer></script>')
@@ -572,6 +575,7 @@ def results(request: Request):
         "previous version was always there to go back to. The AI approaches "
         "matter when it is not.</p></div>"
         + V.compare_table(ts) + "</section>"
+        + V.weaker_model_section(P.weaker_model(HAIKU_DIR))
         + V.ablation(ts)
         + V.explorer(ts, q, t))
     return page("Results", "results", body)

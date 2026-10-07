@@ -653,3 +653,34 @@ def diff_html(patch: str) -> str:
                "d-del" if line.startswith("-") else "")
         out.append(f'<span class="{cls}">{E(line)}</span>' if cls else E(line))
     return "\n".join(out)
+
+
+
+def weaker_model_section(w: dict | None) -> str:
+    """The weaker-model study (pre-registered amendment A3), on the results page."""
+    if not w:
+        return ""
+    return f"""
+<section class="section" aria-labelledby="weak-title">
+<div class="section-head"><h2 id="weak-title">With a smaller AI model</h2>
+<p>The main tests used a frontier AI model, and neither AI approach ever put a bad fix
+live, so the safety check had nothing to catch. A follow-up, registered before it ran,
+repeated both AI approaches with a smaller, cheaper model ({E(w["model"])}): {w["trials"]}
+more tests on the same 60 bugs.</p></div>
+<div class="table-scroll"><table class="compare">
+<caption>Bad fixes are counted out of the fixes each approach put live. The difference
+in bad fixes falls just short of the usual statistical threshold (p = {w["p"]:.3f}).</caption>
+<thead><tr><th scope="col">Approach, smaller model</th><th scope="col" class="num">Fixes put live</th>
+<th scope="col" class="num">Bad fixes</th><th scope="col" class="num">Fixable bugs fixed</th></tr></thead>
+<tbody>
+<tr><td class="appr"><b>AI fix, no safety check</b></td><td class="num">{w["c2_patched"]}</td>
+<td class="num">{w["c2_bad"]}<span class="pct">{pct(w["c2_bad"], w["c2_patched"])}</span></td>
+<td class="num">{w["c2_fixed"]} of {w["repairable"]}</td></tr>
+<tr><td class="appr"><b>AI fix with safety check</b><p>Kintsugi</p></td><td class="num">{w["c3_patched"]}</td>
+<td class="num">{w["c3_bad"]}<span class="pct">{pct(w["c3_bad"], w["c3_patched"])}</span></td>
+<td class="num">{w["c3_fixed"]} of {w["repairable"]}</td></tr>
+</tbody></table></div>
+<p class="muted">On every bug where the unchecked approach put a bad fix live, Kintsugi either fixed
+the bug properly or left it for a person. Once, its check caught a fix that looked fine and
+applied cleanly but did not actually stop the failure.</p>
+</section>"""

@@ -1,0 +1,122 @@
+{
+ "n_trials": 360,
+ "model": "claude-haiku-4-5-20251001",
+ "C2": {
+  "n": 180,
+  "outcomes": {
+   "escalated": 93,
+   "recovered": 82,
+   "false_fix": 5
+  },
+  "false_fix": 5,
+  "false_fix_rate": 0.057,
+  "patched": 87,
+  "recovered_repairable": 55,
+  "repairable": 135,
+  "first_attempt": 0,
+  "refused": 0,
+  "refused_correctly": 0,
+  "mttr": {
+   "median": 7.103,
+   "ci95": [
+    5.968,
+    7.491
+   ],
+   "n": 82
+  }
+ },
+ "C3": {
+  "n": 180,
+  "outcomes": {
+   "escalated": 69,
+   "refused": 45,
+   "recovered": 66
+  },
+  "false_fix": 0,
+  "false_fix_rate": 0.0,
+  "patched": 66,
+  "recovered_repairable": 66,
+  "repairable": 135,
+  "first_attempt": 1,
+  "refused": 45,
+  "refused_correctly": 45,
+  "mttr": {
+   "median": 7.283,
+   "ci95": [
+    6.213,
+    8.159
+   ],
+   "n": 66
+  }
+ },
+ "H2_false_fix_fisher_p": 0.07016,
+ "recovery_repairable_fisher_p": 0.22097,
+ "c3_rejections_by_first_failed_condition": {
+  "applies": 89,
+  "reproduction": 2
+ },
+ "mttr_c3_vs_c2": {
+  "paired_faults": 23,
+  "wilcoxon": {
+   "n": 23,
+   "W": 183.0,
+   "p": 0.17591,
+   "method": "normal-approx"
+  },
+  "cliffs_delta": 0.146
+ },
+ "c2_false_fix_faults": {
+  "M12": 2,
+  "N08": 2,
+  "F04": 1
+ },
+ "opus_main_study": {
+  "C2": {
+   "n": 180,
+   "outcomes": {
+    "recovered": 176,
+    "escalated": 4
+   },
+   "false_fix": 0,
+   "false_fix_rate": 0.0,
+   "patched": 176,
+   "recovered_repairable": 131,
+   "repairable": 135,
+   "first_attempt": 58,
+   "refused": 0,
+   "refused_correctly": 0,
+   "mttr": {
+    "median": 12.496,
+    "ci95": [
+     10.331,
+     13.62
+    ],
+    "n": 176
+   }
+  },
+  "C3": {
+   "n": 180,
+   "outcomes": {
+    "recovered": 127,
+    "refused": 45,
+    "escalated": 8
+   },
+   "false_fix": 0,
+   "false_fix_rate": 0.0,
+   "patched": 127,
+   "recovered_repairable": 127,
+   "repairable": 135,
+   "first_attempt": 58,
+   "refused": 45,
+   "refused_correctly": 45,
+   "mttr": {
+    "median": 12.295,
+    "ci95": [
+     9.672,
+     13.793
+    ],
+    "n": 127
+   }
+  }
+ }
+}

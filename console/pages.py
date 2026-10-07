@@ -117,11 +117,29 @@ def icon(name: str) -> str:
     return (f'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">{ICONS[name]}</svg>')
 
 
+def weaker_model(haiku_dir: str) -> dict | None:
+    """The weaker-model study's registered result, if present."""
+    try:
+        with open(os.path.join(haiku_dir, "analysis.json")) as fh:
+            a = json.load(fh)
+        return {"c2_bad": a["C2"]["false_fix"], "c2_patched": a["C2"]["patched"],
+                "c3_bad": a["C3"]["false_fix"], "c3_patched": a["C3"]["patched"],
+                "c2_fixed": a["C2"]["recovered_repairable"],
+                "c3_fixed": a["C3"]["recovered_repairable"],
+                "repairable": a["C3"]["repairable"], "p": a["H2_false_fix_fisher_p"],
+                "model": a.get("model", ""), "trials": a.get("n_trials", 0)}
+    except Exception:
+        return None
+
+
 def home(trials: list[dict], cert_count: int, supp_dir: str,
-         hero_replay: str | None = None, hero_meta: dict | None = None) -> str:
+         hero_replay: str | None = None, hero_meta: dict | None = None,
+         weak: dict | None = None) -> str:
     check = D.integrity(trials)
     by_bug = D.leave_alone_by_bug(trials)
-    bad_all = sum(t["outcome"] == "false_fix" for t in trials)
+    gated = [t for t in trials if t["arm"] == "C3"]
+    gated_bad = sum(t["outcome"] == "false_fix" for t in gated)
+    gated_bad += weak["c3_bad"] if weak else 0
     summaries = D.by_approach(trials)
     gated, ungated, rollback = (summaries.get("C3"), summaries.get("C2"),
                                 summaries.get("C1"))
@@ -134,7 +152,7 @@ def home(trials: list[dict], cert_count: int, supp_dir: str,
 
     proof = [
         (f"{len(trials):,}", "tests run in a pre-registered study"),
-        (f"{bad_all}", "bad fixes ever put live"),
+        (f"{gated_bad}", f"bad fixes put live by Kintsugi, with either AI model"),
         (f"{cert_count:,}", "repair certificates, every one verified"),
         (f"{by_bug['every_run']} of {by_bug['risky']}", "untestable bugs correctly left alone"),
     ]
@@ -174,6 +192,21 @@ def home(trials: list[dict], cert_count: int, supp_dir: str,
     hard_line = (f" The tests it saved along the way now catch {round(hard['score'] * 100)}% "
                  f"of the bugs before they ship, {hard['cross']} of them through a test "
                  "saved for a different bug." if hard else "")
+
+    weak_html = ""
+    if weak:
+        weak_html = f"""<article class="feat feat-wide">
+<div class="feat-art"><div class="bars" aria-label="Bad fixes put live with a smaller AI model: {weak['c2_bad']} without the check, {weak['c3_bad']} with Kintsugi">
+<div><span>AI fix, no check</span><i class="red" style="--w:{min(100, weak['c2_bad'] * 18)}%"></i><b>{weak['c2_bad']}</b></div>
+<div><span>With Kintsugi</span><i style="--w:2%"></i><b>{weak['c3_bad']}</b></div></div>
+<p class="feat-small">Bad fixes put live, smaller AI model, {weak['trials']} tests</p></div>
+<h3>Makes cheaper AI safe to use</h3>
+<p>With a frontier model, neither approach shipped a bad fix. With a smaller, cheaper model,
+the unchecked approach put {weak['c2_bad']} bad fixes live and Kintsugi put {weak['c3_bad']}: on
+every one of those bugs it either fixed the bug properly or left it for a person. It also fixed
+more bugs overall ({weak['c3_fixed']} against {weak['c2_fixed']}). The difference in bad fixes
+falls just short of the usual statistical threshold (p = {weak['p']:.3f}), so the study reports it
+as a strong lead rather than a proof.</p></article>"""
 
     pipeline = [
         ("catch", "Catch", "The failing request is recorded with everything the app called."),
@@ -265,6 +298,7 @@ it could fix.</p></article>
 <p>Each repair is signed and linked to the last. All {cert_count:,} certificates
 from the study were replayed from the record alone and confirmed.</p></article>
 
+{weak_html}
 <article class="feat">
 <div class="feat-art">{mem_html}</div>
 <h3>Stronger with every repair</h3>

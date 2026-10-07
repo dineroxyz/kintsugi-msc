@@ -1,0 +1,249 @@
+{
+  "version": 1,
+  "sequence": 1,
+  "issued_at": "2026-10-07T17:33:30",
+  "service_spec": "alpha.main:app",
+  "signature": "ZeroDivisionError@main.py:132",
+  "capture": {
+    "service": "alpha",
+    "release": "r2",
+    "exception_type": "ZeroDivisionError",
+    "exception_message": "float division by zero",
+    "frames": [
+      {
+        "file": "/Users/ssheyii/kintsugi/libs/kintsugi_capture/__init__.py",
+        "line": 158,
+        "function": "__call__",
+        "code": "await self.app(scope, buffering_receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py",
+        "line": 63,
+        "function": "__call__",
+        "code": "await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 53,
+        "function": "wrapped_app",
+        "code": "raise exc"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 42,
+        "function": "wrapped_app",
+        "code": "await app(scope, receive, sender)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py",
+        "line": 18,
+        "function": "__call__",
+        "code": "await self.app(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/routing.py",
+        "line": 670,
+        "function": "__call__",
+        "code": "await self.middleware_stack(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 2734,
+        "function": "app",
+        "code": "await route.handle(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 1281,
+        "function": "handle",
+        "code": "await super().handle(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/routing.py",
+        "line": 280,
+        "function": "handle",
+        "code": "await self.app(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 158,
+        "function": "app",
+        "code": "await wrap_app_handling_exceptions(app, request)(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 53,
+        "function": "wrapped_app",
+        "code": "raise exc"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 42,
+        "function": "wrapped_app",
+        "code": "await app(scope, receive, sender)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 144,
+        "function": "app",
+        "code": "response = await f(request)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 706,
+        "function": "app",
+        "code": "raw_response = await run_endpoint_function("
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 354,
+        "function": "run_endpoint_function",
+        "code": "return await run_in_threadpool(dependant.call, **values)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/concurrency.py",
+        "line": 34,
+        "function": "run_in_threadpool",
+        "code": "return await anyio.to_thread.run_sync(func)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/to_thread.py",
+        "line": 65,
+        "function": "run_sync",
+        "code": "return await get_async_backend().run_sync_in_worker_thread("
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py",
+        "line": 2641,
+        "function": "run_sync_in_worker_thread",
+        "code": "return await future"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py",
+        "line": 1033,
+        "function": "run",
+        "code": "result = context.run(func, *args)"
+      },
+      {
+        "file": "/private/var/folders/mv/mzz_q2mn3q3c827r6pfcby640000gn/T/main-F07-C3-s1-60reemxg/live_alpha/alpha/main.py",
+        "line": 132,
+        "function": "quote",
+        "code": "\"per_unit\": round(total / quantity, 2),"
+      }
+    ],
+    "request": {
+      "method": "GET",
+      "path": "/quote",
+      "query": "sku=WIDGET&quantity=0",
+      "headers": {
+        "host": "127.0.0.1:64240",
+        "accept": "*/*",
+        "accept-encoding": "gzip, deflate, br",
+        "connection": "keep-alive",
+        "user-agent": "python-httpx/0.28.1"
+      },
+      "body": ""
+    },
+    "external_calls": [
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:64241/price/WIDGET",
+        "request_headers": {
+          "host": "127.0.0.1:64241",
+          "accept": "*/*",
+          "accept-encoding": "gzip, deflate, br",
+          "connection": "keep-alive",
+          "user-agent": "python-httpx/0.28.1"
+        },
+        "request_body": "",
+        "status": 200,
+        "response_headers": {
+          "date": "Wed, 07 Oct 2026 16:33:23 GMT",
+          "server": "uvicorn",
+          "content-length": "29",
+          "content-type": "application/json"
+        },
+        "response_body": "{\"sku\":\"WIDGET\",\"price\":25.0}"
+      }
+    ]
+  },
+  "reproduction": {
+    "status": "reproduced",
+    "reason": "failed identically on 5/5 replays",
+    "signature": "ZeroDivisionError@main.py:132",
+    "verdicts": [
+      {
+        "failed": true,
+        "exception_type": "ZeroDivisionError",
+        "top_frame": "main.py:132",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "ZeroDivisionError",
+        "top_frame": "main.py:132",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "ZeroDivisionError",
+        "top_frame": "main.py:132",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "ZeroDivisionError",
+        "top_frame": "main.py:132",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "ZeroDivisionError",
+        "top_frame": "main.py:132",
+        "status_code": 500,
+        "hermetic_violation": false
+      }
+    ]
+  },
+  "candidates": [
+    {
+      "attempt": 1,
+      "diff": "--- a/main.py\n+++ b/main.py\n@@ -118,6 +118,8 @@ def cancel_order(order_id: int) -> dict:\n @app.get(\"/quote\")\n def quote(sku: str, quantity: int = 1, code: str = \"\") -> dict:\n     \"\"\"Quote a price for a SKU with an optional discount code.\"\"\"\n+    if quantity <= 0:\n+        raise HTTPException(status_code=422, detail=\"quantity must be at least 1\")\n     try:\n         resp = _pricing.get(f\"{BETA_URL}/price/{sku}\")\n     except httpx.HTTPError:\n",
+      "conditions": {
+        "structural": true,
+        "applies": false
+      }
+    },
+    {
+      "attempt": 2,
+      "diff": "--- a/alpha/main.py\n+++ b/alpha/main.py\n@@ -118,6 +118,8 @@ def cancel_order(order_id: int) -> dict:\n @app.get(\"/quote\")\n def quote(sku: str, quantity: int = 1, code: str = \"\") -> dict:\n     \"\"\"Quote a price for a SKU with an optional discount code.\"\"\"\n+    if quantity <= 0:\n+        raise HTTPException(status_code=422, detail=\"quantity must be at least 1\")\n     try:\n         resp = _pricing.get(f\"{BETA_URL}/price/{sku}\")\n     except httpx.HTTPError:",
+      "conditions": {
+        "structural": true,
+        "applies": true,
+        "reproduction": true,
+        "suite": true
+      }
+    }
+  ],
+  "patch": "--- a/alpha/main.py\n+++ b/alpha/main.py\n@@ -118,6 +118,8 @@ def cancel_order(order_id: int) -> dict:\n @app.get(\"/quote\")\n def quote(sku: str, quantity: int = 1, code: str = \"\") -> dict:\n     \"\"\"Quote a price for a SKU with an optional discount code.\"\"\"\n+    if quantity <= 0:\n+        raise HTTPException(status_code=422, detail=\"quantity must be at least 1\")\n     try:\n         resp = _pricing.get(f\"{BETA_URL}/price/{sku}\")\n     except httpx.HTTPError:",
+  "verification_record": {
+    "payload": {
+      "signature": "ZeroDivisionError@main.py:132",
+      "diff_sha256": "99bd0aa0c03e2a3c4120f93050adccaafe08c887b19d76e9f598ef85f0829797",
+      "conditions": {
+        "structural": true,
+        "applies": true,
+        "reproduction": true,
+        "suite": true
+      }
+    },
+    "hmac": "fc96579e22fea3c87456b0cd5b514a19efe862f112c5b9826f0e16a32b213e4b"
+  },
+  "prev_hash": "e2621d53fe237b4f5ac618e6a92669b812839efc0f330e7287fb280ce48dab6b",
+  "hash": "6dcbf8fb27e049b09fc39c1afb4a2f943caa6175cb505de80dd87c0702d923c0",
+  "hmac": "af9e3267a479abbee0491586fde1c22fe75c87c539c0c8f58cd4569562ca9a2c"
+}

@@ -1,0 +1,258 @@
+{
+  "version": 1,
+  "sequence": 60,
+  "issued_at": "2026-10-07T20:58:43",
+  "service_spec": "alpha.main:app",
+  "signature": "ValueError@main.py:136",
+  "capture": {
+    "service": "alpha",
+    "release": "r2",
+    "exception_type": "ValueError",
+    "exception_message": "Unknown format code 'd' for object of type 'str'",
+    "frames": [
+      {
+        "file": "/Users/ssheyii/kintsugi/libs/kintsugi_capture/__init__.py",
+        "line": 158,
+        "function": "__call__",
+        "code": "await self.app(scope, buffering_receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py",
+        "line": 63,
+        "function": "__call__",
+        "code": "await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 53,
+        "function": "wrapped_app",
+        "code": "raise exc"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 42,
+        "function": "wrapped_app",
+        "code": "await app(scope, receive, sender)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py",
+        "line": 18,
+        "function": "__call__",
+        "code": "await self.app(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/routing.py",
+        "line": 670,
+        "function": "__call__",
+        "code": "await self.middleware_stack(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 2734,
+        "function": "app",
+        "code": "await route.handle(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 1281,
+        "function": "handle",
+        "code": "await super().handle(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/routing.py",
+        "line": 280,
+        "function": "handle",
+        "code": "await self.app(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 158,
+        "function": "app",
+        "code": "await wrap_app_handling_exceptions(app, request)(scope, receive, send)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 53,
+        "function": "wrapped_app",
+        "code": "raise exc"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py",
+        "line": 42,
+        "function": "wrapped_app",
+        "code": "await app(scope, receive, sender)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 144,
+        "function": "app",
+        "code": "response = await f(request)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 706,
+        "function": "app",
+        "code": "raw_response = await run_endpoint_function("
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/fastapi/routing.py",
+        "line": 354,
+        "function": "run_endpoint_function",
+        "code": "return await run_in_threadpool(dependant.call, **values)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/starlette/concurrency.py",
+        "line": 34,
+        "function": "run_in_threadpool",
+        "code": "return await anyio.to_thread.run_sync(func)"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/to_thread.py",
+        "line": 65,
+        "function": "run_sync",
+        "code": "return await get_async_backend().run_sync_in_worker_thread("
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py",
+        "line": 2641,
+        "function": "run_sync_in_worker_thread",
+        "code": "return await future"
+      },
+      {
+        "file": "/Users/ssheyii/kintsugi/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py",
+        "line": 1033,
+        "function": "run",
+        "code": "result = context.run(func, *args)"
+      },
+      {
+        "file": "/private/var/folders/mv/mzz_q2mn3q3c827r6pfcby640000gn/T/main-M16-C3-s3-4wqtt977/live_alpha/alpha/main.py",
+        "line": 136,
+        "function": "quote",
+        "code": "\"reference\": \"Q\" + format(sku, \"03d\")}"
+      }
+    ],
+    "request": {
+      "method": "GET",
+      "path": "/quote",
+      "query": "sku=WIDGET",
+      "headers": {
+        "host": "127.0.0.1:58064",
+        "accept": "*/*",
+        "accept-encoding": "gzip, deflate, br",
+        "connection": "keep-alive",
+        "user-agent": "python-httpx/0.28.1"
+      },
+      "body": ""
+    },
+    "external_calls": [
+      {
+        "method": "GET",
+        "url": "http://127.0.0.1:58065/price/WIDGET",
+        "request_headers": {
+          "host": "127.0.0.1:58065",
+          "accept": "*/*",
+          "accept-encoding": "gzip, deflate, br",
+          "connection": "keep-alive",
+          "user-agent": "python-httpx/0.28.1"
+        },
+        "request_body": "",
+        "status": 200,
+        "response_headers": {
+          "date": "Wed, 07 Oct 2026 19:58:30 GMT",
+          "server": "uvicorn",
+          "content-length": "29",
+          "content-type": "application/json"
+        },
+        "response_body": "{\"sku\":\"WIDGET\",\"price\":25.0}"
+      }
+    ]
+  },
+  "reproduction": {
+    "status": "reproduced",
+    "reason": "failed identically on 5/5 replays",
+    "signature": "ValueError@main.py:136",
+    "verdicts": [
+      {
+        "failed": true,
+        "exception_type": "ValueError",
+        "top_frame": "main.py:136",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "ValueError",
+        "top_frame": "main.py:136",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "ValueError",
+        "top_frame": "main.py:136",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "ValueError",
+        "top_frame": "main.py:136",
+        "status_code": 500,
+        "hermetic_violation": false
+      },
+      {
+        "failed": true,
+        "exception_type": "ValueError",
+        "top_frame": "main.py:136",
+        "status_code": 500,
+        "hermetic_violation": false
+      }
+    ]
+  },
+  "candidates": [
+    {
+      "attempt": 1,
+      "diff": "The issue is clear: at line 136 in main.py, the code attempts to format `sku` as a decimal integer using `format(sku, \"03d\")`, but `sku` is a string parameter (as defined in the function signature at line 119: `def quote(sku: str, ...`).\n\nThe format code `\"03d\"` expects an integer, not a string. The fix is to convert `sku` to an integer before formatting, or use a string format code instead.\n\nGiven that `sku` is meant to be a numeric SKU (based on the context of the pricing system), converting to int makes sense:\n\n--- a/main.py\n+++ b/main.py\n@@ -133,7 +133,7 @@ def quote(sku: str, quantity: int = 1, code: str = \"\") -> dict:\n     return {\"sku\": sku, \"quantity\": quantity,\n             \"per_unit\": round(total / quantity, 2),\n             \"total\": round(total, 2),\n-            \"reference\": \"Q\" + format(sku, \"03d\")}\n+            \"reference\": \"Q\" + format(int(sku), \"03d\")}\n \n \n @app.get(\"/orders/{order_id}/discounted\")",
+      "conditions": {
+        "structural": true,
+        "applies": false
+      }
+    },
+    {
+      "attempt": 2,
+      "diff": "--- a/alpha/main.py\n+++ b/alpha/main.py\n@@ -133,7 +133,7 @@ def quote(sku: str, quantity: int = 1, code: str = \"\") -> dict:\n     return {\"sku\": sku, \"quantity\": quantity,\n             \"per_unit\": round(total / quantity, 2),\n             \"total\": round(total, 2),\n-            \"reference\": \"Q\" + format(sku, \"03d\")}\n+            \"reference\": \"Q\" + format(int(sku), \"03d\")}\n \n \n @app.get(\"/orders/{order_id}/discounted\")",
+      "conditions": {
+        "structural": true,
+        "applies": true,
+        "reproduction": false
+      }
+    },
+    {
+      "attempt": 3,
+      "diff": "Looking at the incident, the issue is clear: at line 136 in main.py, the code attempts to format `sku` as a decimal integer using `format(sku, \"03d\")`, but `sku` is a string parameter.\n\nThe previous candidate tried `format(int(sku), \"03d\")` but this still fails because the provoking request has `sku=WIDGET`, which is not numeric and cannot be converted to int.\n\nThe root cause is that the code assumes `sku` is numeric, but the API accepts any string as a SKU (as evidenced by the request `GET /quote?sku=WIDGET`). The fix is to use a string format code instead of a decimal format code.\n\n--- a/alpha/main.py\n+++ b/alpha/main.py\n@@ -133,7 +133,7 @@ def quote(sku: str, quantity: int = 1, code: str = \"\") -> dict:\n     return {\"sku\": sku, \"quantity\": quantity,\n             \"per_unit\": round(total / quantity, 2),\n             \"total\": round(total, 2),\n-            \"reference\": \"Q\" + format(sku, \"03d\")}\n+            \"reference\": \"Q\" + format(sku, \"s\")}\n \n \n @app.get(\"/orders/{order_id}/discounted\")",
+      "conditions": {
+        "structural": true,
+        "applies": true,
+        "reproduction": true,
+        "suite": true
+      }
+    }
+  ],
+  "patch": "Looking at the incident, the issue is clear: at line 136 in main.py, the code attempts to format `sku` as a decimal integer using `format(sku, \"03d\")`, but `sku` is a string parameter.\n\nThe previous candidate tried `format(int(sku), \"03d\")` but this still fails because the provoking request has `sku=WIDGET`, which is not numeric and cannot be converted to int.\n\nThe root cause is that the code assumes `sku` is numeric, but the API accepts any string as a SKU (as evidenced by the request `GET /quote?sku=WIDGET`). The fix is to use a string format code instead of a decimal format code.\n\n--- a/alpha/main.py\n+++ b/alpha/main.py\n@@ -133,7 +133,7 @@ def quote(sku: str, quantity: int = 1, code: str = \"\") -> dict:\n     return {\"sku\": sku, \"quantity\": quantity,\n             \"per_unit\": round(total / quantity, 2),\n             \"total\": round(total, 2),\n-            \"reference\": \"Q\" + format(sku, \"03d\")}\n+            \"reference\": \"Q\" + format(sku, \"s\")}\n \n \n @app.get(\"/orders/{order_id}/discounted\")",
+  "verification_record": {
+    "payload": {
+      "signature": "ValueError@main.py:136",
+      "diff_sha256": "f3bd2564c9aec5db04688fe0ec93b1da08b809c679c00108fbd3c81e91374bb9",
+      "conditions": {
+        "structural": true,
+        "applies": true,
+        "reproduction": true,
+        "suite": true
+      }
+    },
+    "hmac": "785700441e63ea109c6f33dfb6ec10968a5e25d5e07bc690a48f4a7e8d001d69"
+  },
+  "prev_hash": "f55aff12ec0202d242f364c4943b972c9e9c3d6d4d95b408c6822b3feef5c937",
+  "hash": "62e81934c7c5163389ee29b457563025b2eb6a5ea8a20f3252ccd821901aed5d",
+  "hmac": "e28e64fd9daa8b076298e4de036a4e3b7f4ac63e276547a019a592625ffb8ad8"
+}
