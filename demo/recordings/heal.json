@@ -1,0 +1,193 @@
+{
+ "segment": "heal",
+ "title": "Live break and heal",
+ "command": "python demo/segments.py heal",
+ "recorded": "7 October 2026",
+ "duration": 24.87,
+ "lines": [
+  [
+   0.17,
+   ""
+  ],
+  [
+   0.17,
+   "== Live break and heal ================================================="
+  ],
+  [
+   0.78,
+   "Bug F03: Missing-order guard removed from /orders/{id}"
+  ],
+  [
+   1.29,
+   "Service: alpha. Trigger: GET /orders/999999"
+  ],
+  [
+   1.8,
+   ""
+  ],
+  [
+   1.8,
+   "Starting the clean service under live load, then deploying the bug"
+  ],
+  [
+   2.11,
+   "over it. Kintsugi will capture the failure, replay it in a shadow,"
+  ],
+  [
+   2.41,
+   "ask the model for a fix, and only deploy a fix that passes the gate."
+  ],
+  [
+   3.22,
+   ""
+  ],
+  [
+   3.22,
+   "Running..."
+  ],
+  [
+   17.78,
+   "Done in 14.3 s."
+  ],
+  [
+   18.38,
+   ""
+  ],
+  [
+   18.38,
+   "Timeline"
+  ],
+  [
+   18.69,
+   "    0.00 s   the bug goes live"
+  ],
+  [
+   19.05,
+   "    0.00 s   first error in live traffic"
+  ],
+  [
+   19.4,
+   "   11.64 s   a fix passes every check"
+  ],
+  [
+   19.76,
+   "   12.17 s   the fix is live"
+  ],
+  [
+   20.12,
+   "   12.21 s   the failing request works again"
+  ],
+  [
+   20.48,
+   ""
+  ],
+  [
+   20.48,
+   "Outcome: recovered"
+  ],
+  [
+   20.78,
+   "Time to recovery: 12.21 s (first error to working request)"
+  ],
+  [
+   21.09,
+   "Patches the model proposed: 2"
+  ],
+  [
+   21.4,
+   "Gate decision: admitted on candidate 2"
+  ],
+  [
+   22.0,
+   ""
+  ],
+  [
+   22.0,
+   "Certificate issued"
+  ],
+  [
+   22.31,
+   "  id        053ec1a19f9620a5d888ed7e9b074e18"
+  ],
+  [
+   22.52,
+   "  signature KeyError@main.py:105"
+  ],
+  [
+   22.72,
+   "  replays   failed identically on 5/5 replays"
+  ],
+  [
+   22.93,
+   "  attempt 1: rejected (failed: applies)"
+  ],
+  [
+   23.23,
+   "  attempt 2: admitted"
+  ],
+  [
+   23.54,
+   ""
+  ],
+  [
+   23.54,
+   "The admitted patch"
+  ],
+  [
+   23.85,
+   "  --- a/alpha/main.py"
+  ],
+  [
+   23.91,
+   "  +++ b/alpha/main.py"
+  ],
+  [
+   23.98,
+   "  @@ -102,7 +102,10 @@"
+  ],
+  [
+   24.05,
+   "   "
+  ],
+  [
+   24.11,
+   "   @app.get(\"/orders/{order_id}\")"
+  ],
+  [
+   24.18,
+   "   def get_order(order_id: int) -> dict:"
+  ],
+  [
+   24.25,
+   "  -    return ORDERS[order_id]"
+  ],
+  [
+   24.32,
+   "  +    order = ORDERS.get(order_id)"
+  ],
+  [
+   24.38,
+   "  +    if order is None:"
+  ],
+  [
+   24.45,
+   "  +        raise HTTPException(status_code=404, detail=f\"no order {order_id}\")"
+  ],
+  [
+   24.51,
+   "  +    return order"
+  ],
+  [
+   24.58,
+   "   "
+  ],
+  [
+   24.64,
+   "   "
+  ],
+  [
+   24.7,
+   "   @app.post(\"/orders/{order_id}/cancel\")"
+  ]
+ ]
+}

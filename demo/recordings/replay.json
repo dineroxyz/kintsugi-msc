@@ -1,0 +1,73 @@
+{
+ "segment": "replay",
+ "title": "Checking and replaying a certificate",
+ "command": "python demo/segments.py replay",
+ "recorded": "7 October 2026",
+ "duration": 9.18,
+ "lines": [
+  [
+   0.03,
+   ""
+  ],
+  [
+   0.03,
+   "== Checking the certificates ==========================================="
+  ],
+  [
+   0.75,
+   "Main study chain: 494 certificates."
+  ],
+  [
+   1.16,
+   "Every certificate matches its own hash, links to the one before it,"
+  ],
+  [
+   1.36,
+   "and carries a valid signature."
+  ],
+  [
+   2.18,
+   ""
+  ],
+  [
+   2.18,
+   "Certificate 000000: bug F03, Missing-order guard removed from /orders/{id}"
+  ],
+  [
+   2.79,
+   "Replaying it from the certificate alone, against a fresh copy of"
+  ],
+  [
+   3.0,
+   "the broken service..."
+  ],
+  [
+   5.28,
+   "  before the patch: failure reproduced   True"
+  ],
+  [
+   5.69,
+   "  patch applies to the code              True"
+  ],
+  [
+   6.1,
+   "  after the patch: failure is gone        True"
+  ],
+  [
+   6.91,
+   ""
+  ],
+  [
+   6.91,
+   "== Tampering is detected ==============================================="
+  ],
+  [
+   7.52,
+   "Copying the chain and changing one character in one certificate..."
+  ],
+  [
+   8.33,
+   "  certificate 100 content does not match its hash: tampered"
+  ]
+ ]
+}
