@@ -881,7 +881,7 @@ so nobody can quietly change it later.</p>
 linked to <span class="mono">{cert["prev_hash"][:16]}</span></p>{replay}</li>
 </ol>{check}<p class="links">{"".join(links)}</p>"""
     return page(f"Certificate {seq:06d}", "certificates", body,
-                extra_head='<script src="/static/verify.js" defer></script>')
+                extra_head='<script type="module" src="/static/verify.js"></script>')
 
 
 # --------------------------------------------------------------- practice

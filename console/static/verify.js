@@ -5,6 +5,8 @@
 //    for certificates issued before the key existed, its ID is in the
 //    signed attestation and that attestation's signature verifies.
 // Every input is fetched as raw data; every check is computed here.
+import * as ed from "/static/noble-ed25519.js";   // MIT, vendored: works where WebCrypto lacks Ed25519
+
 (function () {
   "use strict";
   var box = document.querySelector("[data-verify]");
@@ -29,10 +31,13 @@
     li.textContent = text; out.appendChild(li); return ok;
   }
   async function verifyEd25519(keyB64, message, sigB64) {
-    try {
+    try {                               // the browser's own implementation first
       var key = await crypto.subtle.importKey("raw", b64(keyB64), { name: "Ed25519" }, false, ["verify"]);
       return await crypto.subtle.verify({ name: "Ed25519" }, key, b64(sigB64), message);
-    } catch (e) { return null; }       // browser without Ed25519 support
+    } catch (e) {
+      try { return await ed.verifyAsync(b64(sigB64), message, b64(keyB64)); }
+      catch (e2) { return null; }       // neither could run the check
+    }
   }
   function canonicalAttestation(a) {   // matches the server's sorted, compact JSON
     return new TextEncoder().encode(JSON.stringify({ at: a.at, chain: a.chain, hashes: a.hashes }));
@@ -73,7 +78,11 @@
         else all = line(asig && att.key === published.key, asig ? "The attestation's signature is valid under the published key " + published.key_id + "." :
           "The attestation's signature does not verify.") && all;
       }
-      line(all, all ? "Verified. This record is genuine and unchanged." : "Verification failed.");
+      var unchecked = out.querySelectorAll("li:not(.pass):not(.fail)").length > 0;
+      line(all && !unchecked ? true : (all ? null : false),
+           !all ? "Verification failed." :
+           unchecked ? "Fingerprint and chain verified; the signature could not be checked in this browser." :
+           "Verified. This record is genuine and unchanged.");
     } catch (e) {
       line(false, "Could not complete the check: " + e.message);
     }

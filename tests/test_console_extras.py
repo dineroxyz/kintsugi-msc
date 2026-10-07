@@ -114,7 +114,7 @@ def test_trust_pages_and_published_key(site):
     assert key["key"] == att["key"] and key["key_id"]
     text = c.get("/trust").text
     assert "Why you can trust the record" in text and key["key_id"] in text
-    assert "/static/verify.js" in c.get("/certificates/0").text
+    assert 'type="module" src="/static/verify.js"' in c.get("/certificates/0").text
 
 
 def test_built_page_counts_real_code(site):
