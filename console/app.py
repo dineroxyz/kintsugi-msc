@@ -457,9 +457,8 @@ def live_page(request: Request):
         entries = load_corpus()
     except Exception:
         entries = []
-    os.environ.setdefault("KINTSUGI_CERT_DIR", CERT_DIR)
     body = P.live(entries, L.recordings(), live_enabled=L.enabled(),
-                  repairs=L.repair_count(), csrf=auth.form_token("live"),
+                  repairs=L.repair_count(CERT_DIR), csrf=auth.form_token("live"),
                   status=live_status(request),
                   welcome=request.query_params.get("welcome") == "1",
                   recent=A.recent_runs(72, 8), titles=titles())

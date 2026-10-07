@@ -157,10 +157,10 @@ def load_recording(name: str) -> tuple[dict, list[dict]] | None:
     return rows[0], rows[1:]
 
 
-def repair_count() -> int:
+def repair_count(study_certs: str = "") -> int:
     """Repairs mended in gold: the study's certificates plus live ones."""
     total = 0
-    for d in (os.environ.get("KINTSUGI_CERT_DIR", ""), LIVE_CERTS):
+    for d in (study_certs, LIVE_CERTS):
         if d and os.path.isdir(d):
             total += sum(1 for n in os.listdir(d) if n.endswith(".json"))
     return total

@@ -244,3 +244,8 @@ def test_change_password(site):
     assert "Password changed" in ok.text
     assert A.authenticate("dev@example.com", "another long one") is not None
     assert A.authenticate("dev@example.com", "a long passphrase here") is None
+
+
+def test_explanations_are_plain_text():
+    from control_plane.study.live import plain_text
+    assert plain_text("# What went wrong\n\n**A** bug.\n\n- It was fixed.") == "A bug. It was fixed."

@@ -285,10 +285,15 @@ def ingest_allowed(service_id: int) -> bool:
 
 
 def recent_runs(hours: int = 24, limit: int = 40) -> list[Run]:
+    """Recent runs; empty when the database is unavailable, so the pages that
+    show them still render."""
     since = (datetime.now(timezone.utc) - timedelta(hours=hours)).isoformat()
-    with get_session() as s:
-        return list(s.scalars(select(Run).where(Run.started_at >= since)
-                              .order_by(Run.id.desc()).limit(limit)))
+    try:
+        with get_session() as s:
+            return list(s.scalars(select(Run).where(Run.started_at >= since)
+                                  .order_by(Run.id.desc()).limit(limit)))
+    except Exception:
+        return []
 
 
 def change_password(user_id: int, current: str, new: str) -> None:

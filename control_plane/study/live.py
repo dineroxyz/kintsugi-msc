@@ -178,6 +178,17 @@ def run_live(entry: CorpusEntry, emit, *, complete=None,
 EXPLAIN_MODEL = "claude-haiku-4-5-20251001"
 
 
+def plain_text(text: str) -> str:
+    """Strip any Markdown a model adds anyway: headings, bullets, emphasis."""
+    import re
+    lines = [line.strip() for line in text.splitlines()]
+    kept = [re.sub(r"^[-*+]\s+|^\d+\.\s+", "", line) for line in lines
+            if line and not line.startswith("#")]
+    out = " ".join(kept)
+    out = re.sub(r"[*_`]{1,3}([^*_`]+)[*_`]{1,3}", r"\1", out)
+    return re.sub(r"\s+", " ", out).strip()
+
+
 def _explain(heal: dict) -> str | None:
     """A short plain-English note on what broke and why, written by a small
     model from the evidence. Shown labelled as unverified: the certificate,
@@ -191,15 +202,16 @@ def _explain(heal: dict) -> str | None:
         prompt = (
             "A web service crashed and an automated system fixed it. Explain to a "
             "non-programmer, in at most three short sentences and plain English, what "
-            "went wrong and what the fix changed. No jargon, no code, no lists.\n\n"
+            "went wrong and what the fix changed. Reply with plain sentences only: no "
+            "headings, no bullet points, no bold, no code.\n\n"
             f"Request: {req.get('method', '')} {req.get('path', '')}\n"
             f"Error: {event.get('exception_type', '')}: {str(event.get('exception_message', ''))[:200]}\n"
             f"Patch:\n{cert['patch'][:3000]}")
         msg = anthropic.Anthropic().messages.create(
             model=os.environ.get("KINTSUGI_EXPLAIN_MODEL", EXPLAIN_MODEL),
             max_tokens=220, messages=[{"role": "user", "content": prompt}])
-        text = "".join(b.text for b in msg.content if b.type == "text").strip()
-        return text[:700] or None
+        text = "".join(b.text for b in msg.content if b.type == "text")
+        return plain_text(text)[:700] or None
     except Exception:
         return None
 
@@ -228,7 +240,7 @@ def _record_pull_request(entry, rig, heal: dict, result: dict, run: str) -> dict
                  "reproduction": "the failure no longer happens", "suite": "nothing else broke"}
         site = os.environ.get("KINTSUGI_PUBLIC_URL", "https://console-production-f3b9.up.railway.app")
         return github_pr.open_repair_pr(
-            run=run.replace("kintsugi-live-", "")[:24], entry_id=entry.id, title=entry.title,
+            run=time.strftime("%Y%m%d-%H%M%S"), entry_id=entry.id, title=entry.title,
             buggy=buggy, fixed=fixed, regression_test=outcome.regression_test,
             evidence={"signature": cert["signature"], "request": f"{req.get('method', '')} {req.get('path', '')}",
                       "exception": event.get("exception_type", ""),
