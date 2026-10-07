@@ -95,7 +95,7 @@
 
   // ------------------------------------------------------- matrix tooltip
   var tip = document.createElement("div");
-  tip.className = "tip"; tip.setAttribute("role", "tooltip"); tip.id = "mx-tip";
+  tip.className = "tip"; tip.id = "mx-tip"; tip.setAttribute("aria-hidden", "true");
   document.body.appendChild(tip);
 
   function showTip(cell) {
@@ -115,6 +115,7 @@
       list.appendChild(li);
     });
     tip.appendChild(list);
+    tip.setAttribute("role", "tooltip"); tip.removeAttribute("aria-hidden");
     var r = cell.getBoundingClientRect();
     tip.classList.add("on");
     var w = tip.offsetWidth, h = tip.offsetHeight;
@@ -126,6 +127,7 @@
   }
   function hideTip() {
     tip.classList.remove("on");
+    tip.removeAttribute("role"); tip.setAttribute("aria-hidden", "true");
     var owner = document.querySelector("[aria-describedby='mx-tip']");
     if (owner) owner.removeAttribute("aria-describedby");
   }

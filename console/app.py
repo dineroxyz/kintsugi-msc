@@ -104,6 +104,13 @@ def page(title: str, active: str, body: str, status: int = 200,
                         headers={"Cache-Control": "no-store"} if user else None)
 
 
+def as_page_heading(fragment: str) -> str:
+    """Detail fragments open with an h2 (they live inside a dialog); as a
+    page of their own, that heading is the page's h1."""
+    html = fragment.replace("<h2>", "<h1>", 1).replace("</h2>", "</h1>", 1)
+    return html.replace("<h3", "<h2").replace("</h3>", "</h2>")
+
+
 def not_found(what: str, back: str, back_label: str) -> HTMLResponse:
     return page("Not found", "", f"<h1>{E(what)}</h1><p class=lede>It may "
                 f'have been mistyped. <a href="{back}">{E(back_label)}</a>.</p>',
@@ -286,7 +293,7 @@ def bug_page(bug: str):
     html = V.bug_detail(trials(), bug, titles())
     if html is None:
         return not_found(f"No bug called {bug}", "/results", "Back to the results")
-    return page(f"Bug {bug}", "results", html)
+    return page(f"Bug {bug}", "results", as_page_heading(html))
 
 
 @app.get("/fragment/bug/{bug}", response_class=HTMLResponse)
@@ -308,7 +315,7 @@ def test_page(test_id: int):
     if t is None:
         return not_found(f"No test number {test_id}", "/results#tests", "See every test")
     return page(f"Test {test_id}", "results",
-                V.test_detail(t, titles(), cert_seq())
+                as_page_heading(V.test_detail(t, titles(), cert_seq()))
                 + f'<p class="links"><a href="/bugs/{E(t["entry"])}">Every test '
                 f'of bug {E(t["entry"])}</a><a href="/results#tests">All tests</a></p>')
 

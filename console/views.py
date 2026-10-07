@@ -265,12 +265,12 @@ def matrix(trials: list[dict], titles: dict[str, str]) -> str:
                         + ". ".join(f"Run {i + 1}: {x}" for i, x in
                                     enumerate(runs_text.split("|"))))
                 out.append(
-                    f'<a class="mx-cell" role="gridcell" href="/bugs/{E(b)}" '
+                    f'<span class="mx-gc" role="gridcell"><a class="mx-cell" href="/bugs/{E(b)}" '
                     f'data-detail="/fragment/bug/{E(b)}" data-label="Bug {E(b)}" '
                     f'data-bug="{E(b)}" data-title="{E(titles.get(b, ""))}" '
                     f'data-approach="{E(D.APPROACH_NAME[a])}" '
                     f'data-expected="{E(D.EXPECTED_LABEL.get(expected.get(b), ""))}" '
-                    f'data-runs="{E(runs_text)}" aria-label="{E(aria)}">{bars}</a>')
+                    f'data-runs="{E(runs_text)}" aria-label="{E(aria)}">{bars}</a></span>')
             return (f'<div class="mx-group" role="presentation" data-label="{E(label)}">'
                     f'{"".join(out)}</div>')
 
