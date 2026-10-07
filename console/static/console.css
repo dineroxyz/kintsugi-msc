@@ -578,7 +578,7 @@ pre { background: var(--code-bg); border: 1px solid var(--rule);
 @media (max-width: 640px) { .findings { grid-template-columns: 1fr; } }
 
 .explore { display: grid; gap: var(--s4);
-           grid-template-columns: repeat(4, minmax(0, 1fr)); }
+           grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
 .tile { display: block; padding: var(--s5); border: 1px solid var(--rule);
         border-radius: var(--radius); text-decoration: none;
         transition: border-color var(--fast) var(--ease),

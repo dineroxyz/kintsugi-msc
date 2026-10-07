@@ -17,6 +17,26 @@ uvicorn console.app:app --port 8100     # console on http://localhost:8100
 Live site, if the laptop fails: https://console-production-f3b9.up.railway.app
 (add `?theme=light` for a projector).
 
+## Start here: the Live view (3 min, the centrepiece)
+Videos: `demo-0-live-heal.mp4`, `demo-0-live-refusal.mp4`
+
+Start the console with live runs on (needs `.env` with the model key):
+
+```bash
+set -a; . ./.env; set +a
+KINTSUGI_LIVE=1 KINTSUGI_STUDY_DIR=$PWD/study/main \
+KINTSUGI_BANK_PATH=$PWD/study/supp/practice_bank.jsonl \
+uvicorn console.app:app --port 8100
+```
+
+Open http://localhost:8100/live, hand the examiner the mouse, and let them
+pick a bug and press **Break it**. Dots turn red as the bug goes live, the
+steps light up, the patch types out as the model writes it, the gate checks
+each attempt, the shop turns green, the certificate stamps, and a new gold
+seam joins the 494 already on the bowl. Then pick F11 to show a bug it
+refuses to touch. If the Wi-Fi or the model fails, press **Replay a recorded
+run**: the same screen, a real earlier run, labelled as a replay.
+
 ## 1. Open on the home page and practice (2 min)
 Video: `demo-1-home-and-practice.mp4`
 

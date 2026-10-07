@@ -97,8 +97,8 @@ def home(trials: list[dict], cert_count: int, supp_dir: str) -> str:
 error happen again in a safe copy, lets an AI write a fix, and only puts that fix
 live once the error is shown to be gone. Every repair leaves a signed record
 anyone can check.</p>
-<div class="cta-row"><a class="btn btn-primary" href="/results">See the results</a>
-<a class="btn" href="/guide">How to use this site</a></div>
+<div class="cta-row"><a class="btn btn-primary" href="/live">Break it, and watch it mend</a>
+<a class="btn" href="/results">See the results</a></div>
 </div>
 <div class="home-hero-art">{bowl()}</div>
 </section>
@@ -128,6 +128,8 @@ in the main experiment. These are the headlines; the
 <section class="section" aria-labelledby="explore-title">
 <div class="section-head"><h2 id="explore-title">Explore</h2></div>
 <div class="explore">
+<a class="tile" href="/live"><h3>Live</h3><p>Plant a bug in the running shop and
+watch Kintsugi catch it, prove it, fix it and sign for it.</p></a>
 <a class="tile" href="/results"><h3>Results</h3><p>Every bug and every test,
 with filters, so you can check any number yourself.</p></a>
 <a class="tile" href="/certificates"><h3>Certificates</h3><p>{cert_count:,}

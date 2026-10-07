@@ -13,7 +13,7 @@ const puppeteer = require(process.env.PUPPETEER || 'puppeteer');
 const ROOT = path.resolve(__dirname, '..');
 const OUT = process.argv[2] || path.join(ROOT, 'demo', 'videos');
 const BASE = process.env.CONSOLE_URL || 'http://127.0.0.1:8100';
-const W = 1280, H = 720;
+const W = +(process.env.FILM_W || 1280), H = +(process.env.FILM_H || 720);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 fs.mkdirSync(OUT, { recursive: true });
 
@@ -85,15 +85,39 @@ function playerHtml(rec) {
 }
 
 async function film(page, file, action) {
-  const webm = path.join(OUT, file + '.webm');
-  const recorder = await page.screencast({ path: webm });
+  // Record with the browser's own frame timestamps, so the video plays back
+  // at exactly the pace things happened (a fixed-rate recorder would drop
+  // idle frames and speed playback up).
+  const dir = fs.mkdtempSync(path.join(OUT, '.frames-'));
+  const cdp = await page.createCDPSession();
+  const frames = [];
+  cdp.on('Page.screencastFrame', async f => {
+    const n = frames.length;
+    fs.writeFileSync(path.join(dir, `f${String(n).padStart(6, '0')}.jpg`), Buffer.from(f.data, 'base64'));
+    frames.push(f.metadata.timestamp);
+    try { await cdp.send('Page.screencastFrameAck', { sessionId: f.sessionId }); } catch (e) {}
+  });
+  await cdp.send('Page.startScreencast', { format: 'jpeg', quality: 92, everyNthFrame: 1 });
+  const t0 = Date.now() / 1000;
   await action();
-  await recorder.stop();
+  const t1 = Date.now() / 1000;
+  await cdp.send('Page.stopScreencast');
+  await sleep(300);
+  // concat list: each frame shown until the next one arrived; the last one
+  // until the action ended
+  const lines = [];
+  for (let i = 0; i < frames.length; i++) {
+    const until = i + 1 < frames.length ? frames[i + 1] : Math.max(frames[i] + 0.04, t1 - t0 + frames[0]);
+    lines.push(`file 'f${String(i).padStart(6, '0')}.jpg'`, `duration ${Math.max(0.001, until - frames[i]).toFixed(4)}`);
+  }
+  lines.push(`file 'f${String(frames.length - 1).padStart(6, '0')}.jpg'`);
+  fs.writeFileSync(path.join(dir, 'list.txt'), lines.join('\n'));
   const mp4 = path.join(OUT, file + '.mp4');
-  execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', webm, '-c:v', 'libx264',
-    '-pix_fmt', 'yuv420p', '-preset', 'slow', '-crf', '20', '-movflags', '+faststart', mp4]);
-  fs.unlinkSync(webm);
-  console.log('wrote', mp4);
+  execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'concat', '-safe', '0', '-i',
+    path.join(dir, 'list.txt'), '-vf', 'fps=30,format=yuv420p,scale=trunc(iw/2)*2:trunc(ih/2)*2',
+    '-c:v', 'libx264', '-preset', 'slow', '-crf', '20', '-movflags', '+faststart', mp4]);
+  fs.rmSync(dir, { recursive: true, force: true });
+  console.log('wrote', mp4, `(${frames.length} frames, ${(t1 - t0).toFixed(1)} s)`);
 }
 
 async function smoothScroll(page, to, ms = 1600) {
@@ -166,6 +190,19 @@ const yOf = (page, sel) => page.$eval(sel, e => e.getBoundingClientRect().top + 
     for (const y of ys) { await smoothScroll(page, y, 1300); await sleep(2600); }
     await sleep(1500);
   });
+
+  // 3. the Live view, replaying recorded real runs
+  for (const [bug, name] of [['F03', 'demo-0-live-heal'], ['F11', 'demo-0-live-refusal']]) {
+    await film(page, name, async () => {
+      await go('/live?theme=dark'); await sleep(1500);
+      await page.select('#live-bug', bug); await sleep(600);
+      const replayBtn = await page.$('#live-replay');
+      await (replayBtn || await page.$('#live-go')).click();
+      await page.waitForFunction(() => document.getElementById('live-go').textContent === 'Break it again',
+                                 { timeout: 120000 });
+      await sleep(3500);
+    });
+  }
 
   await browser.close();
 })();
