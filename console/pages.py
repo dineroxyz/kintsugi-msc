@@ -502,8 +502,9 @@ your daily allowance. Recordings of runs may also be replayed publicly on the
 Live page; they contain the bug and the platform's steps, not your email.</li>
 </ul>
 <p>These are held in the project's database on Railway. You can delete your
-account from your account page at any time; that removes your email, password
-hash and run history immediately.</p></section>
+account from your account page at any time; that immediately removes your email
+and password hash and unlinks your runs from you. The runs remain only as
+anonymous entries, which keeps the site's daily usage limit honest.</p></section>
 
 <section><h2>If you sign in</h2>
 <p>Signing in sets one cookie, <code>kintsugi_session</code>, which proves the
@@ -626,8 +627,9 @@ def account(user, runs: list, left: dict, titles: dict, delete_token: str, *,
 {table}
 <section class="danger" aria-labelledby="del-title">
 <h2 id="del-title" style="font-size:22px;margin:48px 0 8px">Delete your account</h2>
-<p class="muted">This removes your email, your password and your run history. Recordings
-already shown on the public Live page stay, but no longer point to you.</p>
+<p class="muted">This removes your email and password, and unlinks your runs from you.
+The runs themselves stay as anonymous entries (with their public recordings), so
+the site's daily limit still counts them.</p>
 <form method="post" action="/account/delete" class="auth-form" style="max-width:420px">
 <input type="hidden" name="csrf" value="{E(delete_token)}">
 <div class="field"><label for="confirm">Type your email to confirm</label>

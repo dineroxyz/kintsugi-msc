@@ -7,7 +7,8 @@ recorded against the account that started it.
 
 Stored per account: the email address, a salted scrypt hash of the password
 (never the password), the time it was created, and the runs it started.
-Deleting an account deletes all of that.
+Deleting an account deletes the email and password hash and unlinks the
+runs from it; the runs themselves stay, anonymous, in the site's count.
 """
 
 from __future__ import annotations
@@ -126,8 +127,12 @@ def get_user(email: str) -> User | None:
 
 
 def delete_user(user_id: int) -> None:
+    """Delete the account. Its runs stay, unlinked from anyone, so they still
+    count towards the site's daily ceiling (otherwise deleting and re-creating
+    accounts would get round the cost limit)."""
+    from sqlalchemy import update
     with get_session() as s:
-        s.execute(delete(Run).where(Run.user_id == user_id))
+        s.execute(update(Run).where(Run.user_id == user_id).values(user_id=None))
         s.execute(delete(User).where(User.id == user_id))
         s.commit()
 

@@ -188,7 +188,9 @@ def test_deleting_an_account_removes_everything(env):
     assert r.status_code == 303 and A.get_user("ada@example.com") is None
     from control_plane.db import get_session
     from sqlalchemy import func, select
-    with get_session() as s:
-        assert s.scalar(select(func.count()).select_from(A.Run)) == 0
+    with get_session() as s:                 # runs stay, but belong to no one
+        assert s.scalar(select(func.count()).select_from(A.Run)) == 1
+        assert s.scalar(select(func.count()).select_from(A.Run)
+                        .where(A.Run.user_id.is_not(None))) == 0
     c.cookies.clear()
     assert c.get("/account", follow_redirects=False).status_code == 303
