@@ -153,3 +153,4 @@ def test_guide_and_privacy_pages(real):
         assert f'id="{anchor}"' in guide
     privacy = real.get("/privacy").text
     assert "kintsugi_session" in privacy and "No cookies for visitors" in privacy
+    assert 'href="mailto:oluwaseyiabe0@gmail.com"' in privacy

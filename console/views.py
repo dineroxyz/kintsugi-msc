@@ -108,7 +108,8 @@ def shell(title: str, active: str, body: str, *, description: str = "",
 <p class="small muted">A self-healing software platform that repairs live
 apps with AI, but only with proof. MSc Computer Science project, University
 of Lagos.</p>
-<p class="small muted">By Abe Oluwaseyi Elizabeth</p></div>
+<p class="small muted">By Abe Oluwaseyi Elizabeth.
+<a href="mailto:oluwaseyiabe0@gmail.com">oluwaseyiabe0@gmail.com</a></p></div>
 <nav aria-label="Explore"><h2 class="foot-h">Explore</h2>
 <a href="/results">Results</a><a href="/certificates">Certificates</a>
 <a href="/practice">Practice</a></nav>

@@ -259,7 +259,8 @@ With the project's code, the same checks can be run again with
 <p>The results, certificates, practice log and this guide are public. The
 <b>Errors</b> page, which shows failures reported by the live demo app, is for
 the project's operator and needs signing in. If you are reviewing the project
-and need access, ask the author.</p></section>
+and need access, email the author at
+<a href="mailto:oluwaseyiabe0@gmail.com">oluwaseyiabe0@gmail.com</a>.</p></section>
 
 <section id="keys"><h2>Keyboard and display</h2>
 <table class="keys"><thead><tr><th scope="col">Key</th><th scope="col">What it does</th></tr></thead><tbody>
@@ -327,8 +328,8 @@ passwords and access keys before anything is stored.</p></section>
 <section><h2>Your rights</h2>
 <p>Because the site collects no personal information about visitors beyond the
 hosting provider's standard logs, there is normally nothing held about you. If
-you have a question about privacy, or believe something here is wrong, contact
-the author through the Department of Computer Science, University of Lagos.
+you have a question about privacy, or believe something here is wrong, email
+the author at <a href="mailto:oluwaseyiabe0@gmail.com">oluwaseyiabe0@gmail.com</a>.
 This policy is written with the Nigeria Data Protection Act 2023 in mind.</p></section>
 
 <section><h2>Changes</h2>
