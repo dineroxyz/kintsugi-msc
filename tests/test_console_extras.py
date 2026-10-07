@@ -249,3 +249,12 @@ def test_change_password(site):
 def test_explanations_are_plain_text():
     from control_plane.study.live import plain_text
     assert plain_text("# What went wrong\n\n**A** bug.\n\n- It was fixed.") == "A bug. It was fixed."
+
+
+def test_verification_report_is_readable(site):
+    c, _ = site
+    text = c.get("/verification").text
+    assert "Certificate check report" in text and "494 of 494" in text
+    assert "Caught: its contents no longer matched its fingerprint" in text
+    assert 'href="/data/verification.json" download' in text
+    assert c.get("/data/verification.json").json()["replay"]["verified"] == 130

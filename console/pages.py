@@ -356,7 +356,7 @@ University of Lagos. The study design was fixed before any test ran. Every test
 record, every certificate and the independent check of each one are published
 here, so every number on this page can be traced to its source.</p>
 <p class="links"><a href="/results">Every test</a><a href="/certificates">Every certificate</a>
-<a href="/data/verification.json">The certificate check report</a><a href="/guide">How to read it all</a></p>
+<a href="/verification">The certificate check report</a><a href="/guide">How to read it all</a></p>
 </div>
 <figure class="research-art">{gold_bowl}<figcaption>{cert_count:,} repairs, one gold
 seam each.</figcaption></figure>
@@ -471,8 +471,9 @@ record was edited, removed or added.</li>
 <li><b>The repair really works.</b> Using only the certificate and a fresh copy
 of the broken app, replay the saved request: it should fail before the fix and
 succeed after it.</li></ol>
-<p>Both checks were run on every certificate from the main experiment. The full
-report is public: <a href="/data/verification.json">certificate check report</a>.
+<p>The first check was run on all 494 certificates from the experiment. The
+second was run on all 130 certificates written by the full Kintsugi setup in the
+main comparison. The results are public: <a href="/verification">certificate check report</a>.
 With the project's code, the same checks can be run again with
 <code>python study/verify_certificates.py</code>.</p>
 <p>You can also check any certificate in your own browser: open it and press
@@ -1110,3 +1111,77 @@ aria-label="The repair loop: a live service with the capture agent sends a failu
 <path class="arch-line" d="M640 218V114"/>
 <path class="arch-line seam" d="M990 110V300H80V114"/><text x="540" y="318" class="s">every repair leaves a regression test and a certificate behind</text>
 </svg></figure>"""
+
+
+TAMPER_WORDS = {"edited patch": ("We changed the fix inside one certificate.",
+                                 "its contents no longer matched its fingerprint"),
+                "certificate removed": ("We deleted one certificate from the chain.",
+                                        "the next certificate no longer linked to the one before it"),
+                "signed under another key": ("We re-signed one certificate with a different key.",
+                                             "its signature did not match the study's key")}
+
+
+def verification_report(v: dict, cert_seq: dict) -> str:
+    """The certificate check report, readable by anyone."""
+    if not v:
+        return ("<div class=page-head><h1>Certificate check report</h1>"
+                "<p class=lede>No report has been published yet.</p></div>")
+    ki, ac, rp = v.get("keyless_integrity", {}), v.get("authenticated_chain", {}), v.get("replay", {})
+    tamper = v.get("tamper_checks", {})
+    caught = sum(str(x).startswith("detected") for x in tamper.values())
+
+    def ok(flag):
+        return '<span class="ok">Yes</span>' if flag else '<span class="bad">No</span>'
+
+    tamper_rows = "".join(
+        f"<li><b>{E(TAMPER_WORDS.get(k, (k, ''))[0])}</b> "
+        + (f"Caught: {E(TAMPER_WORDS.get(k, (k, str(r)))[1] or str(r))}."
+           if str(r).startswith("detected") else f"Not caught: {E(str(r))}.")
+        + "</li>" for k, r in tamper.items())
+    rows = "".join(
+        f'<tr><td><a href="/certificates/{r["sequence"]}">{r["sequence"]:06d}</a></td>'
+        f'<td><a href="/bugs/{E(r["entry"])}" class="mono">{E(r["entry"])}</a></td>'
+        f'<td class="num">{r["seed"]}</td><td>{ok(r["reproduces"])}</td>'
+        f'<td>{ok(r["patch_applies"])}</td><td>{ok(r["patch_heals"])}</td></tr>'
+        for r in rp.get("rows", []))
+    summary = [
+        (f'{ki.get("certificates", 0)} of {ki.get("certificates", 0)}' if ki.get("ok") else "Failed",
+         "certificates unchanged",
+         "Each certificate's fingerprint was recomputed from its contents and matched, and "
+         "each one links correctly to the one before it."),
+        (f'{ac.get("certificates", 0)} of {ac.get("certificates", 0)}' if ac.get("ok") else "Failed",
+         "signatures valid",
+         "Each certificate's signature was checked with the study's secret signing key."),
+        (f"{caught} of {len(tamper)}", "forgeries caught",
+         "To show the checks work, we deliberately damaged copies of the record."),
+        (f'{rp.get("verified", 0)} of {rp.get("certificates", 0)}', "repairs proven again from scratch",
+         "Every certificate from the full Kintsugi setup in the main comparison was replayed "
+         "on a fresh copy of the broken app."),
+    ]
+    tiles = "".join(f'<div class="vr-tile"><b>{E(a)}</b><span>{E(b)}</span><p>{E(c)}</p></div>'
+                    for a, b, c in summary)
+    return f"""
+<div class="page-head"><h1>Certificate check report</h1>
+<p class="lede">Every repair Kintsugi made in the experiment left a certificate. This
+report shows what happened when every one of them was checked independently,
+without trusting the platform's word. Generated {E(v.get("generated_at", "")[:10])}.</p></div>
+<div class="vr-tiles">{tiles}</div>
+<section class="section" aria-labelledby="tamper-title">
+<div class="section-head"><h2 id="tamper-title">Can someone change the record unnoticed?</h2>
+<p>We tried three ways of faking it, on a copy. Each one was caught.</p></div>
+<ul class="vr-list">{tamper_rows}</ul></section>
+<section class="section" aria-labelledby="replay-title">
+<div class="section-head"><h2 id="replay-title">Does each repair really work?</h2>
+<p>For each certificate, we took a fresh copy of the app with the bug in it, sent the
+request saved in the certificate, and checked three things: the error happens again,
+the fix in the certificate applies to the code, and after the fix the same request
+works.</p></div>
+<div class="table-scroll"><table class="compare">
+<caption>{rp.get("verified", 0)} of {rp.get("certificates", 0)} repairs proven again.
+"Test round" is which of the three repeats of the experiment it came from.</caption>
+<thead><tr><th scope="col">Certificate</th><th scope="col">Bug</th><th scope="col" class="num">Test round</th>
+<th scope="col">Error happens again</th><th scope="col">Fix applies</th><th scope="col">Fix works</th></tr></thead>
+<tbody>{rows}</tbody></table></div></section>
+<p class="muted">For programmers: <a href="/data/verification.json" download>download the raw report (JSON)</a>,
+or run the same checks with <code>python study/verify_certificates.py</code>.
+How to check a single certificate in your browser is on the <a href="/trust">trust page</a>.</p>"""

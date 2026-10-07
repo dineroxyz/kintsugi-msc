@@ -786,6 +786,13 @@ def trust():
                         len(cert_seq())))
 
 
+@app.get("/verification", response_class=HTMLResponse)
+def verification_page():
+    v = verification()
+    v.pop("by_sequence", None)
+    return page("Certificate check report", "certificates", P.verification_report(v, cert_seq()))
+
+
 @app.get("/data/verification.json")
 def verification_json():
     if not os.path.exists(VERIFY_PATH):

@@ -127,7 +127,7 @@ of Lagos.</p>
 <nav aria-label="Data and policy"><h2 class="foot-h">Data and policy</h2>
 <a href="/trust">Why you can trust the record</a>
 <a href="/data/trials.json">Raw test data</a>
-<a href="/data/verification.json">Certificate check report</a>
+<a href="/verification">Certificate check report</a>
 <a href="/privacy">Privacy policy</a></nav>
 </div>
 <p class="foot-note small faint">Fonts are served from this site. No tracking, no
