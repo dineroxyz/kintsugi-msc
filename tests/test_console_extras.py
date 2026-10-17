@@ -268,3 +268,20 @@ def test_correctness_section_is_honest(site):
     assert "/results#correct-title" in c.get("/").text
     data = c.get("/data/correctness.json").json()
     assert data["totals"]["main"] == 127
+
+
+def test_owner_accounts_are_unlimited(site, monkeypatch):
+    c, A = site
+    import console.app as app
+    monkeypatch.setenv("KINTSUGI_LIVE", "1")
+    monkeypatch.setattr(app.L, "enabled", lambda: True)
+    monkeypatch.setattr(A, "RUNS_PER_ACCOUNT_PER_DAY", 1)
+    _signup(c)
+    user = A.authenticate("dev@example.com", "a long passphrase here")
+    for _ in range(3):
+        A.start_run(user.id, "F03")
+    assert "Owner account" not in c.get("/account").text
+    monkeypatch.setenv("KINTSUGI_UNLIMITED_EMAILS", "someone@else.com, DEV@example.com")
+    assert "Owner account: unlimited real runs." in c.get("/account").text
+    assert "Owner account: unlimited real runs." in c.get("/live").text
+    assert A.runs_left(user.id)["site"] == A.RUNS_PER_DAY      # owner runs leave visitors' cap alone

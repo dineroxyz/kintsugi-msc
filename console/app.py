@@ -316,7 +316,7 @@ def _account_page(request: Request, user, *, new_key: tuple | None = None,
     services = [(svc, A.service_incidents(svc)) for svc in A.user_services(user.id)]
     base = os.environ.get("KINTSUGI_PUBLIC_URL", str(request.base_url).rstrip("/"))
     return page("Your account", "account",
-                P.account(user, A.user_runs(user.id), A.runs_left(user.id),
+                P.account(user, A.user_runs(user.id), {**A.runs_left(user.id), "unlimited": A.is_unlimited(user.email)},
                           titles(), auth.form_token("delete"), live_enabled=L.enabled(),
                           services=services, service_token=auth.form_token("service"),
                           new_key=new_key, service_error=service_error, base_url=base,
@@ -443,6 +443,8 @@ def live_status(request: Request) -> dict:
     user = A.get_user(who["u"])
     if user is None:
         return {"can": False, "why": "signin"}
+    if A.is_unlimited(user.email):
+        return {"can": True, "why": "owner", "user_id": user.id}
     left = A.runs_left(user.id)
     if left["site"] <= 0:
         return {"can": False, "why": "site_cap", **left}

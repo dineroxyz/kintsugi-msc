@@ -746,7 +746,8 @@ def account(user, runs: list, left: dict, titles: dict, delete_token: str, *,
              '<th scope="col" class="num">When (UTC)</th><th scope="col"><span class="sr-only">Replay</span></th>'
              f'</tr></thead><tbody>{rows}</tbody></table></div>' if runs else
              '<p class="muted">No runs yet. <a href="/live">Break your first bug</a>.</p>')
-    allowance = (f"You have <b>{left['account']}</b> of {left['per_account']} runs left in "
+    allowance = ("Owner account: unlimited real runs." if live_enabled and left.get("unlimited") else
+                 f"You have <b>{left['account']}</b> of {left['per_account']} runs left in "
                  "the last 24 hours." if live_enabled else
                  "Live runs are switched off on this copy of the site; replays still work.")
     return f"""
@@ -836,7 +837,7 @@ def live(entries: list, recordings: list[dict], *, live_enabled: bool,
                              for k, v in by_entry.items()}))
     why = status.get("why")
     left = (f" You have {status['account']} of {status['per_account']} runs left today."
-            if why == "account" else "")
+            if why == "account" else " Owner account: unlimited real runs." if why == "owner" else "")
     mode_note = {
         "replay": ("Replay: this copy of the site has no test rig or AI key, so each run "
                    "shown is a recording of a real live run, played back at the pace it "
@@ -850,6 +851,7 @@ def live(entries: list, recordings: list[dict], *, live_enabled: bool,
                      "bounded. Recorded runs can be replayed any time."),
         "account": "Live: this runs the real platform and a real AI model, now." + left,
         "operator": "Live: operator run, no daily limit.",
+        "owner": "Live: this runs the real platform and a real AI model, now." + left,
         "local": "Live: this runs the real platform and the real AI model, now.",
     }.get(why, "")
     if welcome:

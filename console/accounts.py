@@ -144,15 +144,32 @@ def _day_start() -> str:
     return (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
 
 
+def unlimited_emails() -> set[str]:
+    """Owner accounts with no daily allowance (KINTSUGI_UNLIMITED_EMAILS,
+    comma separated)."""
+    return {e.strip().lower() for e in os.environ.get("KINTSUGI_UNLIMITED_EMAILS", "").split(",")
+            if e.strip()}
+
+
+def is_unlimited(email: str) -> bool:
+    return email.strip().lower() in unlimited_emails()
+
+
 def runs_left(user_id: int) -> dict:
     """What this account, and the site as a whole, may still run today
-    (a rolling 24 hours)."""
+    (a rolling 24 hours). Owner accounts' runs do not use up the site's
+    allowance for visitors."""
     since = _day_start()
     with get_session() as s:
         mine = s.scalar(select(func.count()).select_from(Run)
                         .where(Run.user_id == user_id, Run.started_at >= since)) or 0
-        everyone = s.scalar(select(func.count()).select_from(Run)
-                            .where(Run.started_at >= since)) or 0
+        owners = unlimited_emails()
+        owner_ids = (list(s.scalars(select(User.id).where(func.lower(User.email).in_(owners))))
+                     if owners else [])
+        q = select(func.count()).select_from(Run).where(Run.started_at >= since)
+        if owner_ids:
+            q = q.where((Run.user_id.is_(None)) | (Run.user_id.not_in(owner_ids)))
+        everyone = s.scalar(q) or 0
     return {"account": max(0, RUNS_PER_ACCOUNT_PER_DAY - mine),
             "site": max(0, RUNS_PER_DAY - everyone),
             "per_account": RUNS_PER_ACCOUNT_PER_DAY}
