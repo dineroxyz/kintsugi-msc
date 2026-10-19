@@ -69,7 +69,7 @@ def shell(title: str, active: str, body: str, *, description: str = "",
           extra_head: str = "", role: str | None = None) -> str:
     links = list(NAV)
     if user and role == "operator":
-        links.append(("/incidents", "errors", "Errors"))
+        links.append(("/admin", "admin", "Admin"))
     elif user:
         links.append(("/account", "account", "Account"))
     nav = "".join(

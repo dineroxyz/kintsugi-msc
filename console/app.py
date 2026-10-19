@@ -89,7 +89,7 @@ async def _context(request: Request, call_next):
         # the live incident data is for the signed-in operator only;
         # ingest (POST) stays open so the services can report failures
         if (request.method == "GET" and request.url.path.startswith("/api/incidents")
-                and not auth.is_operator(request)):
+                and not is_admin(request)):
             return JSONResponse({"error": "sign in required"}, status_code=401)
         response = await call_next(request)
     finally:
@@ -97,6 +97,14 @@ async def _context(request: Request, call_next):
     for k, v in SECURITY_HEADERS.items():
         response.headers.setdefault(k, v)
     return response
+
+
+def is_admin(request: Request) -> bool:
+    """The operator login, or a signed-in owner account."""
+    who = auth.identity(request)
+    if not who:
+        return False
+    return who["r"] == "operator" or A.is_admin(who["u"])
 
 
 def page(title: str, active: str, body: str, status: int = 200,
@@ -301,7 +309,7 @@ def account(request: Request):
     if not who:
         return auth.login_redirect(request)
     if who["r"] == "operator":
-        return RedirectResponse("/incidents", status_code=303)
+        return RedirectResponse("/admin", status_code=303)
     user = A.get_user(who["u"])
     if user is None:                                   # deleted elsewhere
         response = RedirectResponse("/", status_code=303)
@@ -320,7 +328,8 @@ def _account_page(request: Request, user, *, new_key: tuple | None = None,
                           titles(), auth.form_token("delete"), live_enabled=L.enabled(),
                           services=services, service_token=auth.form_token("service"),
                           new_key=new_key, service_error=service_error, base_url=base,
-                          password_token=auth.form_token("password"), password_msg=password_msg),
+                          password_token=auth.form_token("password"), password_msg=password_msg,
+                          admin=A.is_admin(user.email)),
                 status=status)
 
 
@@ -1035,13 +1044,31 @@ def practice():
 
 # ----------------------------------------------------------------- errors
 
+@app.get("/admin", response_class=HTMLResponse)
+def admin(request: Request):
+    if not is_admin(request):
+        if auth.current_user(request):
+            return page("Admins only", "admin",
+                        "<h1>Admins only</h1><p class=lede>This page is for the "
+                        "project's owner. Your account can run real heals on the "
+                        '<a href="/live">Live</a> page.</p>', status=403)
+        return auth.login_redirect(request)
+    try:
+        from control_plane.api.main import list_incidents
+        errors = len(list_incidents())
+    except Exception:
+        errors = None
+    return page("Admin", "admin",
+                P.admin(A.site_counts(), errors, A.recent_runs(72, 40), titles()))
+
+
 @app.get("/incidents", response_class=HTMLResponse)
 def incidents(request: Request):
-    if not auth.is_operator(request):
+    if not is_admin(request):
         if auth.current_user(request):
-            return page("Operators only", "errors",
-                        "<h1>Operators only</h1><p class=lede>The live error feed is "
-                        "for the project's operator. Your account can run real heals "
+            return page("Admins only", "errors",
+                        "<h1>Admins only</h1><p class=lede>The live error feed is "
+                        "for the project's owner. Your account can run real heals "
                         'on the <a href="/live">Live</a> page.</p>', status=403)
         return auth.login_redirect(request)
     try:

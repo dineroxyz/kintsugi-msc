@@ -285,3 +285,20 @@ def test_owner_accounts_are_unlimited(site, monkeypatch):
     assert "Owner account: unlimited real runs." in c.get("/account").text
     assert "Owner account: unlimited real runs." in c.get("/live").text
     assert A.runs_left(user.id)["site"] == A.RUNS_PER_DAY      # owner runs leave visitors' cap alone
+
+
+def test_owner_accounts_get_admin(site, monkeypatch):
+    c, A = site
+    monkeypatch.delenv("KINTSUGI_ADMIN_EMAILS", raising=False)
+    monkeypatch.delenv("KINTSUGI_UNLIMITED_EMAILS", raising=False)
+    _signup(c)
+    assert "Open admin" not in c.get("/account").text
+    assert c.get("/admin").status_code == 403
+    assert c.get("/incidents").status_code == 403
+    monkeypatch.setenv("KINTSUGI_UNLIMITED_EMAILS", "dev@example.com")
+    account = c.get("/account").text
+    assert 'href="/admin"' in account and "Open admin" in account
+    r = c.get("/admin")
+    assert r.status_code == 200 and "People with accounts" in r.text
+    monkeypatch.setenv("KINTSUGI_ADMIN_EMAILS", "")            # explicit list wins
+    assert c.get("/admin").status_code == 403

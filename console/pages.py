@@ -733,7 +733,8 @@ autocapitalize="none" spellcheck="false"></div>
 def account(user, runs: list, left: dict, titles: dict, delete_token: str, *,
             live_enabled: bool, services: list | None = None, service_token: str = "",
             new_key=None, service_error: str = "", base_url: str = "",
-            password_token: str = "", password_msg: tuple | None = None) -> str:
+            password_token: str = "", password_msg: tuple | None = None,
+            admin: bool = False) -> str:
     rows = "".join(
         f'<tr><td class="mono">{E(r.entry)}</td><td class="muted small">{E(titles.get(r.entry, ""))}</td>'
         f'<td>{E({"recovered": "Mended", "refused": "Left alone", "escalated": "Gave up", "false_fix": "Bad fix", None: "Running"}.get(r.outcome, r.outcome or ""))}'
@@ -755,6 +756,7 @@ def account(user, runs: list, left: dict, titles: dict, delete_token: str, *,
 <p class="lede">{E(user.email)}</p>
 <p class="muted">{allowance}</p>
 <p><a class="btn btn-primary" href="/live">Break a bug</a></p></div>
+{_admin_panel() if admin else ""}
 <h2 style="font-size:22px;margin:0 0 12px">Your runs</h2>
 {table}
 {_services_section(services or [], service_token, new_key, service_error, base_url)}
@@ -794,6 +796,50 @@ def _run_links(r) -> str:
     if r.certificate is not None and r.outcome == "recovered":
         links.append(f'<a href="/live-certificates/{r.certificate}">Certificate</a>')
     return " ".join(links)
+
+
+def _admin_panel() -> str:
+    return ('<section class="admin-panel" aria-labelledby="admin-title">'
+            '<div><h2 id="admin-title">Admin</h2>'
+            '<p class="muted">You are signed in as an owner. See every run on the site, '
+            'the live error feed, and the site\'s health.</p></div>'
+            '<a class="btn btn-primary" href="/admin">Open admin</a></section>')
+
+
+def admin(counts: dict, errors: int | None, runs: list, titles: dict) -> str:
+    """The owner's view: site numbers, every recent run, and where to look next."""
+    word = {"recovered": "Mended", "refused": "Left alone", "escalated": "Gave up",
+            "false_fix": "Bad fix", None: "Running"}
+    tiles = [("People with accounts", counts["users"]),
+             ("Real runs, last 24 hours", counts["runs_today"]),
+             ("Real runs, all time", counts["runs_total"]),
+             ("Connected services", counts["services"]),
+             ("Errors caught", "n/a" if errors is None else errors)]
+    tile_html = "".join(f'<div class="admin-tile"><b>{E(str(v))}</b><span>{E(k)}</span></div>'
+                        for k, v in tiles)
+    rows = "".join(
+        f'<tr><td class="mono">{E(r.entry)}</td><td class="muted small">{E(titles.get(r.entry, ""))}</td>'
+        f'<td>{E(word.get(r.outcome, r.outcome or ""))}{f" in {r.mttr:.1f} s" if r.mttr else ""}</td>'
+        f'<td class="small">{"Owner" if r.user_id is None else f"Account {r.user_id}"}</td>'
+        f'<td class="faint small num">{E(r.started_at[:16].replace("T", " "))}</td>'
+        f'<td>{_run_links(r)}</td></tr>' for r in runs)
+    table = (f'<div class="table-scroll"><table class="ex-table"><thead><tr><th scope="col">Bug</th>'
+             '<th scope="col">What was wrong</th><th scope="col">Result</th><th scope="col">Who</th>'
+             '<th scope="col" class="num">When (UTC)</th><th scope="col"><span class="sr-only">Replay</span></th>'
+             f'</tr></thead><tbody>{rows}</tbody></table></div>' if runs else
+             '<p class="muted">No real runs in the last three days.</p>')
+    return f"""
+<div class="page-head"><h1>Admin</h1>
+<p class="lede">The whole site at a glance. Only owner accounts can open this page.</p></div>
+<div class="admin-tiles">{tile_html}</div>
+<div class="admin-links">
+<a class="btn btn-primary" href="/incidents">Live error feed</a>
+<a class="btn" href="/status">Site health</a>
+<a class="btn" href="/live-certificates">Live certificates</a>
+<a class="btn" href="/verification">Verification report</a>
+<a class="btn" href="/account">Your account</a></div>
+<h2 style="font-size:22px;margin:24px 0 12px">Every real run, last 3 days</h2>
+{table}"""
 
 
 def _recent_feed(runs: list, titles: dict) -> str:

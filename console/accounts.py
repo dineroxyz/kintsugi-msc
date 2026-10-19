@@ -155,6 +155,29 @@ def is_unlimited(email: str) -> bool:
     return email.strip().lower() in unlimited_emails()
 
 
+def is_admin(email: str) -> bool:
+    """Owner accounts double as admins: KINTSUGI_ADMIN_EMAILS, or the
+    unlimited list when that is not set."""
+    raw = os.environ.get("KINTSUGI_ADMIN_EMAILS")
+    admins = ({e.strip().lower() for e in raw.split(",") if e.strip()}
+              if raw is not None else unlimited_emails())
+    return email.strip().lower() in admins
+
+
+def site_counts() -> dict:
+    """Headline numbers for the admin page; zeros when the database is down."""
+    since = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
+    try:
+        with get_session() as s:
+            return {"users": s.scalar(select(func.count(User.id))) or 0,
+                    "runs_today": s.scalar(select(func.count(Run.id))
+                                           .where(Run.started_at >= since)) or 0,
+                    "runs_total": s.scalar(select(func.count(Run.id))) or 0,
+                    "services": s.scalar(select(func.count(Service.id))) or 0}
+    except Exception:
+        return {"users": 0, "runs_today": 0, "runs_total": 0, "services": 0}
+
+
 def runs_left(user_id: int) -> dict:
     """What this account, and the site as a whole, may still run today
     (a rolling 24 hours). Owner accounts' runs do not use up the site's

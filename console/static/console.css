@@ -741,3 +741,18 @@ kbd { display: inline-block; min-width: 26px; padding: 1px 7px;
 .ok { color: var(--healed, var(--gold-ink)); } .bad { color: var(--broken); }
 @media (max-width: 900px) { .vr-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 520px) { .vr-tiles { grid-template-columns: 1fr; } }
+
+/* admin: account panel and owner page */
+.admin-panel { display: flex; gap: var(--s4); align-items: center; justify-content: space-between;
+               flex-wrap: wrap; background: var(--surface); border: 1px solid var(--rule-2);
+               border-left: 4px solid var(--gold, var(--rule-2)); border-radius: 8px;
+               padding: var(--s4) var(--s5); margin: 0 0 var(--s6); }
+.admin-panel h2 { font-size: 20px; margin: 0 0 4px; }
+.admin-panel p { margin: 0; }
+.admin-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+               gap: var(--s3); margin: 0 0 var(--s5); }
+.admin-tile { background: var(--surface); border: 1px solid var(--rule); border-radius: 8px;
+              padding: var(--s3) var(--s4); display: flex; flex-direction: column; gap: 2px; }
+.admin-tile b { font-size: 28px; line-height: 1.1; }
+.admin-tile span { font-size: 13px; color: var(--ink-2, inherit); }
+.admin-links { display: flex; flex-wrap: wrap; gap: var(--s2); }
