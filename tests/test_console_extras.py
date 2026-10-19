@@ -298,6 +298,7 @@ def test_owner_accounts_get_admin(site, monkeypatch):
     monkeypatch.setenv("KINTSUGI_UNLIMITED_EMAILS", "dev@example.com")
     account = c.get("/account").text
     assert 'href="/admin"' in account and "Open admin" in account
+    assert '<a href="/admin">Admin</a>' in c.get("/live").text      # menu tab too
     r = c.get("/admin")
     assert r.status_code == 200 and "People with accounts" in r.text
     monkeypatch.setenv("KINTSUGI_ADMIN_EMAILS", "")            # explicit list wins

@@ -114,7 +114,8 @@ def page(title: str, active: str, body: str, status: int = 200,
     user = who["u"] if who else None
     html = V.shell(title, active, body, user=user, wide=wide,
                    csrf=auth.form_token("logout") if user else "",
-                   extra_head=extra_head, role=who["r"] if who else None)
+                   extra_head=extra_head, role=who["r"] if who else None,
+                   admin=bool(who) and who["r"] == "user" and A.is_admin(who["u"]))
     return HTMLResponse(html, status_code=status,
                         headers={"Cache-Control": "no-store"} if user else None)
 

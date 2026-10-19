@@ -66,12 +66,14 @@ NAV = [("/live", "live", "Live"),
 
 def shell(title: str, active: str, body: str, *, description: str = "",
           user: str | None = None, csrf: str = "", wide: bool = False,
-          extra_head: str = "", role: str | None = None) -> str:
+          extra_head: str = "", role: str | None = None, admin: bool = False) -> str:
     links = list(NAV)
     if user and role == "operator":
         links.append(("/admin", "admin", "Admin"))
     elif user:
         links.append(("/account", "account", "Account"))
+        if admin:
+            links.append(("/admin", "admin", "Admin"))
     nav = "".join(
         f'<a href="{href}"{" aria-current=page" if key == active else ""}>'
         f"{label}</a>" for href, key, label in links)
