@@ -118,8 +118,16 @@ def test_full_live_heal_with_a_scripted_model():
     assert result["outcome"] == "recovered" and result["mttr_seconds"] > 0
     assert kinds == ["start", "traffic_started", "fault_deployed", "captured",
                      "reproduce_start", "reproduce_done", "candidate_start",
-                     "gate_result", "deploying", "deployed", "certificate",
+                     "context", "gate_result", "deploying", "deployed", "certificate",
                      "probe", "recovered", "end"]
+    # the engine-room view gets real evidence: stack, source window, replays, gate reasons
+    captured = next(e for e in events if e["kind"] == "captured")
+    assert captured["frames"] and captured["source"]["line"] in range(
+        captured["source"]["start"], captured["source"]["start"] + len(captured["source"]["lines"]))
+    done = next(e for e in events if e["kind"] == "reproduce_done")
+    assert len(done["verdicts"]) == 5 and all(v["failed"] for v in done["verdicts"])
+    gate = next(e for e in events if e["kind"] == "gate_result")
+    assert set(gate["details"]) == set(gate["conditions"])
     traffic = [s for e in events if e["kind"] == "traffic" for s in e["samples"]]
     assert any(s[1] >= 500 for s in traffic) and any(s[1] < 500 for s in traffic)
     assert all(e["t"] >= 0 for e in events)

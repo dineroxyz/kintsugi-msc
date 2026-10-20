@@ -32,6 +32,24 @@ class Outcome:
     regression_test: str | None = None
 
 
+def _condition_details(conditions: dict) -> dict:
+    """One short, human-readable line per gate condition, for the live view."""
+    out = {}
+    for name, c in conditions.items():
+        if name == "structural":
+            out[name] = "; ".join(c.get("problems") or []) or "no deleted tests, no swallowed error"
+        elif name == "applies":
+            out[name] = (c.get("error") or "")[:160] or "diff applied cleanly to a copy of the tree"
+        elif name == "reproduction":
+            v = c.get("replay_verdict") or {}
+            out[name] = (f"replay still fails: {v.get('exception_type')} at {v.get('top_frame')}"
+                         if v.get("failed") else f"replay passes (HTTP {v.get('status_code')})")
+        elif name == "suite":
+            tail = (c.get("tail") or c.get("note") or "").strip().splitlines()
+            out[name] = tail[-1][:160] if tail else ""
+    return out
+
+
 def heal(capture: dict, service_spec: str, workdir: str, *,
          complete=None, incident_id: int | str = "x",
          suite_path: str | None = "tests",
@@ -57,7 +75,10 @@ def heal(capture: dict, service_spec: str, workdir: str, *,
              "signature": result.signature, "verdicts": result.verdicts}
     emit("reproduce_done", reproduced=result.reproduced, reason=result.reason,
          signature=result.signature,
-         replays=[bool(v.get("failed")) for v in result.verdicts])
+         replays=[bool(v.get("failed")) for v in result.verdicts],
+         verdicts=[{k: v.get(k) for k in ("failed", "exception_type", "top_frame",
+                                          "status_code", "hermetic_violation")}
+                   for v in result.verdicts])
 
     if require_reproduction and not result.reproduced:
         emit("refused", reason=f"reproduction refused: {result.reason}")
@@ -73,6 +94,13 @@ def heal(capture: dict, service_spec: str, workdir: str, *,
         package = pack(capture, signature, workdir,
                        prior_failures=prior_failures,
                        memory_notes=memory_notes)
+        emit("context", attempt=attempt,
+             files=[{"file": "/".join(x["file"].split("/")[-2:]), "line": x["line"],
+                     "function": x["function"],
+                     "lines": len(x["source"].splitlines())} for x in package["sources"]],
+             frames=len(package["frames"]), prior_failures=len(prior_failures),
+             memory_notes=len(package["memory_notes"]),
+             release_diff=bool(package.get("release_diff")))
         proposal = propose(package, complete=complete)
         candidate = {"attempt": attempt, "diff": proposal["diff"]}
 
@@ -101,7 +129,8 @@ def heal(capture: dict, service_spec: str, workdir: str, *,
                                    verdict.conditions.items()}
         trail.append(candidate)
         emit("gate_result", attempt=attempt, diff=proposal["diff"],
-             conditions=candidate["conditions"], admitted=verdict.admitted)
+             conditions=candidate["conditions"], admitted=verdict.admitted,
+             details=_condition_details(verdict.conditions))
 
         if verdict.admitted:
             regression = compile_reproduction(

@@ -28,6 +28,31 @@ COOLDOWN_SECONDS = 3.0     # traffic after the outcome, so recovery is seen
 MAX_INCIDENTS = 4
 
 
+def _evidence(event: dict, tree: str) -> dict:
+    """The stack trace and the source around the crash, for the live view."""
+    frames = [{"file": os.path.basename(f.get("file", "")), "line": f.get("line"),
+               "function": f.get("function"), "code": (f.get("code") or "")[:120]}
+              for f in event.get("frames", []) if "/site-packages/" not in f.get("file", "")
+              and "/lib/python" not in f.get("file", "")
+              and "kintsugi_capture" not in f.get("file", "")][-6:]
+    source = None
+    root = os.path.realpath(tree) + os.sep if tree else None
+    app = [f for f in event.get("frames", [])
+           if root and os.path.realpath(f.get("file", "")).startswith(root)]
+    if app:
+        f = app[-1]
+        try:
+            lines = open(f["file"]).read().splitlines()
+            lo = max(0, f["line"] - 9)
+            source = {"file": os.path.relpath(os.path.realpath(f["file"]), root), "start": lo + 1,
+                      "line": f["line"], "lines": lines[lo:f["line"] + 8]}
+        except OSError:
+            source = None
+    return {"frames": frames, "source": source,
+            "headers": len((event.get("request") or {}).get("headers") or {}),
+            "outbound": len(event.get("external_calls") or [])}
+
+
 def run_live(entry: CorpusEntry, emit, *, complete=None,
              certificates=None) -> dict:
     """Run one heal of `entry` and call emit(event) for every step.
@@ -103,7 +128,8 @@ def run_live(entry: CorpusEntry, emit, *, complete=None,
              message=str(event.get("exception_message", ""))[:160],
              method=event.get("request", {}).get("method"),
              path=event.get("request", {}).get("path"),
-             service=event.get("service"))
+             service=event.get("service"),
+             **_evidence(event, rig.trees.get(event.get("service"), "")))
 
         healed_keys: set = set()
         certs: list[dict] = []
@@ -127,7 +153,8 @@ def run_live(entry: CorpusEntry, emit, *, complete=None,
                 certs.append(cert)
                 last_heal.update(svc=svc, outcome=outcome, cert=cert, event=event)
                 send("certificate", sequence=cert["sequence"], hash=cert["hash"],
-                     signature=cert["signature"],
+                     signature=cert["signature"], prev_hash=cert.get("prev_hash", ""),
+                     ed25519=(cert.get("ed25519") or {}).get("signature", "")[:44],
                      replays=cert["reproduction"]["reason"],
                      attempts=len(cert["candidates"]))
             healed_keys.add(_incident_key(event))

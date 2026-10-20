@@ -20,6 +20,62 @@
   var bowl = $("live-bowl"), stamp = $("live-stamp"), outcomeEl = $("live-outcome");
   var source = null, ended = true, lastT = 0, lastWall = 0, replaying = false;
   var samples = [], lanes = {};
+  var logEl = $("eng-log"), srcEl = $("eng-src"), fileEl = $("eng-file");
+  var rateEl = $("eng-rate"), countEl = $("eng-count");
+  var srcWin = null, logLines = 0, tokChars = 0, tokStart = 0, trafficLogged = 0;
+
+  // ----------------------------------------------------- inside the repair
+  function esc(t) { return String(t == null ? "" : t).replace(/[&<>]/g, function (c) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]; }); }
+  var TOK = /(#.*$)|("[^"]*"|'[^']*')|\b(def|return|if|elif|else|for|in|not|and|or|raise|try|except|import|from|None|True|False|with|as|is|lambda|class)\b/g;
+  function hl(code) {               // light Python colouring in one pass over escaped text
+    return esc(code).replace(TOK, function (m, com, str, kw) {
+      return '<span class="' + (com ? "com" : str ? "str" : "kw") + '">' + m + "</span>";
+    });
+  }
+  function shortPath(p) {           // never show a machine's folders, only the file
+    var parts = String(p || "").split("/");
+    return parts.slice(-2).join("/");
+  }
+  function log(t, tag, html) {
+    if (!logEl) return;
+    if (!logLines) logEl.innerHTML = "";
+    var line = document.createElement("span");
+    line.className = "l";
+    line.innerHTML = '<span class="ts">' + (t == null ? "         " : "[" + t.toFixed(2).padStart(6) + "s]") + "</span> " +
+      '<span class="tag">' + esc(tag) + "</span> " + html;
+    logEl.appendChild(line);
+    logLines++;
+    if (countEl) countEl.textContent = logLines + " lines";
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+  function renderSource(win, patched) {
+    if (!srcEl || !win) return;
+    fileEl.textContent = win.file + ":" + win.line;
+    var rows = [], removed = {}, added = {};
+    if (patched) {                  // overlay the admitted diff on the window it touches
+      var oldNo = 0, newNo = 0;
+      patched.split("\n").forEach(function (l) {
+        var m = l.match(/^@@ -(\d+)(?:,\d+)? \+(\d+)/);
+        if (m) { oldNo = +m[1]; newNo = +m[2]; return; }
+        if (!oldNo || l.startsWith("---") || l.startsWith("+++")) return;
+        if (l.startsWith("-")) { removed[oldNo] = true; oldNo++; }
+        else if (l.startsWith("+")) { (added[oldNo] = added[oldNo] || []).push(l.slice(1)); newNo++; }
+        else { oldNo++; newNo++; }
+      });
+    }
+    win.lines.forEach(function (code, i) {
+      var no = win.start + i;
+      (added[no] || []).forEach(function (n) {
+        rows.push('<span class="row new"><span class="ln">+</span>' + hl(n) + "</span>");
+      });
+      var cls = removed[no] ? "gone" : (no === win.line && !patched ? "bad" : "");
+      rows.push('<span class="row ' + cls + '"><span class="ln">' + no + "</span>" + hl(code) + "</span>");
+    });
+    srcEl.innerHTML = rows.join("");
+    var mark = srcEl.querySelector(".row.bad, .row.new");
+    if (mark) srcEl.scrollTop = Math.max(0, mark.offsetTop - 120);
+  }
 
   function css(name) {
     return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -197,6 +253,11 @@
     var ex = document.getElementById("live-explain"); if (ex) ex.hidden = true;
     outcomeEl.textContent = "Every repair adds a seam.";
     setState("", "Starting");
+    srcWin = null; logLines = 0; tokChars = 0; trafficLogged = 0;
+    if (logEl) logEl.innerHTML = '<span class="muted">Waiting for the platform…</span>';
+    if (srcEl) srcEl.innerHTML = '<span class="muted">The crashing file appears here, with the failing line marked.</span>';
+    if (fileEl) fileEl.textContent = "waiting for a crash";
+    if (rateEl) rateEl.textContent = ""; if (countEl) countEl.textContent = "";
   }
 
   function renderPatch(text, final) {
@@ -215,9 +276,102 @@
     patchEl.scrollTop = patchEl.scrollHeight;
   }
 
+  var COND_LONG = { structural: "structure", applies: "applies", reproduction: "reproduction",
+                    suite: "test suite" };
+  function engine(e) {
+    var t = e.t, ok = '<span class="ok">✓</span>', no = '<span class="no">✗</span>';
+    switch (e.kind) {
+      case "replay":
+        log(null, "replay", '<span class="dim">playing back a recorded run at its real pace</span>'); break;
+      case "start":
+        log(t, "run", "bug <span class=hi>" + esc(e.entry) + "</span> · " + esc(e.title) +
+            ' <span class="dim">(' + esc(e.service || "") + ")</span>"); break;
+      case "traffic_started":
+        log(t, "load", "traffic generator started against both services"); break;
+      case "traffic":
+        trafficLogged += e.samples.length;
+        if (trafficLogged >= 200 && trafficLogged - e.samples.length < 200)
+          log(t, "load", trafficLogged + " requests so far, every one checked"); break;
+      case "fault_deployed":
+        log(t, "deploy", "faulty release rolled onto <span class=hi>" + esc(e.service) + "</span>"); break;
+      case "captured":
+        log(t, "capture", no + " <span class=hi>" + esc(e.exception_type) + "</span> " + esc(e.message || "") +
+            ' <span class="dim">on ' + esc((e.method || "") + " " + (e.path || "")) + "</span>");
+        (e.frames || []).forEach(function (f) {
+          log(null, "", '<span class="dim">  at ' + esc(f.function) + " (" + esc(f.file) + ":" + f.line + ")</span>" +
+              (f.code ? "  " + esc(f.code) : ""));
+        });
+        if (e.headers !== undefined)
+          log(null, "", '<span class="dim">  request kept: ' + e.headers + " headers (secrets redacted), " +
+              e.outbound + " outbound call" + (e.outbound === 1 ? "" : "s") + " recorded for hermetic replay</span>");
+        if (e.source) { srcWin = e.source; renderSource(srcWin, null); }
+        break;
+      case "reproduce_start":
+        log(t, "sandbox", "fresh process per replay; outbound calls served from the recording"); break;
+      case "reproduce_done":
+        (e.verdicts || (e.replays || []).map(function (h) { return { failed: h }; })).forEach(function (v, i, arr) {
+          log(null, "replay", (i + 1) + "/" + arr.length + " " + (v.failed ? '<span class="no">FAIL</span>' : '<span class="ok">pass</span>') +
+              (v.exception_type ? " " + esc(v.exception_type) + "@" + esc(v.top_frame || "") : "") +
+              (v.status_code ? ' <span class="dim">HTTP ' + v.status_code + "</span>" : ""));
+        });
+        log(t, "verdict", e.reproduced ?
+            ok + " deterministic: signature <span class=hi>" + esc(e.signature || "") + "</span>" :
+            no + " refused: " + esc(e.reason)); break;
+      case "context":
+        (e.files || []).forEach(function (f) {
+          log(null, "evidence", esc(shortPath(f.file)) + ":" + f.line + " in " + esc(f.function) +
+              ' <span class="dim">(' + f.lines + " lines of source)</span>");
+        });
+        log(t, "evidence", e.frames + " app frames, " + (e.release_diff ? "release diff, " : "") +
+            e.prior_failures + " earlier rejection" + (e.prior_failures === 1 ? "" : "s") +
+            (e.memory_notes ? ", " + e.memory_notes + " memory notes" : "")); break;
+      case "candidate_start":
+        tokChars = 0; tokStart = 0;
+        log(t, "model", "streaming attempt " + e.attempt + " (patch only; the model cannot run code)"); break;
+      case "token":
+        if (!tokStart) tokStart = performance.now();
+        tokChars += e.text.length;
+        var secs = (performance.now() - tokStart) / 1000;
+        if (rateEl && secs > 0.3) rateEl.textContent = Math.round(tokChars / 4 / secs) + " tokens/s";
+        break;
+      case "gate_result":
+        var lines = (e.diff || "").split("\n").filter(function (l) { return /^[+-]/.test(l) && !/^(\+\+\+|---)/.test(l); }).length;
+        log(t, "patch", "attempt " + e.attempt + ": " + lines + " changed line" + (lines === 1 ? "" : "s") +
+            ' <span class="dim">(' + tokChars + " characters)</span>");
+        ["structural", "applies", "reproduction", "suite"].forEach(function (k) {
+          if (!(k in (e.conditions || {}))) return;
+          var d = (e.details || {})[k];
+          log(null, "gate", (e.conditions[k] ? ok : no) + " " + COND_LONG[k] + (d ? ' <span class="dim">' + esc(d) + "</span>" : ""));
+        });
+        if (e.admitted) {
+          log(t, "gate", '<span class="ok">ADMITTED</span>: verification record signed (HMAC-SHA256)');
+          if (srcWin) renderSource(srcWin, e.diff);
+        } else {
+          log(t, "gate", '<span class="no">REJECTED</span>: the failure report goes back to the model');
+        }
+        break;
+      case "escalated": log(t, "gate", no + " " + esc(e.reason)); break;
+      case "refused": log(t, "refuse", no + " " + esc(e.reason)); break;
+      case "deploying": log(t, "deploy", "only a gate-signed patch may deploy; record verified"); break;
+      case "deployed": log(t, "deploy", ok + " " + esc(e.service) + " restarted on the patched tree"); break;
+      case "probe": log(t, "probe", (e.passed ? ok : no) + " the original failing request, replayed live"); break;
+      case "recovered": log(t, "traffic", ok + " error rate back to zero; mended in <span class=hi>" + e.mttr.toFixed(2) + " s</span>"); break;
+      case "certificate":
+        log(t, "cert", "#" + String(e.sequence).padStart(6, "0") + " sha256 <span class=hi>" + esc((e.hash || "").slice(0, 24)) + "…</span>");
+        if (e.prev_hash) log(null, "cert", '<span class="dim">chained to ' + esc(e.prev_hash.slice(0, 24)) + "…</span>");
+        if (e.ed25519) log(null, "cert", '<span class="dim">ed25519 ' + esc(e.ed25519) + "…</span>");
+        break;
+      case "pull_request": if (e.url) log(t, "github", ok + " pull request #" + e.number + " opened"); break;
+      case "false_fix": log(t, "probe", no + " the error is still there"); break;
+      case "error": log(t, "error", no + " " + esc(e.message)); break;
+      case "end": log(t, "end", "outcome: <span class=hi>" + esc(e.outcome || "") + "</span>"); break;
+    }
+  }
+
   var patchText = "", certLink = null;
   function handle(e) {
     if (e.t !== undefined && e.kind !== "replay") { lastT = e.t; lastWall = performance.now(); }
+    try { engine(e); } catch (err) { /* the picture must never stop the run */ }
     switch (e.kind) {
       case "replay":
         replaying = true;
