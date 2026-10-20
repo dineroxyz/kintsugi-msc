@@ -226,11 +226,14 @@ def heal(*, run_tests, fresh_tree, drop_tree, selectors, test_files, suite, pack
             old = sec.MAX_ADDED
             sec.MAX_ADDED = MAX_ADDED
             try:
-                sc = security_check(diff, capture, base)
+                # test mode: the input is the project's own tests, so imports are
+                # allowed; process, network, dynamic-code and URL rules still apply
+                sc = security_check(diff, capture, base, allow_imports=True)
             finally:
                 sec.MAX_ADDED = old
             touched = re.findall(r"^\+\+\+ b/(.+)$", diff, re.M)
-            wanted = [f for f in touched if f not in files and f in cands]
+            wanted = [f for f in touched if f not in files and f.startswith(package)
+                      and "/tests/" not in f"/{f}" and os.path.exists(os.path.join(base, f))]
             if wanted and len(files) < MAX_FILES + 2 and st["passed"]:
                 files += wanted[: MAX_FILES + 2 - len(files)]
                 a["rejected"] = f"needed files it had not been shown: {', '.join(wanted)}; shown now"

@@ -75,7 +75,7 @@ def allowed_files(capture: dict, workdir: str) -> set[str]:
     return out
 
 
-def security_check(diff: str, capture: dict, workdir: str) -> dict:
+def security_check(diff: str, capture: dict, workdir: str, allow_imports: bool = False) -> dict:
     problems = []
     allowed = allowed_files(capture, workdir)
     outside = [p for p in _touched(diff) if p not in allowed]
@@ -84,7 +84,7 @@ def security_check(diff: str, capture: dict, workdir: str) -> dict:
     added = _added(diff)
     if len(added) > MAX_ADDED:
         problems.append(f"adds {len(added)} lines (limit {MAX_ADDED})")
-    if any(_IMPORT.match(l) for l in added):
+    if not allow_imports and any(_IMPORT.match(l) for l in added):
         problems.append("adds an import")
     if any(_ROUTE.match(l) for l in added):
         problems.append("adds a route or endpoint")
