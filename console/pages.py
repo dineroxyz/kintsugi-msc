@@ -992,6 +992,21 @@ it, prove it, fix it and sign for it.</p></div>
 </form></div>
 <p class="live-mode" id="live-mode">{mode_note}</p>
 
+<section class="panel engine" aria-labelledby="e-title">
+<div class="panel-head"><h2 id="e-title">Inside the repair</h2>
+<span class="muted small">Every line below comes from this run: the captured crash, the real source, the model's own output, the gate's verdicts.</span></div>
+<div class="eng-grid">
+<div class="eng-pane"><div class="pane-head"><b>Source</b><span class="mono small" id="eng-file">waiting for a crash</span></div>
+<pre class="code" id="eng-src" aria-label="Source of the crashing service"><span class="muted">The crashing file appears here, with the failing line marked.</span></pre></div>
+<div class="eng-pane"><div class="pane-head"><b>The AI writing the fix</b><span class="mono small"><span id="p-attempt"></span> <span id="eng-rate"></span></span></div>
+<pre class="code" id="live-patch" aria-live="off"><span class="muted">The patch appears here as the model writes it.</span></pre>
+<div class="explain" id="live-explain" hidden><b>In plain English</b>
+<span class="faint small">Written by a small AI model from the evidence. Not verified; the certificate is the proof.</span>
+<p></p></div></div>
+<div class="eng-pane"><div class="pane-head"><b>Kintsugi log</b><span class="mono small" id="eng-count"></span></div>
+<pre class="term" id="eng-log" aria-label="Every step of the repair, as it happened"><span class="muted">Press Break it to start.</span></pre></div>
+</div>
+</section>
 <div class="live-grid">
 <section class="panel traffic" aria-labelledby="t-title">
 <div class="panel-head"><h2 id="t-title">Live traffic to the shop</h2>
@@ -1028,21 +1043,6 @@ aria-label="A bowl with one gold seam for every repair Kintsugi has made"></svg>
 <p class="muted small" id="live-outcome">Every repair adds a seam.</p>
 </section>
 </div>
-<section class="panel engine" aria-labelledby="e-title">
-<div class="panel-head"><h2 id="e-title">Inside the repair</h2>
-<span class="muted small">Every line below comes from this run: the captured crash, the real source, the model's own output, the gate's verdicts.</span></div>
-<div class="eng-grid">
-<div class="eng-pane"><div class="pane-head"><b>Source</b><span class="mono small" id="eng-file">waiting for a crash</span></div>
-<pre class="code" id="eng-src" aria-label="Source of the crashing service"><span class="muted">The crashing file appears here, with the failing line marked.</span></pre></div>
-<div class="eng-pane"><div class="pane-head"><b>The AI writing the fix</b><span class="mono small"><span id="p-attempt"></span> <span id="eng-rate"></span></span></div>
-<pre class="code" id="live-patch" aria-live="off"><span class="muted">The patch appears here as the model writes it.</span></pre>
-<div class="explain" id="live-explain" hidden><b>In plain English</b>
-<span class="faint small">Written by a small AI model from the evidence. Not verified; the certificate is the proof.</span>
-<p></p></div></div>
-<div class="eng-pane"><div class="pane-head"><b>Kintsugi log</b><span class="mono small" id="eng-count"></span></div>
-<pre class="term" id="eng-log" aria-label="Every step of the repair, as it happened"><span class="muted">Press Break it to start.</span></pre></div>
-</div>
-</section>
 {_recent_feed(recent or [], titles or {})}
 </div>"""
 
