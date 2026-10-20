@@ -1,0 +1,33 @@
+diff --git a/src/app/api/img/[id]/route.ts b/src/app/api/img/[id]/route.ts
+index 8b8c95c..04119da 100644
+--- a/src/app/api/img/[id]/route.ts
++++ b/src/app/api/img/[id]/route.ts
+@@ -5,18 +5,14 @@ import { eq } from "drizzle-orm";
+ /** Serves admin-uploaded images. Content never changes for an id → cache hard. */
+ export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+   const { id } = await ctx.params;
+-  try {
+-    const db = getDb();
+-    const [row] = await db.select().from(schema.uploads).where(eq(schema.uploads.id, id)).limit(1);
+-    if (!row || row.private) return new NextResponse("Not found", { status: 404 });
+-    return new NextResponse(Buffer.from(row.data, "base64"), {
+-      headers: {
+-        "Content-Type": row.mime,
+-        "X-Content-Type-Options": "nosniff",
+-        "Cache-Control": "public, max-age=31536000, immutable",
+-      },
+-    });
+-  } catch {
+-    return new NextResponse("Not found", { status: 404 });
+-  }
++  const db = getDb();
++  const [row] = await db.select().from(schema.uploads).where(eq(schema.uploads.id, id)).limit(1);
++  if (row.private) return new NextResponse("Not found", { status: 404 });
++  return new NextResponse(Buffer.from(row.data, "base64"), {
++    headers: {
++      "Content-Type": row.mime,
++      "X-Content-Type-Options": "nosniff",
++      "Cache-Control": "public, max-age=31536000, immutable",
++    },
++  });
+ }
