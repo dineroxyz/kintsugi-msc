@@ -6,7 +6,7 @@ and try to reverse it on the current release (HEAD). A reversal that applies
 cleanly re-introduces the original defect into today's code. The commit's
 own test changes name the discriminating tests (ground truth).
 
-    python study/real/mine.py <repo> <app_pkg> > candidates.jsonl
+    python study/real/mine.py <repo> <app_pkg> [<tests_prefix>] > candidates.jsonl
 """
 from __future__ import annotations
 
@@ -24,15 +24,21 @@ def git(repo, *args, input=None, check=True):
     return p
 
 
-def main(repo: str, pkg: str) -> None:
+def is_test(path: str, tests: str) -> bool:
+    name = path.rsplit("/", 1)[-1]
+    return path.startswith(tests + "/") or "/tests/" in path or "/test/" in path \
+        or name.startswith("test_") or name.endswith("_test.py")
+
+
+def main(repo: str, pkg: str, tests: str = "tests") -> None:
     log = git(repo, "log", "--no-merges", "--format=%H\t%ad\t%s", "--date=short",
               "-i", "--grep=^fix").stdout.splitlines()
     for line in log:
         sha, date, subject = line.split("\t", 2)
         files = git(repo, "show", "--name-only", "--format=", sha).stdout.split()
-        app = [f for f in files if f.startswith(pkg + "/") and f.endswith(".py")]
-        tests = [f for f in files if f.startswith("tests/") and f.endswith(".py")]
-        if not app or not tests:
+        app = [f for f in files if f.startswith(pkg + "/") and f.endswith(".py") and not is_test(f, tests)]
+        test_files = [f for f in files if f.endswith(".py") and is_test(f, tests)]
+        if not app or not test_files:
             continue
         diff = git(repo, "diff", f"{sha}^", sha, "--", *app, check=False).stdout
         if not diff:
@@ -40,12 +46,12 @@ def main(repo: str, pkg: str) -> None:
         ok = git(repo, "apply", "--check", "-R", "-", input=diff, check=False).returncode == 0
         if not ok:
             continue
-        tdiff = git(repo, "diff", f"{sha}^", sha, "--", *tests, check=False).stdout
+        tdiff = git(repo, "diff", f"{sha}^", sha, "--", *test_files, check=False).stdout
         added = sorted(set(re.findall(r"^\+\s*(?:async\s+)?def (test_\w+)", tdiff, re.M)))
         print(json.dumps({"sha": sha, "date": date, "subject": subject,
-                          "app_files": app, "test_files": tests,
+                          "app_files": app, "test_files": test_files,
                           "tests_added": added, "fault_diff": diff}), flush=True)
 
 
 if __name__ == "__main__":
-    main(sys.argv[1], sys.argv[2])
+    main(*sys.argv[1:4])

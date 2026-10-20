@@ -79,3 +79,35 @@ One application; defects transplanted onto today's code rather than
 observed in production; the load is the developers' own tests, not user
 traffic; the snapshot covers the database only, not files on disk; binary
 request bodies are captured as text.
+
+## Amendment R2: more applications (registered before any trial on them)
+
+Registered on 2026-10-20 after the Mealie results, before any classification
+trial on the applications below. The defect mining (same rule as above, with
+each project's own test folder) had been run; nothing else.
+
+Subjects: Prefect (workflow orchestration server), lnbits (Lightning wallet
+server), Langflow (AI workflow builder) and Frigate (video recorder), at the
+HEAD of each default branch on the registration date (recorded in
+SUBJECTS.txt). Open WebUI and the full-stack FastAPI template were also mined
+but yielded no candidate whose fix came with tests, so they are reported as
+contributing zero.
+
+Steps 1 and 2 (ground truth and kind of failure) are run for every candidate
+of every subject. Because each application builds its web app differently,
+the capture agent is attached generically: a pytest plugin wraps every
+Starlette/FastAPI application's middleware stack when it is built, so any
+unhandled exception that leaves the application is captured, whatever code
+created the app. Steps 3 to 5 (reproduction, gate on the real fix, gate on
+the cheats) are run for the runtime failures of any subject for which a
+replay adapter can be written; for a subject where none can be, its runtime
+failures are reported as found and not reproduced, with the reason. Each
+subject's runtime-failure share, with its count, is the primary result;
+there is no pooled hypothesis test.
+
+Note added at commit, before the full runs: while making the harness work,
+step 1-2 was run on three candidates each of lnbits and Prefect and on two
+Mealie candidates (one being Mealie's known runtime failure, used to check
+that the generic capture detects it; the first version of the plugin did not,
+because FastAPI overrides the method it hooked, and was corrected). Those
+harness-check results are discarded; every candidate is run afresh.
