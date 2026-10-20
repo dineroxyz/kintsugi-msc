@@ -44,3 +44,5 @@ the reproduction and part of the gate's evidence; the folder suite guards
 against breaking other behaviour. One model; three attempts.
 
 Note at commit: the Langflow stage-1 run was still in progress, so its 15 are drawn from the 107 Langflow defects classified as valid at that time. The drawn sample is frozen in sample.json, committed with this note before any trial.
+
+Harness checks before the run (one defect, three times, results discarded) spent 8.64 dollars at conservative prices; the cap for the run is reduced to 31.36 so the total stays within 40. Changes from those checks: retries for network errors, focused file excerpts, capped model thinking, and showing the model a candidate file it edits without having seen it.

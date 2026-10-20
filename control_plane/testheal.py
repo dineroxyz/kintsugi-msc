@@ -101,7 +101,9 @@ def candidate_files(tree: str, output: str, test_files: list[str], package: str)
 
 def _ask(client, usage: Usage, model: str, system: str, text: str, think: bool = True) -> str:
     import time
-    kw = {} if think else {"thinking": {"type": "disabled"}}
+    # thinking is capped so it can never use up the room the answer needs
+    kw = ({"thinking": {"type": "adaptive"}, "extra_body": {"output_config": {"effort": "medium"}}}
+          if think else {"thinking": {"type": "disabled"}})
     for attempt in range(4):                 # temporary network errors are retried
         try:
             with client.messages.stream(model=model, max_tokens=12000 if think else 2000, system=system,
@@ -216,6 +218,10 @@ def heal(*, run_tests, fresh_tree, drop_tree, selectors, test_files, suite, pack
             res.attempts.append(a)
             st = structural_check(diff, "AssertionError")
             capture = {"frames": [{"file": os.path.join(base, f)} for f in files], "request": {}}
+            if not diff.strip():
+                a["rejected"] = "no diff in the answer"
+                feedback.append("Your last answer contained no diff. Reply with the unified diff only.")
+                continue
             import control_plane.gate.security as sec
             old = sec.MAX_ADDED
             sec.MAX_ADDED = MAX_ADDED
@@ -223,6 +229,14 @@ def heal(*, run_tests, fresh_tree, drop_tree, selectors, test_files, suite, pack
                 sc = security_check(diff, capture, base)
             finally:
                 sec.MAX_ADDED = old
+            touched = re.findall(r"^\+\+\+ b/(.+)$", diff, re.M)
+            wanted = [f for f in touched if f not in files and f in cands]
+            if wanted and len(files) < MAX_FILES + 2 and st["passed"]:
+                files += wanted[: MAX_FILES + 2 - len(files)]
+                a["rejected"] = f"needed files it had not been shown: {', '.join(wanted)}; shown now"
+                feedback.append(f"You edited {', '.join(wanted)} without seeing it. It is now included; "
+                                "write the fix again against its actual content.")
+                continue
             if not st["passed"] or not sc["passed"]:
                 a["rejected"] = "; ".join(st["problems"] + sc["problems"])
                 feedback.append(a["rejected"])

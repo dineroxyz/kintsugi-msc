@@ -165,7 +165,8 @@ def _has_timeout() -> bool:
 # ---------------------------------------------------------------------- gate
 
 def gate(capture: dict, signature: str, diff: str, service_spec: str,
-         workdir: str, suite_path: str | None = "tests") -> GateVerdict:
+         workdir: str, suite_path: str | None = "tests",
+         reference_tree: str | None = None) -> GateVerdict:
     """Apply the three conditions to one candidate patch."""
     conditions: dict = {}
 
@@ -192,6 +193,17 @@ def gate(capture: dict, signature: str, diff: str, service_spec: str,
     conditions["suite"] = _suite_passes(tree, suite_path)
     if not conditions["suite"]["passed"]:
         return GateVerdict(False, conditions, patched_tree=tree)
+
+    if reference_tree is not None:
+        # last: the most expensive check. The patched service must answer
+        # like the last good release, except for the failure itself.
+        from control_plane.gate.behaviour import behaviour_check
+        req = capture.get("request") or {}
+        extra = [{"svc": capture.get("service", "alpha").split("/")[-1],
+                  "method": req.get("method", "GET"), "path": req.get("path", "/")}]
+        conditions["behaviour"] = behaviour_check(reference_tree, tree, extra)
+        if not conditions["behaviour"]["passed"]:
+            return GateVerdict(False, conditions, patched_tree=tree)
 
     payload = {
         "signature": signature,

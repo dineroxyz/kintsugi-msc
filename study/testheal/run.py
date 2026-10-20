@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.join(ROOT, "study", "real"))
 import run_multi as M  # noqa: E402
 from control_plane.testheal import Usage, heal  # noqa: E402
 
-SEED, PER_APP, BUDGET = 259074235, 15, 40.0
+SEED, PER_APP, BUDGET = 259074235, 15, 40.0 - 8.64   # harness checks spent 8.64 first
 OUT = os.path.join(HERE, "trials.jsonl")
 PACKAGE = {"mealie": "mealie/", "lnbits": "lnbits/", "prefect": "src/prefect/", "langflow": "src/"}
 

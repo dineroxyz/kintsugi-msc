@@ -138,7 +138,9 @@ def run_live(entry: CorpusEntry, emit, *, complete=None,
             svc = event["service"]
             outcome = heal(event, f"{svc}.main:app", rig.trees[svc],
                            complete=model, incident_id=f"live-{entry.id}",
-                           suite_path=None, on_event=on_heal_event)
+                           suite_path=None, on_event=on_heal_event,
+                           reference_tree=rig.r1 if os.environ.get(
+                               "KINTSUGI_BEHAVIOUR_GATE", "1") == "1" else None)
             if outcome.status != "deployed":
                 refused = outcome.reason.startswith("reproduction refused")
                 result["outcome"] = "refused" if refused else "escalated"

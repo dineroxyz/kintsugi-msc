@@ -38,6 +38,11 @@ def _condition_details(conditions: dict) -> dict:
     for name, c in conditions.items():
         if name == "structural":
             out[name] = "; ".join(c.get("problems") or []) or "no deleted tests, no swallowed error"
+        elif name == "behaviour":
+            out[name] = (f"same answers as the last good release on {c.get('requests')} requests"
+                         if c.get("passed") else
+                         "answers differ from the last good release: " +
+                         ", ".join(f"{d['request']} {d['reference']}->{d['patched']}" for d in c.get("differences", [])[:3]))
         elif name == "security":
             out[name] = "; ".join(c.get("problems") or []) or "only touches the failing code; no new imports, routes, network or copied input"
         elif name == "applies":
@@ -58,7 +63,7 @@ def heal(capture: dict, service_spec: str, workdir: str, *,
          memory_notes: list[str] | None = None,
          require_reproduction: bool = True,
          max_candidates: int | None = None,
-         on_event=None) -> Outcome:
+         on_event=None, reference_tree: str | None = None) -> Outcome:
     """Run the loop for one captured incident.
 
     `complete` is the diagnosis completion function (None = production model).
@@ -108,7 +113,8 @@ def heal(capture: dict, service_spec: str, workdir: str, *,
 
         if require_reproduction:
             verdict = gate(capture, signature, proposal["diff"],
-                           service_spec, workdir, suite_path=suite_path)
+                           service_spec, workdir, suite_path=suite_path,
+                           reference_tree=reference_tree)
         else:
             # C2: suite-only verification, honestly recorded as such
             from control_plane.gate import verifier
