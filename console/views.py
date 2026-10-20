@@ -66,7 +66,8 @@ NAV = [("/live", "live", "Live"),
 
 def shell(title: str, active: str, body: str, *, description: str = "",
           user: str | None = None, csrf: str = "", wide: bool = False,
-          extra_head: str = "", role: str | None = None, admin: bool = False) -> str:
+          extra_head: str = "", role: str | None = None, admin: bool = False,
+          alerts: int = 0) -> str:
     links = list(NAV)
     if user and role == "operator":
         links.append(("/admin", "admin", "Admin"))
@@ -74,9 +75,14 @@ def shell(title: str, active: str, body: str, *, description: str = "",
         links.append(("/account", "account", "Account"))
         if admin:
             links.append(("/admin", "admin", "Admin"))
+    def badge(key: str) -> str:
+        if key != "account" or not alerts:
+            return ""
+        return (f' <span class="nav-badge" aria-label="{alerts} new alert'
+                f'{"s" if alerts != 1 else ""}">{alerts}</span>')
     nav = "".join(
         f'<a href="{href}"{" aria-current=page" if key == active else ""}>'
-        f"{label}</a>" for href, key, label in links)
+        f"{label}{badge(key)}</a>" for href, key, label in links)
     if user:
         account = (f'<form class="signout" method="post" action="/logout">'
                    f'<input type="hidden" name="csrf" value="{E(csrf)}">'

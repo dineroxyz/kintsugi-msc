@@ -133,6 +133,8 @@ def delete_user(user_id: int) -> None:  # noqa: F811 (services removed below)
     from sqlalchemy import update
     with get_session() as s:
         s.execute(update(Run).where(Run.user_id == user_id).values(user_id=None))
+        ids = list(s.scalars(select(Service.id).where(Service.user_id == user_id)))
+        _delete_heal_rows(s, ids)
         s.execute(delete(Service.__table__).where(Service.__table__.c.user_id == user_id))
         s.execute(delete(User).where(User.id == user_id))
         s.commit()
@@ -282,6 +284,11 @@ def create_service(user_id: int, name: str) -> tuple[Service, str]:
         return svc, key
 
 
+def service_by_id(service_id: int) -> Service | None:
+    with get_session() as s:
+        return s.get(Service, service_id)
+
+
 def service_by_key(key: str) -> Service | None:
     if not key or not key.startswith("ks_") or len(key) > 80:
         return None
@@ -295,8 +302,24 @@ def user_services(user_id: int) -> list[Service]:
                               .order_by(Service.id)))
 
 
+def _delete_heal_rows(s, service_ids: list[int]) -> None:
+    """A service's alerts, recordings and repository link go with it."""
+    if not service_ids:
+        return
+    from console.heal import Artifact, HealJob, ServiceRepo
+    jobs = list(s.scalars(select(HealJob.id).where(HealJob.service_id.in_(service_ids))))
+    if jobs:
+        s.execute(delete(Artifact).where(Artifact.job_id.in_(jobs)))
+        s.execute(delete(HealJob).where(HealJob.id.in_(jobs)))
+    s.execute(delete(ServiceRepo).where(ServiceRepo.service_id.in_(service_ids)))
+
+
 def delete_service(user_id: int, service_id: int) -> None:
     with get_session() as s:
+        if s.scalar(select(Service.id).where(Service.id == service_id,
+                                             Service.user_id == user_id)) is None:
+            return
+        _delete_heal_rows(s, [service_id])
         s.execute(delete(Service).where(Service.id == service_id,
                                         Service.user_id == user_id))
         s.commit()

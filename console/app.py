@@ -18,10 +18,11 @@ from functools import lru_cache
 
 from fastapi import FastAPI, Request
 from fastapi.responses import (FileResponse, HTMLResponse, JSONResponse,
-                               RedirectResponse, StreamingResponse)
+                               RedirectResponse, Response, StreamingResponse)
 from fastapi.staticfiles import StaticFiles
 
 from console import accounts as A          # noqa: F401  (registers its tables)
+from console import heal as H
 from console import auth
 from console import data as D
 from console import live as L
@@ -107,6 +108,16 @@ def is_admin(request: Request) -> bool:
     return who["r"] == "operator" or A.is_admin(who["u"])
 
 
+def _unseen_alerts(who: dict | None) -> int:
+    if not who or who["r"] != "user":
+        return 0
+    try:
+        user = A.get_user(who["u"])
+        return H.unseen_count([s.id for s in A.user_services(user.id)]) if user else 0
+    except Exception:
+        return 0
+
+
 def page(title: str, active: str, body: str, status: int = 200,
          wide: bool = False, extra_head: str = "") -> HTMLResponse:
     request = _request.get()
@@ -115,7 +126,8 @@ def page(title: str, active: str, body: str, status: int = 200,
     html = V.shell(title, active, body, user=user, wide=wide,
                    csrf=auth.form_token("logout") if user else "",
                    extra_head=extra_head, role=who["r"] if who else None,
-                   admin=bool(who) and who["r"] == "user" and A.is_admin(who["u"]))
+                   admin=bool(who) and who["r"] == "user" and A.is_admin(who["u"]),
+                   alerts=_unseen_alerts(who))
     return HTMLResponse(html, status_code=status,
                         headers={"Cache-Control": "no-store"} if user else None)
 
@@ -322,7 +334,9 @@ def account(request: Request):
 def _account_page(request: Request, user, *, new_key: tuple | None = None,
                   service_error: str = "", status: int = 200,
                   password_msg: tuple | None = None):
-    services = [(svc, A.service_incidents(svc)) for svc in A.user_services(user.id)]
+    user_services = A.user_services(user.id)
+    services = [(svc, A.service_incidents(svc), H.repo_of(svc.id)) for svc in user_services]
+    alerts = H.jobs_for([svc.id for svc in user_services])
     base = os.environ.get("KINTSUGI_PUBLIC_URL", str(request.base_url).rstrip("/"))
     return page("Your account", "account",
                 P.account(user, A.user_runs(user.id), {**A.runs_left(user.id), "unlimited": A.is_unlimited(user.email)},
@@ -330,7 +344,7 @@ def _account_page(request: Request, user, *, new_key: tuple | None = None,
                           services=services, service_token=auth.form_token("service"),
                           new_key=new_key, service_error=service_error, base_url=base,
                           password_token=auth.form_token("password"), password_msg=password_msg,
-                          admin=A.is_admin(user.email)),
+                          admin=A.is_admin(user.email), alerts=alerts),
                 status=status)
 
 
@@ -407,7 +421,12 @@ async def connected_ingest(key: str, request: Request):
     from control_plane.incidents.former import ingest
     with get_session() as session:
         incident, capture = ingest(session, event)
-        return {"incident_id": incident.id, "capture_count": incident.capture_count}
+        result = {"incident_id": incident.id, "capture_count": incident.capture_count}
+    try:
+        H.open_job(svc.id, result["incident_id"])
+    except Exception as exc:                      # alerting must never block ingest
+        print(f"heal: could not open job ({exc})")
+    return result
 
 
 @app.post("/account/delete")
@@ -1041,6 +1060,125 @@ def practice():
             '<th scope="col">Practice result</th><th scope="col" class="num">When</th>'
             f'<th scope="col">Note</th></tr></thead><tbody>{table}</tbody></table></div>')
     return page("Practice", "practice", body)
+
+
+# ------------------------------------------------------- connected heal jobs
+
+def _owned_job(request: Request, job_id: int):
+    """The job, if the signed-in person owns its service (or is an admin)."""
+    who = auth.identity(request)
+    if not who:
+        return None, auth.login_redirect(request)
+    job = H.get_job(job_id)
+    if job is None:
+        return None, page("Not found", "account", "<h1>Not found</h1>", status=404)
+    if is_admin(request):
+        return job, None
+    user = A.get_user(who["u"]) if who["r"] == "user" else None
+    if user is None or job.service_id not in {s.id for s in A.user_services(user.id)}:
+        return None, page("Not found", "account", "<h1>Not found</h1>", status=404)
+    return job, None
+
+
+@app.get("/account/incidents/{job_id}", response_class=HTMLResponse)
+def heal_job_page(job_id: int, request: Request):
+    job, deny = _owned_job(request, job_id)
+    if deny:
+        return deny
+    H.mark_seen(job.id)
+    from control_plane.db import Incident, get_session
+    with get_session() as s:
+        inc = s.get(Incident, job.incident_id)
+    svc = A.service_by_id(job.service_id)
+    return page("Incident", "account",
+                P.heal_job(job, inc, svc.name if svc else "service", H.artifacts(job.id)))
+
+
+@app.get("/account/artifacts/{artifact_id}")
+def heal_artifact(artifact_id: int, request: Request):
+    art = H.get_artifact(artifact_id)
+    if art is None:
+        return JSONResponse({"error": "not found"}, status_code=404)
+    job, deny = _owned_job(request, art.job_id)
+    if deny:
+        return deny
+    return Response(art.data, media_type=art.content_type,
+                    headers={"Cache-Control": "private, max-age=3600"})
+
+
+@app.get("/account/incidents/{job_id}/certificate.json")
+def heal_certificate(job_id: int, request: Request):
+    job, deny = _owned_job(request, job_id)
+    if deny:
+        return deny
+    if not job.certificate_json:
+        return JSONResponse({"error": "no certificate yet"}, status_code=404)
+    return JSONResponse(json.loads(job.certificate_json))
+
+
+@app.post("/account/services/{service_id}/repo")
+async def service_repo(service_id: int, request: Request):
+    who = auth.identity(request)
+    form = await auth.read_form(request)
+    if not who or who["r"] != "user" or not auth.check_form_token(form.get("csrf", ""), "service"):
+        return RedirectResponse("/account", status_code=303)
+    user = A.get_user(who["u"])
+    if user is None or service_id not in {s.id for s in A.user_services(user.id)}:
+        return RedirectResponse("/account", status_code=303)
+    try:
+        H.set_repo(service_id, form.get("repo", ""), form.get("branch", "main").strip())
+    except ValueError as exc:
+        return _account_page(request, user, service_error=str(exc), status=400)
+    return RedirectResponse("/account#services", status_code=303)
+
+
+def _worker(request: Request) -> bool:
+    return H.worker_ok(request.headers.get("x-kintsugi-worker", ""))
+
+
+@app.get("/worker/jobs")
+def worker_jobs(request: Request):
+    if not _worker(request):
+        return JSONResponse({"error": "worker token required"}, status_code=401)
+    return {"jobs": H.pending(), "spent_usd": H.total_cost()}
+
+
+@app.post("/worker/jobs/{job_id}/stage")
+async def worker_stage(job_id: int, request: Request):
+    if not _worker(request):
+        return JSONResponse({"error": "worker token required"}, status_code=401)
+    body = await request.json()
+    try:
+        job = H.advance(job_id, body["stage"], body.get("note", ""),
+                        explanation=body.get("explanation"), patch=body.get("patch"),
+                        pr_url=body.get("pr_url"), cost_usd=body.get("cost_usd"))
+    except (KeyError, ValueError) as exc:
+        return JSONResponse({"error": str(exc)}, status_code=400)
+    return {"job": job.id, "stage": job.stage}
+
+
+@app.post("/worker/jobs/{job_id}/artifact")
+async def worker_artifact(job_id: int, request: Request):
+    if not _worker(request):
+        return JSONResponse({"error": "worker token required"}, status_code=401)
+    data = await request.body()
+    try:
+        aid = H.add_artifact(job_id, request.query_params.get("kind", "file"),
+                             request.headers.get("content-type", "application/octet-stream"), data)
+    except (KeyError, ValueError) as exc:
+        return JSONResponse({"error": str(exc)}, status_code=400)
+    return {"artifact": aid}
+
+
+@app.post("/worker/jobs/{job_id}/certify")
+async def worker_certify(job_id: int, request: Request):
+    if not _worker(request):
+        return JSONResponse({"error": "worker token required"}, status_code=401)
+    try:
+        cert = H.certify(job_id, await request.json())
+    except KeyError as exc:
+        return JSONResponse({"error": f"no job {exc}"}, status_code=404)
+    return {"sequence": cert["sequence"], "hash": cert["hash"]}
 
 
 # ----------------------------------------------------------------- errors

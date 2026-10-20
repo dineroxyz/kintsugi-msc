@@ -89,8 +89,9 @@ def site(monkeypatch, tmp_path):
     app = importlib.reload(app)
     from control_plane.db import get_session, init_db
     init_db()
+    from console import heal as H
     with get_session() as s:
-        for t in (A.Service, A.Run, A.User):
+        for t in (H.Artifact, H.HealJob, H.ServiceRepo, A.Service, A.Run, A.User):
             s.execute(t.__table__.delete())
         s.commit()
     A._signups.clear()
@@ -303,3 +304,53 @@ def test_owner_accounts_get_admin(site, monkeypatch):
     assert r.status_code == 200 and "People with accounts" in r.text
     monkeypatch.setenv("KINTSUGI_ADMIN_EMAILS", "")            # explicit list wins
     assert c.get("/admin").status_code == 403
+
+
+def test_connected_failure_opens_heal_job_with_alert(site, monkeypatch):
+    c, A = site
+    monkeypatch.setenv("KINTSUGI_WORKER_TOKEN", "w-token-123")
+    _signup(c)
+    r = c.post("/account/services", data={"csrf": _service_token(c), "name": "dinero"})
+    key = re.search(r"/connect/(ks_[A-Za-z0-9_-]+)", r.text).group(1)
+    # link the repository
+    c.post("/account/services/1/repo", data={"csrf": _service_token(c), "repo": "dineroxyz/dinero-app",
+                                             "branch": "main"})
+    assert "dineroxyz/dinero-app" in c.get("/account").text
+    # a crash arrives: one job, an alert and a badge
+    assert c.post(f"/connect/{key}/ingest/event", json=EVENT).status_code == 200
+    page = c.get("/live").text
+    assert 'class="nav-badge"' in page
+    acct = c.get("/account").text
+    assert "Alerts from your services" in acct and "Bug detected" in acct
+    # the worker needs its token
+    assert c.get("/worker/jobs").status_code == 401
+    W = {"x-kintsugi-worker": "w-token-123"}
+    jobs = [j for j in c.get("/worker/jobs", headers=W).json()["jobs"]
+            if j["repo"] == "dineroxyz/dinero-app"]          # earlier tests leave jobs of their own
+    assert len(jobs) == 1
+    assert jobs[0]["capture"]["exception_type"] == EVENT["exception_type"]
+    jid = jobs[0]["job"]
+    for stage in ("reproducing", "reproduced", "fixing", "verified"):
+        assert c.post(f"/worker/jobs/{jid}/stage", headers=W, json={"stage": stage, "note": stage}).status_code == 200
+    c.post(f"/worker/jobs/{jid}/stage", headers=W, json={
+        "stage": "proposed", "pr_url": "https://github.com/dineroxyz/dinero-app/pull/9",
+        "explanation": "A missing check crashed checkout.", "patch": "--- a/x\n+++ b/x\n", "cost_usd": 0.12})
+    assert jid not in [j["job"] for j in c.get("/worker/jobs", headers=W).json()["jobs"]]
+    aid = c.post(f"/worker/jobs/{jid}/artifact?kind=video", headers={**W, "content-type": "video/mp4"},
+                 content=b"\x00\x00\x00 ftypmp42").json()["artifact"]
+    cert = c.post(f"/worker/jobs/{jid}/certify", headers=W, json={"reproduced": "5/5"}).json()
+    assert len(cert["hash"]) == 64
+    job_page = c.get(f"/account/incidents/{jid}").text
+    assert "Fix ready for you" in job_page and "pull/9" in job_page and "<video" in job_page
+    assert c.get(f"/account/artifacts/{aid}").content.startswith(b"\x00\x00\x00 ftyp")
+    assert c.get(f"/account/incidents/{jid}/certificate.json").json()["evidence"] == {"reproduced": "5/5"}
+    assert 'class="nav-badge"' not in c.get("/live").text                  # read now
+    # another person cannot see it
+    from fastapi.testclient import TestClient
+    other = TestClient(c.app, base_url="https://testserver")
+    tok = re.search(r'name="csrf" value="([^"]+)"', other.get("/signup").text).group(1)
+    r = other.post("/signup", data={"csrf": tok, "email": "other@example.com",
+                                    "password": "a second long passphrase", "agree": "yes"})
+    assert "other@example.com" in other.get("/account").text, r.text[-400:]
+    assert other.get(f"/account/incidents/{jid}").status_code == 404
+    assert other.get(f"/account/artifacts/{aid}").status_code == 404

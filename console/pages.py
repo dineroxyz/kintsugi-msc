@@ -699,7 +699,9 @@ app.add_middleware(CaptureMiddleware, service="{E(svc.name)}")</pre>
 before it leaves your server, and grouped into incidents below.</p></div>"""
     err = f'<p class="form-error" role="alert">{E(error)}</p>' if error else ""
     rows = []
-    for svc, incidents in services:
+    for item in services:
+        svc, incidents = item[0], item[1]
+        repo = item[2] if len(item) > 2 else None
         inc = "".join(
             f'<tr><td>{E(i.exception_type)}</td><td class="num">{i.capture_count}</td>'
             f'<td class="mono small">{E(i.signature[:12])}</td>'
@@ -710,15 +712,28 @@ before it leaves your server, and grouped into incidents below.</p></div>"""
                  '<th scope="col">Signature</th><th scope="col" class="num">First seen (UTC)</th></tr></thead>'
                  f'<tbody>{inc}</tbody></table></div>' if incidents else
                  '<p class="muted small">No failures reported yet. That is good news.</p>')
+        repo_note = (f'<p class="small">Fixes are proposed to <b>{E(repo.repo)}</b> ({E(repo.branch)}).</p>'
+                     if repo else '<p class="small muted">Link its GitHub repository so Kintsugi can '
+                     'reproduce failures in a separate copy and propose fixes.</p>')
+        repo_form = f"""<form method="post" action="/account/services/{svc.id}/repo" class="repo-form">
+<input type="hidden" name="csrf" value="{E(token)}">
+<label class="sr-only" for="repo-{svc.id}">GitHub repository</label>
+<input id="repo-{svc.id}" name="repo" maxlength="200" placeholder="owner/name"
+value="{E(repo.repo) if repo else ''}" autocapitalize="none" spellcheck="false">
+<label class="sr-only" for="branch-{svc.id}">Branch</label>
+<input id="branch-{svc.id}" name="branch" maxlength="100" placeholder="main"
+value="{E(repo.branch) if repo else 'main'}" autocapitalize="none" spellcheck="false">
+<button class="btn btn-quiet" type="submit">{"Update" if repo else "Link repository"}</button></form>"""
         rows.append(f"""<div class="svc"><div class="svc-head"><h3>{E(svc.name)}</h3>
 <form method="post" action="/account/services/{svc.id}/delete"><input type="hidden" name="csrf" value="{E(token)}">
-<button class="btn btn-quiet" type="submit">Disconnect</button></form></div>{table}</div>""")
+<button class="btn btn-quiet" type="submit">Disconnect</button></form></div>{repo_note}{repo_form}{table}</div>""")
     return f"""
 <section id="services" aria-labelledby="svc-title" style="margin-top:48px">
 <h2 id="svc-title" style="font-size:22px;margin:0 0 8px">Connect your own service</h2>
-<p class="muted">Point a real Python service at Kintsugi and its failures are caught,
-grouped and shown here. Connecting does not give Kintsugi any access to your code;
-it only receives the failure reports your service sends.</p>
+<p class="muted">Point a real service at Kintsugi (Python with FastAPI or Starlette, or
+Next.js 15 and later) and its failures are caught, grouped and shown here. Connecting
+gives this site no access to your code: fixes are worked out by a Kintsugi worker running
+next to your code, and arrive here and on GitHub as a proposal for you to accept.</p>
 {fresh}{err}
 {"".join(rows)}
 <form method="post" action="/account/services" class="auth-form svc-form">
@@ -734,7 +749,7 @@ def account(user, runs: list, left: dict, titles: dict, delete_token: str, *,
             live_enabled: bool, services: list | None = None, service_token: str = "",
             new_key=None, service_error: str = "", base_url: str = "",
             password_token: str = "", password_msg: tuple | None = None,
-            admin: bool = False) -> str:
+            admin: bool = False, alerts: list | None = None) -> str:
     rows = "".join(
         f'<tr><td class="mono">{E(r.entry)}</td><td class="muted small">{E(titles.get(r.entry, ""))}</td>'
         f'<td>{E({"recovered": "Mended", "refused": "Left alone", "escalated": "Gave up", "false_fix": "Bad fix", None: "Running"}.get(r.outcome, r.outcome or ""))}'
@@ -757,6 +772,7 @@ def account(user, runs: list, left: dict, titles: dict, delete_token: str, *,
 <p class="muted">{allowance}</p>
 <p><a class="btn btn-primary" href="/live">Break a bug</a></p></div>
 {_admin_panel() if admin else ""}
+{_alerts_section(alerts or [], {svc.id: svc.name for svc, *_ in (services or [])})}
 <h2 style="font-size:22px;margin:0 0 12px">Your runs</h2>
 {table}
 {_services_section(services or [], service_token, new_key, service_error, base_url)}
@@ -796,6 +812,61 @@ def _run_links(r) -> str:
     if r.certificate is not None and r.outcome == "recovered":
         links.append(f'<a href="/live-certificates/{r.certificate}">Certificate</a>')
     return " ".join(links)
+
+
+STAGE_TONE = {"detected": "warn", "reproducing": "warn", "reproduced": "warn", "fixing": "warn",
+              "refused": "muted", "gave_up": "muted", "verified": "good", "proposed": "good"}
+
+
+def _alerts_section(jobs: list, names: dict) -> str:
+    from console.heal import WORDS
+    if not jobs:
+        return ""
+    unseen = sum(1 for j in jobs if not j.seen)
+    items = "".join(
+        f'<li class="alert-item{" unseen" if not j.seen else ""}">'
+        f'<a href="/account/incidents/{j.id}"><span class="alert-dot" aria-hidden="true"></span>'
+        f'<b>{E(names.get(j.service_id, "service"))}</b>'
+        f'<span class="stage stage-{STAGE_TONE.get(j.stage, "muted")}">{E(WORDS.get(j.stage, j.stage))}</span>'
+        f'<span class="faint small">{E(j.updated_at[:16].replace("T", " "))} UTC</span>'
+        f'{"<span class=sr-only>(new)</span>" if not j.seen else ""}</a></li>'
+        for j in jobs[:12])
+    head = f"{unseen} new" if unseen else "All read"
+    return (f'<section class="alerts" aria-labelledby="alerts-title"><div class="panel-head">'
+            f'<h2 id="alerts-title">Alerts from your services</h2><span class="small muted">{head}</span></div>'
+            f'<ul class="alert-list">{items}</ul></section>')
+
+
+def heal_job(job, incident, service_name: str, arts: list) -> str:
+    """One incident on a connected service, from detection to proposal."""
+    import json as _json
+    from console.heal import WORDS
+    timeline = _json.loads(job.timeline_json or "[]")
+    def step(t: dict) -> str:
+        note = f"<p>{E(t['note'])}</p>" if t.get("note") else ""
+        return (f'<li class="tl-{STAGE_TONE.get(t["stage"], "muted")}">'
+                f'<b>{E(WORDS.get(t["stage"], t["stage"]))}</b>'
+                f'<span class="faint small"> {E(t["at"][:19].replace("T", " "))} UTC</span>{note}</li>')
+    steps = "".join(step(t) for t in timeline)
+    videos = "".join(
+        f'<video controls preload="metadata" src="/account/artifacts/{a.id}" class="heal-video"></video>'
+        for a in arts if a.content_type.startswith("video/"))
+    logs = "".join(f'<li><a href="/account/artifacts/{a.id}">{E(a.kind)} ({len(a.data) // 1024} KB)</a></li>'
+                   for a in arts if not a.content_type.startswith("video/"))
+    err = (f'<p class="lede"><span class="mono">{E(incident.exception_type)}</span> in '
+           f'<b>{E(service_name)}</b>, release <span class="mono">{E((incident.release or "")[:12])}</span></p>'
+           if incident else "")
+    return f"""
+<div class="page-head"><p class="small"><a href="/account">Your account</a></p>
+<h1>{E(WORDS.get(job.stage, job.stage))}</h1>{err}</div>
+{f'<section class="heal-block"><h2>What went wrong</h2><p>{E(job.explanation)}</p></section>' if job.explanation else ""}
+{f'<section class="heal-block"><h2>Recording</h2>{videos}</section>' if videos else ""}
+<section class="heal-block"><h2>What Kintsugi did</h2><ol class="timeline">{steps}</ol></section>
+{f'<section class="heal-block"><h2>The proposed fix</h2><p><a class="btn btn-primary" href="{E(job.pr_url)}" rel="noopener">Review the pull request on GitHub</a></p></section>' if job.pr_url else ""}
+{f'<section class="heal-block"><h2>The change</h2><pre class="diff">{E(job.patch)}</pre></section>' if job.patch else ""}
+{f'<section class="heal-block"><h2>Certificate</h2><p>Signed proof of every step above. <a href="/account/incidents/{job.id}/certificate.json">Download the certificate</a></p></section>' if job.certificate_json else ""}
+{f'<section class="heal-block"><h2>Files</h2><ul>{logs}</ul></section>' if logs else ""}
+<p class="faint small">AI cost of this incident: ${job.cost_usd:.2f}</p>"""
 
 
 def _admin_panel() -> str:
