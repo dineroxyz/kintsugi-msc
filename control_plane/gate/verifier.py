@@ -173,6 +173,12 @@ def gate(capture: dict, signature: str, diff: str, service_spec: str,
     if not conditions["structural"]["passed"]:
         return GateVerdict(False, conditions)
 
+    from control_plane.gate import security
+    if security.enabled():
+        conditions["security"] = security.security_check(diff, capture, workdir)
+        if not conditions["security"]["passed"]:
+            return GateVerdict(False, conditions)
+
     tree, err = _apply_patch(workdir, diff)
     if tree is None:
         conditions["applies"] = {"passed": False, "error": err}

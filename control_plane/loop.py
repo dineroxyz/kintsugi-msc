@@ -38,6 +38,8 @@ def _condition_details(conditions: dict) -> dict:
     for name, c in conditions.items():
         if name == "structural":
             out[name] = "; ".join(c.get("problems") or []) or "no deleted tests, no swallowed error"
+        elif name == "security":
+            out[name] = "; ".join(c.get("problems") or []) or "only touches the failing code; no new imports, routes, network or copied input"
         elif name == "applies":
             out[name] = (c.get("error") or "")[:160] or "diff applied cleanly to a copy of the tree"
         elif name == "reproduction":

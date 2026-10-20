@@ -85,9 +85,9 @@ def test_c3_heals_fanout_incidents_until_traffic_is_clean(tmp_path):
                           '        price = float(resp.json()["price"])\n')
 
     def complete(evidence):
-        if "POST /orders" in evidence:
+        if "POST <untrusted>/orders" in evidence:
             return orders_fix
-        assert "GET /quote" in evidence
+        assert "GET <untrusted>/quote" in evidence      # request text is fenced as untrusted
         return quote_fix
 
     store = CertificateStore(str(tmp_path / "certs"))

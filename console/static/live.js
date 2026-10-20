@@ -244,7 +244,7 @@
   document.querySelectorAll(".lsteps li").forEach(function (li) {
     DEFAULT_TEXT[li.dataset.step] = li.querySelector("span").textContent;
   });
-  var COND = { structural: "not just hiding the error", applies: "written correctly",
+  var COND = { structural: "not just hiding the error", security: "safe to run", applies: "written correctly",
                reproduction: "the error is gone", suite: "nothing else broke" };
 
   function reset() {
@@ -283,7 +283,7 @@
     patchEl.scrollTop = patchEl.scrollHeight;
   }
 
-  var COND_LONG = { structural: "structure", applies: "applies", reproduction: "reproduction",
+  var COND_LONG = { structural: "structure", security: "security", applies: "applies", reproduction: "reproduction",
                     suite: "test suite" };
   function engine(e) {
     var t = e.t, ok = '<span class="ok">✓</span>', no = '<span class="no">✗</span>';
@@ -345,7 +345,7 @@
         var lines = (e.diff || "").split("\n").filter(function (l) { return /^[+-]/.test(l) && !/^(\+\+\+|---)/.test(l); }).length;
         log(t, "patch", "attempt " + e.attempt + ": " + lines + " changed line" + (lines === 1 ? "" : "s") +
             ' <span class="dim">(' + tokChars + " characters)</span>");
-        ["structural", "applies", "reproduction", "suite"].forEach(function (k) {
+        ["structural", "security", "applies", "reproduction", "suite"].forEach(function (k) {
           if (!(k in (e.conditions || {}))) return;
           var d = (e.details || {})[k];
           log(null, "gate", (e.conditions[k] ? ok : no) + " " + COND_LONG[k] + (d ? ' <span class="dim">' + esc(d) + "</span>" : ""));
