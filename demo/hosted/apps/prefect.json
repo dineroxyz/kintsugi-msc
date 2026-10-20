@@ -1,0 +1,41 @@
+{
+ "name": "Prefect",
+ "about": "Prefect is a widely used open source workflow orchestration server. This is its real API server, running unmodified, with Kintsugi in front of it.",
+ "bug": "Asking for a page of zero deployments crashes the server with a division by zero (Prefect fix #22566, re-introduced in the deployments endpoint)",
+ "sha": "1144d63fd38a83d06527f353fddc4febc357c0ee",
+ "repo": "prefect",
+ "pythonpath": [
+  "src"
+ ],
+ "cmd": [
+  "python",
+  "-m",
+  "uvicorn",
+  "--factory",
+  "prefect.server.api.server:create_app"
+ ],
+ "health": "/api/health",
+ "env": {
+  "PREFECT_SERVER_ANALYTICS_ENABLED": "false",
+  "PREFECT_UI_ENABLED": "false"
+ },
+ "db_hook": "kintsugi_prefect:db_path",
+ "replay": "replay_prefect.py",
+ "trigger": {
+  "method": "POST",
+  "path": "/api/deployments/paginate",
+  "json": {
+   "limit": 0
+  }
+ },
+ "tests": [
+  "tests/server/orchestration/api/test_deployments.py"
+ ],
+ "generated": [
+  "src/prefect/_build_info.py",
+  "src/prefect/_internal/analytics/_config.py"
+ ],
+ "fault_files": [
+  "src/prefect/server/api/deployments.py"
+ ]
+}

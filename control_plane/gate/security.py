@@ -67,9 +67,9 @@ def allowed_files(capture: dict, workdir: str) -> set[str]:
         elif "/site-packages/" not in path and "/lib/python" not in path:
             # frames recorded from another copy of the same service tree
             parts = f.get("file", "").split("/")
-            for i in range(len(parts)):
+            for i in range(1, len(parts)):           # project-relative suffixes only
                 rel = "/".join(parts[i:])
-                if rel and os.path.exists(os.path.join(workdir, rel)):
+                if rel and not rel.startswith("/") and os.path.exists(os.path.join(workdir, rel)):
                     out.add(rel)
                     break
     return out
