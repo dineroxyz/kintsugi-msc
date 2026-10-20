@@ -1,0 +1,25 @@
+{"sha": "84242e41b802acdf03159071c3143dc380d3d5af", "kind": "wrong output", "valid": true, "step": null, "error": null}
+{"sha": "8ffc48400485fe20bd4a89c243e8dc64c98533a5", "kind": "wrong output", "valid": true, "step": null, "error": null}
+{"sha": "4b6e9255d1c04cd1f86fae582b552027d8871cf3", "kind": null, "valid": false, "step": "invalid ground truth", "error": null}
+{"sha": "5976f002747266b0dc4320a4231ae65f51bcd970", "kind": null, "valid": false, "step": "invalid ground truth", "error": null}
+{"sha": "cbe3bbda05a7878c38da83718adb23e3b344b4be", "kind": "wrong output", "valid": true, "step": null, "error": null}
+{"sha": "181c3ded642b1ec46442b2adcd4fef3ef1383911", "kind": "wrong output", "valid": true, "step": null, "error": null}
+{"sha": "9bc58f605bfcd846def891d3c70dfae0ba16e35a", "kind": "wrong output", "valid": true, "step": null, "error": null}
+{"sha": "829e2f8df7d234c30a4b5e9e5d4ca09dc04f2cbd", "kind": null, "valid": false, "step": "invalid ground truth", "error": null}
+{"sha": "e7a68b4275c0f9dbbdaa08293635bea972b782c3", "kind": null, "valid": false, "step": "invalid ground truth", "error": null}
+{"sha": "89b75b7fbec6acbf411c95937462fdc1617d4dce", "kind": "wrong output", "valid": true, "step": null, "error": null}
+{"sha": "2dbfca9f0db7f8274f76c9a5baa56a30ccae59a0", "kind": "wrong output", "valid": true, "step": null, "error": null}
+{"sha": "bf341740c8855494086636480c656d6ac432530e", "kind": "wrong output", "valid": true, "step": null, "error": null}
+{"sha": "ade7324fc03a78943ee31af616a13a36058568ab", "kind": "wrong output", "valid": true, "step": null, "error": null}
+{"sha": "51e585c78cbe0cd94896264143d043248a092421", "kind": "runtime failure", "valid": true, "step": null, "error": null}
+{"sha": "bae9e1bf80e2a061e5f5660b08dcc90bcd0c5d2f", "kind": "wrong output", "valid": true, "step": null, "error": null}
+{"sha": "eee372bb3cd723060df412f701a6615dd3892939", "kind": "wrong output", "valid": true, "step": null, "error": null}
+{"sha": "a85a5144d03ff1ad56c6e8eea8b41a9abd2c31a2", "kind": "wrong output", "valid": true, "step": null, "error": null}
+{"sha": "84bf85581098158984a6f10518a1fa20eb2f4aca", "kind": null, "valid": false, "step": "invalid ground truth", "error": null}
+{"sha": "29e980dd672e26a885fcc4a7837f9eef77bcf0b5", "kind": "wrong output", "valid": true, "step": null, "error": null}
+{"sha": "ee595eede1c9da6cfae3f7cf96a057056ea8971b", "kind": "wrong output", "valid": true, "step": null, "error": null}
+{"sha": "5de4239f3c362a631a5fd7382c7602d2e5ff8dd0", "kind": "wrong output", "valid": true, "step": null, "error": null}
+{"sha": "30e0522419ec7e42ed4e182e3767dfb4cb4bdb96", "kind": null, "valid": false, "step": "invalid ground truth", "error": null}
+{"sha": "9edc4786e13b59beec22b6af5b90eb52351484d3", "kind": "wrong output", "valid": true, "step": null, "error": null}
+{"sha": "67bb86c1ce015171b3c104cd6428d6c9c1303653", "kind": "wrong output", "valid": true, "step": null, "error": null}
+{"sha": "ffad5d79c4956f3034a6fb0d9935a1a8f14c420f", "kind": "wrong output", "valid": true, "step": null, "error": null}

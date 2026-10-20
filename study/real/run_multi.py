@@ -24,7 +24,10 @@ APPS = {
     "lnbits": {"pythonpath": ["."], "args": ["-p", "kintsugi_lnbits_setup"], "mkdir": ["tests/data"],
                "env": {"LNBITS_DATA_FOLDER": "./tests/data", "LNBITS_BACKEND_WALLET_CLASS": "FakeWallet",
                        "DEBUG": "true"}},
-    "langflow": {"pythonpath": ["src/backend/base", "src/lfx/src"], "args": []},
+    "langflow": {"pythonpath": ["src/backend/base", "src/lfx/src"], "args": [],
+                 # lfx's tests run in lfx's own environment, from its folder
+                 "roots": {"src/lfx/tests": {"cwd": "src/lfx", "venv": "src/lfx/.venv",
+                                             "pythonpath": ["src/lfx/src"]}}},
     "frigate": {"pythonpath": ["."], "args": []},
 }
 
@@ -51,12 +54,41 @@ def drop(repo: str, path: str) -> None:
     shutil.rmtree(path, ignore_errors=True)
 
 
+def test_root(path: str) -> str:
+    parts = path.split("/")
+    return "/".join(parts[:parts.index("tests") + 1]) if "tests" in parts else parts[0]
+
+
 def run_tests(app: str, t: str, sel: list[str], sink: str) -> subprocess.CompletedProcess:
-    cfg = APPS[app]
+    """Test files under different test roots run in separate pytest calls,
+    because each root's conftest has the same module name."""
+    files = [x for x in sel if x.endswith(".py")]
+    rest = sel[len(files):]
+    roots = sorted({test_root(f) for f in files})
+    if len(roots) <= 1:
+        return _run_tests(app, t, sel, sink)
+    runs = [_run_tests(app, t, [f for f in files if test_root(f) == r] + rest, sink) for r in roots]
+    worst = max(runs, key=lambda r: (r.returncode not in (0, 5), r.returncode))
+    ok = all(r.returncode in (0, 5) for r in runs) and any(r.returncode == 0 for r in runs)
+    return subprocess.CompletedProcess(worst.args, 0 if ok else (worst.returncode or 1),
+                                       "".join(r.stdout for r in runs), "".join(r.stderr for r in runs))
+
+
+def _run_tests(app: str, t: str, sel: list[str], sink: str) -> subprocess.CompletedProcess:
+    cfg = dict(APPS[app])
+    files = [x for x in sel if x.endswith(".py")]
+    special = cfg.get("roots", {}).get(test_root(files[0])) if files else None
+    if special:                              # a sub-project with its own environment
+        cfg.update(pythonpath=special["pythonpath"])
+        cwd = os.path.join(t, special["cwd"])
+        sel = [os.path.relpath(x, special["cwd"]) if x.endswith(".py") else x for x in sel]
+        venv = os.path.join(REAL, app, special["venv"])
+    else:
+        cwd, venv = t, os.path.join(REAL, app, ".venv")
     env = {k: v for k, v in os.environ.items() if k != "VIRTUAL_ENV"}
     env["PYTHONPATH"] = os.pathsep.join([os.path.join(t, p) for p in cfg["pythonpath"]] + [PLUGIN_DIR])
     env["KINTSUGI_SINK"] = sink
-    env["PATH"] = os.path.join(REAL, app, ".venv", "bin") + os.pathsep + env.get("PATH", "")
+    env["PATH"] = os.path.join(venv, "bin") + os.pathsep + env.get("PATH", "")
     env.update(cfg.get("env", {}))
     for f in cfg.get("copy", []):          # files the package install generates
         src = os.path.join(REAL, app, f)
@@ -64,9 +96,9 @@ def run_tests(app: str, t: str, sel: list[str], sink: str) -> subprocess.Complet
             shutil.copy(src, os.path.join(t, f))
     for d in cfg.get("mkdir", []):
         os.makedirs(os.path.join(t, d), exist_ok=True)
-    py = os.path.join(REAL, app, ".venv", "bin", "python")
+    py = os.path.join(venv, "bin", "python")
     return sh([py, "-m", "pytest", "-p", "kintsugi_generic", "-p", "no:cacheprovider",
-               "-o", "addopts=", "-q", "-x", *cfg["args"], *sel], cwd=t, env=env, timeout=1200)
+               "-o", "addopts=", "-q", "-x", *cfg["args"], *sel], cwd=cwd, env=env, timeout=1200)
 
 
 def selectors(c: dict, t: str) -> list[str]:

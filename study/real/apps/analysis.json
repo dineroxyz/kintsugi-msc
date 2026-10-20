@@ -1,0 +1,139 @@
+{
+ "apps": {
+  "mealie": {
+   "mined": 64,
+   "by_step": {
+    "wrong output": 56,
+    "invalid ground truth": 5,
+    "runtime failure": 1,
+    "no discriminating tests at HEAD": 2
+   },
+   "valid": 57,
+   "runtime_failures": 1,
+   "share": 0.018,
+   "ci95": [
+    0.003,
+    0.093
+   ]
+  },
+  "lnbits": {
+   "mined": 25,
+   "by_step": {
+    "wrong output": 18,
+    "invalid ground truth": 6,
+    "runtime failure": 1
+   },
+   "valid": 19,
+   "runtime_failures": 1,
+   "share": 0.053,
+   "ci95": [
+    0.009,
+    0.246
+   ]
+  },
+  "prefect": {
+   "mined": 135,
+   "by_step": {
+    "wrong output": 108,
+    "invalid ground truth": 21,
+    "runtime failure": 5,
+    "no discriminating tests at HEAD": 1
+   },
+   "valid": 113,
+   "runtime_failures": 5,
+   "share": 0.044,
+   "ci95": [
+    0.019,
+    0.099
+   ]
+  },
+  "langflow": {
+   "mined": 59,
+   "by_step": {
+    "wrong output": 51,
+    "invalid ground truth": 6,
+    "no discriminating tests at HEAD": 1,
+    "runtime failure": 1
+   },
+   "valid": 52,
+   "runtime_failures": 1,
+   "share": 0.019,
+   "ci95": [
+    0.003,
+    0.101
+   ]
+  }
+ },
+ "not_run": {
+  "frigate": "its tests need Frigate's Docker image (fixed system paths such as /labelmap.txt)",
+  "open-webui": "no fix commit came with tests",
+  "full-stack-fastapi-template": "no fix commit came with tests"
+ },
+ "crashes": [
+  {
+   "app": "mealie",
+   "sha": "f2873227",
+   "subject": "fix: scope bulk update/delete repository methods to caller's group/household (#7899)",
+   "signature": "AttributeError@shopping_lists.py:136",
+   "request": "PUT /api/households/shopping/items/75080136-e484-4ba7-bf07-bcecbc47e54e"
+  },
+  {
+   "app": "lnbits",
+   "sha": "51e585c7",
+   "subject": "fix: direct fiat payments (#4116)",
+   "signature": "ResponseValidationError@middleware.py:126",
+   "request": "POST /api/v1/payments"
+  },
+  {
+   "app": "prefect",
+   "sha": "1144d63f",
+   "subject": "fix(server/api): consistent zero-limit behavior for core pagination endpoints (#22566)",
+   "signature": "ZeroDivisionError@deployments.py:612",
+   "request": "POST /api/deployments/paginate"
+  },
+  {
+   "app": "prefect",
+   "sha": "d6258911",
+   "subject": "fix(server): guard `.get()` calls on arbitrary `State.data` in result-data-loss rules (#21967)",
+   "signature": "AttributeError@core_policy.py:1716",
+   "request": "POST /api/flow_runs/718a88ef-6547-4b16-b097-ebf3a95a9f7f/set_state"
+  },
+  {
+   "app": "prefect",
+   "sha": "d09f96a6",
+   "subject": "fix(server): fix flow run logs download from Prefect UI in browser (#21718)",
+   "signature": "UnicodeEncodeError@flow_runs.py:1116",
+   "request": "GET /api/flow_runs/122a0b5a-452c-42f3-b1bc-eeed48e39152/logs/download"
+  },
+  {
+   "app": "prefect",
+   "sha": "ebf8ce6d",
+   "subject": "Fix `AttributeError` in when creating a flow run from a deployment (#18707)",
+   "signature": "AttributeError@deployments.py:942",
+   "request": "POST /api/deployments/5d247edf-2c2f-45db-a15e-b94234585f12/create_flow_run"
+  },
+  {
+   "app": "prefect",
+   "sha": "b19a7cb5",
+   "subject": "Fix bug where schedules without a slug or active raise a 500 (#17091)",
+   "signature": "ValidationError@deployments.py:394",
+   "request": "PATCH /api/deployments/fffb61d4-ed96-4e16-ab57-9173676df565"
+  },
+  {
+   "app": "langflow",
+   "sha": "87709a7b",
+   "subject": "fix(admin): harden conflict and prune handling (#14923)",
+   "signature": "NameError@authz_roles.py:236",
+   "request": "POST /api/v1/authz/roles"
+  }
+ ],
+ "total": {
+  "valid": 241,
+  "runtime_failures": 8,
+  "share": 0.033,
+  "ci95": [
+   0.017,
+   0.064
+  ]
+ }
+}

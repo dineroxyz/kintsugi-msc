@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "/Users/ssheyii/kintsugi/study/real/mine.py", line 57, in <module>
+    main(*sys.argv[1:4])
+  File "/Users/ssheyii/kintsugi/study/real/mine.py", line 38, in main
+    files = git(repo, "show", "--name-only", "--format=", sha).stdout.split()
+  File "/Users/ssheyii/kintsugi/study/real/mine.py", line 23, in git
+    raise RuntimeError(p.stderr)
+RuntimeError: fatal: You are attempting to fetch 817bc93b6e828459e6853fa8b51ddba52515ad16, which is in the commit graph file but not in the object database.
+This is probably due to repo corruption.
+If you are attempting to repair this repo corruption by refetching the missing object, use 'git fetch --refetch' with the missing object.
+fatal: could not fetch 60145bfcf9177ef3b98c894d72314e3f4903722d from promisor remote
+

@@ -1,0 +1,291 @@
+{
+ "exception_type": "UnicodeEncodeError",
+ "exception_module": "builtins",
+ "exception_message": "'latin-1' codec can't encode character '\\U0001f680' in position 21: ordinal not in range(256)",
+ "frames": [
+  {
+   "file": "/Users/ssheyii/kintsugi/study/real/generic/kintsugi_generic.py",
+   "line": 73,
+   "function": "captured",
+   "code": "return await original(self, scope, rec, send)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/prefect/.venv/lib/python3.14/site-packages/starlette/applications.py",
+   "line": 90,
+   "function": "__call__",
+   "code": "await self.middleware_stack(scope, receive, send)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/prefect/.venv/lib/python3.14/site-packages/starlette/middleware/errors.py",
+   "line": 186,
+   "function": "__call__",
+   "code": "raise exc"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/prefect/.venv/lib/python3.14/site-packages/starlette/middleware/errors.py",
+   "line": 164,
+   "function": "__call__",
+   "code": "await self.app(scope, receive, _send)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/work-multi/prefect-d09f96a6-s2/src/prefect/server/api/server.py",
+   "line": 285,
+   "function": "__call__",
+   "code": "await self.app(scope, receive, send)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/prefect/.venv/lib/python3.14/site-packages/starlette/middleware/cors.py",
+   "line": 88,
+   "function": "__call__",
+   "code": "await self.app(scope, receive, send)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/prefect/.venv/lib/python3.14/site-packages/starlette/middleware/exceptions.py",
+   "line": 63,
+   "function": "__call__",
+   "code": "await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/prefect/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py",
+   "line": 53,
+   "function": "wrapped_app",
+   "code": "raise exc"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/prefect/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py",
+   "line": 42,
+   "function": "wrapped_app",
+   "code": "await app(scope, receive, sender)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/prefect/.venv/lib/python3.14/site-packages/fastapi/middleware/asyncexitstack.py",
+   "line": 18,
+   "function": "__call__",
+   "code": "await self.app(scope, receive, send)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/prefect/.venv/lib/python3.14/site-packages/starlette/routing.py",
+   "line": 660,
+   "function": "__call__",
+   "code": "await self.middleware_stack(scope, receive, send)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/prefect/.venv/lib/python3.14/site-packages/fastapi/routing.py",
+   "line": 2734,
+   "function": "app",
+   "code": "await route.handle(scope, receive, send)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/prefect/.venv/lib/python3.14/site-packages/starlette/routing.py",
+   "line": 448,
+   "function": "handle",
+   "code": "await self.app(scope, receive, send)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/prefect/.venv/lib/python3.14/site-packages/fastapi/applications.py",
+   "line": 1163,
+   "function": "__call__",
+   "code": "await super().__call__(scope, receive, send)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi/study/real/generic/kintsugi_generic.py",
+   "line": 50,
+   "function": "captured",
+   "code": "return await original(self, scope, receive, send)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/prefect/.venv/lib/python3.14/site-packages/starlette/applications.py",
+   "line": 90,
+   "function": "__call__",
+   "code": "await self.middleware_stack(scope, receive, send)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/prefect/.venv/lib/python3.14/site-packages/starlette/middleware/errors.py",
+   "line": 186,
+   "function": "__call__",
+   "code": "raise exc"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/prefect/.venv/lib/python3.14/site-packages/starlette/middleware/errors.py",
+   "line": 164,
+   "function": "__call__",
+   "code": "await self.app(scope, receive, _send)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/prefect/.venv/lib/python3.14/site-packages/starlette/middleware/base.py",
+   "line": 193,
+   "function": "__call__",
+   "code": "response = await self.dispatch_func(request, call_next)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/work-multi/prefect-d09f96a6-s2/src/prefect/server/api/server.py",
+   "line": 517,
+   "function": "default_content_type",
+   "code": "return await call_next(request)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/prefect/.venv/lib/python3.14/site-packages/starlette/middleware/base.py",
+   "line": 168,
+   "function": "call_next",
+   "code": "raise app_exc from app_exc.__cause__ or app_exc.__context__"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/prefect/.venv/lib/python3.14/site-packages/starlette/middleware/base.py",
+   "line": 144,
+   "function": "coro",
+   "code": "await self.app(scope, receive_or_disconnect, send_no_error)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/prefect/.venv/lib/python3.14/site-packages/starlette/middleware/gzip.py",
+   "line": 29,
+   "function": "__call__",
+   "code": "await responder(scope, receive, send)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/prefect/.venv/lib/python3.14/site-packages/starlette/middleware/gzip.py",
+   "line": 130,
+   "function": "__call__",
+   "code": "await super().__call__(scope, receive, send)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/prefect/.venv/lib/python3.14/site-packages/starlette/middleware/gzip.py",
+   "line": 46,
+   "function": "__call__",
+   "code": "await self.app(scope, receive, self.send_with_compression)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/prefect/.venv/lib/python3.14/site-packages/starlette/middleware/exceptions.py",
+   "line": 63,
+   "function": "__call__",
+   "code": "await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/prefect/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py",
+   "line": 53,
+   "function": "wrapped_app",
+   "code": "raise exc"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/prefect/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py",
+   "line": 42,
+   "function": "wrapped_app",
+   "code": "await app(scope, receive, sender)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/prefect/.venv/lib/python3.14/site-packages/fastapi/middleware/asyncexitstack.py",
+   "line": 18,
+   "function": "__call__",
+   "code": "await self.app(scope, receive, send)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/prefect/.venv/lib/python3.14/site-packages/starlette/routing.py",
+   "line": 660,
+   "function": "__call__",
+   "code": "await self.middleware_stack(scope, receive, send)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/prefect/.venv/lib/python3.14/site-packages/fastapi/routing.py",
+   "line": 2734,
+   "function": "app",
+   "code": "await route.handle(scope, receive, send)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/prefect/.venv/lib/python3.14/site-packages/fastapi/routing.py",
+   "line": 1780,
+   "function": "handle",
+   "code": "await self.original_router.handle(scope, receive, send)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/prefect/.venv/lib/python3.14/site-packages/fastapi/routing.py",
+   "line": 2789,
+   "function": "handle",
+   "code": "await included_router._handle_selected(scope, receive, send)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/prefect/.venv/lib/python3.14/site-packages/fastapi/routing.py",
+   "line": 1800,
+   "function": "_handle_selected",
+   "code": "await original_route.handle(scope, receive, send)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/prefect/.venv/lib/python3.14/site-packages/fastapi/routing.py",
+   "line": 1279,
+   "function": "handle",
+   "code": "await app(scope, receive, send)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/prefect/.venv/lib/python3.14/site-packages/fastapi/routing.py",
+   "line": 158,
+   "function": "app",
+   "code": "await wrap_app_handling_exceptions(app, request)(scope, receive, send)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/prefect/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py",
+   "line": 53,
+   "function": "wrapped_app",
+   "code": "raise exc"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/prefect/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py",
+   "line": 42,
+   "function": "wrapped_app",
+   "code": "await app(scope, receive, sender)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/prefect/.venv/lib/python3.14/site-packages/fastapi/routing.py",
+   "line": 144,
+   "function": "app",
+   "code": "response = await f(request)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/work-multi/prefect-d09f96a6-s2/src/prefect/server/utilities/server.py",
+   "line": 61,
+   "function": "handle_response_scoped_depends",
+   "code": "response = await default_handler(request)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/prefect/.venv/lib/python3.14/site-packages/fastapi/routing.py",
+   "line": 706,
+   "function": "app",
+   "code": "raw_response = await run_endpoint_function("
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/prefect/.venv/lib/python3.14/site-packages/fastapi/routing.py",
+   "line": 352,
+   "function": "run_endpoint_function",
+   "code": "return await dependant.call(**values)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/work-multi/prefect-d09f96a6-s2/src/prefect/server/api/flow_runs.py",
+   "line": 1116,
+   "function": "download_logs",
+   "code": "return StreamingResponse("
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/prefect/.venv/lib/python3.14/site-packages/starlette/responses.py",
+   "line": 240,
+   "function": "__init__",
+   "code": "self.init_headers(headers)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/prefect/.venv/lib/python3.14/site-packages/starlette/responses.py",
+   "line": 61,
+   "function": "init_headers",
+   "code": "raw_headers = [(k.lower().encode(\"latin-1\"), v.encode(\"latin-1\")) for k, v in headers.items()]"
+  }
+ ],
+ "request": {
+  "method": "GET",
+  "path": "/api/flow_runs/61b4bb7e-76af-4549-8899-fef521f52106/logs/download",
+  "query": "",
+  "headers": {
+   "host": "test",
+   "accept": "*/*",
+   "accept-encoding": "gzip, deflate",
+   "connection": "keep-alive",
+   "user-agent": "python-httpx/0.28.1"
+  },
+  "body": ""
+ },
+ "snapshot": "/Users/ssheyii/kintsugi/study/real/apps/captures/prefect-d09f96a6.db"
+}

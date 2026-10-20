@@ -1,0 +1,3 @@
+{"sha": "1144d63fd38a83d06527f353fddc4febc357c0ee", "step": null, "error": null, "repro": {"request": "reproduced", "snapshot": "reproduced"}}
+{"sha": "d6258911934bc530344c5f808fef97b532a1b8e9", "step": null, "error": null, "repro": {"request": "refused", "snapshot": "reproduced"}}
+{"sha": "d09f96a627eb1cf2b9942c98a68047ca79f8207c", "step": null, "error": null, "repro": {"request": "refused", "snapshot": "reproduced"}}
