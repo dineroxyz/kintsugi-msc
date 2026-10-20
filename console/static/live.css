@@ -166,3 +166,4 @@ main.wide { padding-top: var(--s5); }
   background: var(--surface-2); border-radius: 0 6px 6px 0; display: grid; gap: 2px; }
 .explain[hidden] { display: none; }
 .explain p { margin: 6px 0 0; color: var(--ink); }
+.live-controls [hidden] { display: none !important; }

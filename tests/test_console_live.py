@@ -131,3 +131,35 @@ def test_full_live_heal_with_a_scripted_model():
     traffic = [s for e in events if e["kind"] == "traffic" for s in e["samples"]]
     assert any(s[1] >= 500 for s in traffic) and any(s[1] < 500 for s in traffic)
     assert all(e["t"] >= 0 for e in events)
+
+
+def test_undo_and_redo_a_live_repair_from_its_certificate():
+    """After a mend the shop is kept: undo brings the bug back on the running
+    shop; redo re-checks the certificate and redeploys its exact patch."""
+    from control_plane.certificates.issuer import CertificateStore
+    from control_plane.study.live import run_live
+    from corpus import load_entry
+    from corpus.injector import fix_diff, inject
+
+    entry = load_entry("F03")
+    diff = fix_diff(entry, inject(entry, os.path.join(ROOT, "services"),
+                                  tempfile.mkdtemp() + "/t"))
+    kept = []
+    events = []
+    result = run_live(entry, events.append, complete=lambda _: diff,
+                      certificates=CertificateStore(tempfile.mkdtemp()), keep=kept.append)
+    assert result["outcome"] == "recovered" and events[-1]["undo"] is True
+    session = kept[0]
+    try:
+        undo = []
+        session.undo(undo.append)
+        kinds = [e["kind"] for e in undo if e["kind"] != "traffic"]
+        assert kinds[:2] == ["undo_start", "fault_deployed"] and undo[-1]["outcome"] == "undone"
+        assert next(e for e in undo if e["kind"] == "undo_done")["errors"] > 0
+        redo = []
+        session.redo(redo.append)
+        checks = next(e for e in redo if e["kind"] == "cert_verified")
+        assert checks["hash"] and checks["chain"] and checks["record"] and checks["patch"]
+        assert any(e["kind"] == "recovered" for e in redo) and redo[-1]["outcome"] == "redone"
+    finally:
+        session.close()

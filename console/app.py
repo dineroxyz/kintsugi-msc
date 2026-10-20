@@ -526,6 +526,31 @@ async def live_run(request: Request):
         run = L.start(entry, on_finish=lambda **kw: A.finish_run(record, **kw))
     except Exception as exc:
         return JSONResponse({"error": str(exc)[:200]}, status_code=400)
+    who = auth.identity(request)
+    _run_owner[run.id] = who["u"] if who else None
+    return {"run": run.id}
+
+
+_run_owner: dict[str, str | None] = {}
+
+
+@app.post("/live/{run_id}/{action}")
+async def live_undo_redo(run_id: str, action: str, request: Request):
+    """Undo a live repair (the bug comes back) or redo it from its
+    certificate (no model call). Only whoever ran it, while the shop is kept."""
+    form = await auth.read_form(request)
+    if action not in ("undo", "redo"):
+        return JSONResponse({"error": "unknown action"}, status_code=404)
+    if not auth.check_form_token(form.get("csrf", ""), "live"):
+        return JSONResponse({"error": "This page expired. Reload it and try again."}, status_code=400)
+    who = auth.identity(request)
+    if not who or _run_owner.get(run_id) != who["u"]:
+        return JSONResponse({"error": "Only the person who ran this repair can undo or redo it."},
+                            status_code=403)
+    try:
+        run = L.act(run_id, action)
+    except RuntimeError as exc:
+        return JSONResponse({"error": str(exc)}, status_code=409)
     return {"run": run.id}
 
 

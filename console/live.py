@@ -53,6 +53,55 @@ class Run:
 _lock = threading.Lock()
 _runs: dict[str, Run] = {}
 _current: list[Run | None] = [None]
+_sessions: dict[str, object] = {}          # run id -> kept shop, for undo/redo
+
+
+def _close_sessions(keep_id: str | None = None) -> None:
+    for rid in list(_sessions):
+        if rid != keep_id:
+            s = _sessions.pop(rid, None)
+            if s is not None:
+                s.close()
+
+
+def _reaper() -> None:
+    while True:
+        time.sleep(10)
+        for rid, s in list(_sessions.items()):
+            if time.time() > s.expires and not s.lock.locked():
+                _sessions.pop(rid, None)
+                s.close()
+
+
+threading.Thread(target=_reaper, daemon=True).start()
+
+
+def session(run_id: str):
+    return _sessions.get(run_id)
+
+
+def act(run_id: str, action: str) -> Run:
+    """Undo or redo on a kept shop; streamed like a run."""
+    s = _sessions.get(run_id)
+    if s is None:
+        raise RuntimeError("this shop has closed; break the bug again to start a new one")
+    if s.lock.locked():
+        raise RuntimeError("the last undo or redo is still running")
+    if action == "undo" and s.state != "mended":
+        raise RuntimeError("the fix is already undone")
+    if action == "redo" and s.state != "broken":
+        raise RuntimeError("the fix is already in place")
+    run = Run(s.entry.id)
+    _runs[run.id] = run
+
+    def work():
+        try:
+            (s.undo if action == "undo" else s.redo)(run.add)
+        finally:
+            if not run.done:
+                run.add({"t": 0, "kind": "end", "outcome": "error", "mttr": None})
+    threading.Thread(target=work, daemon=True).start()
+    return run
 
 
 def busy() -> bool:
@@ -75,9 +124,11 @@ def start(entry_id: str, *, complete=None, on_finish=None) -> Run:
         _current[0] = run
 
     def work() -> None:
+        _close_sessions()                      # one running shop at a time
         try:
             run_live(entry, run.add, complete=complete,
-                     certificates=CertificateStore(LIVE_CERTS))
+                     certificates=CertificateStore(LIVE_CERTS),
+                     keep=lambda sess: _sessions.__setitem__(run.id, sess))
         except Exception as exc:              # the screen must always end
             run.add({"t": time.time() - run.started, "kind": "error",
                      "message": str(exc)[:300]})

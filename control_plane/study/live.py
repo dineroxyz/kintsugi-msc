@@ -54,7 +54,7 @@ def _evidence(event: dict, tree: str) -> dict:
 
 
 def run_live(entry: CorpusEntry, emit, *, complete=None,
-             certificates=None) -> dict:
+             certificates=None, keep=None) -> dict:
     """Run one heal of `entry` and call emit(event) for every step.
     `complete` overrides the model (tests pass a scripted one)."""
     t0 = time.time()
@@ -154,7 +154,7 @@ def run_live(entry: CorpusEntry, emit, *, complete=None,
                 last_heal.update(svc=svc, outcome=outcome, cert=cert, event=event)
                 send("certificate", sequence=cert["sequence"], hash=cert["hash"],
                      signature=cert["signature"], prev_hash=cert.get("prev_hash", ""),
-                     ed25519=(cert.get("ed25519") or {}).get("signature", "")[:44],
+                     ed25519=(cert.get("ed25519") or {}).get("sig", "")[:44],
                      replays=cert["reproduction"]["reason"],
                      attempts=len(cert["candidates"]))
             healed_keys.add(_incident_key(event))
@@ -197,9 +197,20 @@ def run_live(entry: CorpusEntry, emit, *, complete=None,
         stop_pump.set()
         if pump_thread.is_alive():
             pump_thread.join(timeout=1)
-        send("end", outcome=result["outcome"], mttr=result["mttr_seconds"])
-        rig.stop()
-        shutil.rmtree(workdir, ignore_errors=True)
+        kept = False
+        if keep is not None and result["outcome"] == "recovered" and last_heal.get("cert"):
+            try:                                  # undo/redo use the still-running shop
+                from control_plane.study.live_session import Session
+                keep(Session(rig, entry, last_heal["cert"], last_heal["svc"], workdir,
+                             certificates.root))
+                kept = True
+            except Exception:
+                kept = False
+        send("end", outcome=result["outcome"], mttr=result["mttr_seconds"],
+             undo=kept)
+        if not kept:
+            rig.stop()
+            shutil.rmtree(workdir, ignore_errors=True)
 
 
 EXPLAIN_MODEL = "claude-haiku-4-5-20251001"

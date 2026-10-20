@@ -989,6 +989,7 @@ it, prove it, fix it and sign for it.</p></div>
 </select>
 <button class="btn btn-primary break" id="live-go" type="button"{" disabled" if empty else ""}>{"Break it" if can_run else "Watch a replay"}</button>
 {'<button class="btn" id="live-replay" type="button">Replay a recorded run</button>' if can_run else ""}
+{'<button class="btn" id="live-undo" type="button" hidden>Undo the fix</button><button class="btn" id="live-redo" type="button" hidden>Redo the fix</button>' if can_run else ""}
 </form></div>
 <p class="live-mode" id="live-mode">{mode_note}</p>
 

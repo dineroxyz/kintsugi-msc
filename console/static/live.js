@@ -22,7 +22,14 @@
   var samples = [], lanes = {};
   var logEl = $("eng-log"), srcEl = $("eng-src"), fileEl = $("eng-file");
   var rateEl = $("eng-rate"), countEl = $("eng-count");
+  var lastDiff = null;
   var srcWin = null, logLines = 0, tokChars = 0, tokStart = 0, trafficLogged = 0;
+  var undoBtn = $("live-undo"), redoBtn = $("live-redo"), keptRun = null, keepTimer = null;
+  function showUndo(mode) {          // mode: "undo", "redo" or null
+    if (!undoBtn) return;
+    undoBtn.hidden = mode !== "undo"; redoBtn.hidden = mode !== "redo";
+    undoBtn.disabled = redoBtn.disabled = false;
+  }
 
   // ----------------------------------------------------- inside the repair
   function esc(t) { return String(t == null ? "" : t).replace(/[&<>]/g, function (c) {
@@ -345,6 +352,7 @@
         });
         if (e.admitted) {
           log(t, "gate", '<span class="ok">ADMITTED</span>: verification record signed (HMAC-SHA256)');
+          lastDiff = e.diff;
           if (srcWin) renderSource(srcWin, e.diff);
         } else {
           log(t, "gate", '<span class="no">REJECTED</span>: the failure report goes back to the model');
@@ -355,20 +363,53 @@
       case "deploying": log(t, "deploy", "only a gate-signed patch may deploy; record verified"); break;
       case "deployed": log(t, "deploy", ok + " " + esc(e.service) + " restarted on the patched tree"); break;
       case "probe": log(t, "probe", (e.passed ? ok : no) + " the original failing request, replayed live"); break;
-      case "recovered": log(t, "traffic", ok + " error rate back to zero; mended in <span class=hi>" + e.mttr.toFixed(2) + " s</span>"); break;
+      case "recovered": log(t, "traffic", ok + " error rate back to zero; mended in <span class=hi>" + e.mttr.toFixed(2) + " s</span>");
+        if (srcWin && lastDiff) renderSource(srcWin, lastDiff); break;
       case "certificate":
         log(t, "cert", "#" + String(e.sequence).padStart(6, "0") + " sha256 <span class=hi>" + esc((e.hash || "").slice(0, 24)) + "…</span>");
         if (e.prev_hash) log(null, "cert", '<span class="dim">chained to ' + esc(e.prev_hash.slice(0, 24)) + "…</span>");
         if (e.ed25519) log(null, "cert", '<span class="dim">ed25519 ' + esc(e.ed25519) + "…</span>");
         break;
       case "pull_request": if (e.url) log(t, "github", ok + " pull request #" + e.number + " opened"); break;
+      case "undo_start": log(t, "undo", "putting the faulty release back on the running shop"); break;
+      case "undo_done": log(t, "undo", no + " the bug is back: " + e.errors + " failing requests seen");
+        if (srcWin) renderSource(srcWin, null); break;
+      case "redo_start": log(t, "redo", "re-applying certificate #" + String(e.sequence).padStart(6, "0") + " (no AI call)"); break;
+      case "cert_verified":
+        ["hash", "chain", "record", "patch", "ed25519"].forEach(function (k) {
+          if (e[k] === null || e[k] === undefined) return;
+          var label = { hash: "certificate hash recomputed", chain: "chain intact back to genesis",
+                        record: "gate's signed record verified", patch: "patch is the exact diff the gate signed",
+                        ed25519: "Ed25519 signature verified" }[k];
+          log(null, "verify", (e[k] ? ok : no) + " " + label);
+        });
+        break;
+      case "redo_refused": log(t, "redo", no + " " + esc(e.reason)); break;
       case "false_fix": log(t, "probe", no + " the error is still there"); break;
       case "error": log(t, "error", no + " " + esc(e.message)); break;
       case "end": log(t, "end", "outcome: <span class=hi>" + esc(e.outcome || "") + "</span>"); break;
     }
   }
 
-  var patchText = "", certLink = null;
+  var patchText = "", certLink = null, currentRun = null, redoT = 0;
+  function armKeep() {               // the shop is kept for three minutes after each action
+    clearTimeout(keepTimer);
+    keepTimer = setTimeout(function () { keptRun = null; showUndo(null); }, 175000);
+  }
+  function act(kind) {
+    if (!keptRun) return;
+    undoBtn.disabled = redoBtn.disabled = true; go.disabled = true;
+    fetch("/live/" + keptRun + "/" + kind, { method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: "csrf=" + encodeURIComponent(csrf) })
+      .then(function (r) { return r.json().then(function (j) { return [r.ok, j]; }); })
+      .then(function (res) {
+        if (!res[0]) { modeEl.textContent = res[1].error || "That did not work."; showUndo(kind); go.disabled = false; return; }
+        armKeep(); listenMore("/live/stream/" + res[1].run);
+      });
+  }
+  if (undoBtn) { undoBtn.addEventListener("click", function () { act("undo"); });
+                 redoBtn.addEventListener("click", function () { act("redo"); }); }
   function handle(e) {
     if (e.t !== undefined && e.kind !== "replay") { lastT = e.t; lastWall = performance.now(); }
     try { engine(e); } catch (err) { /* the picture must never stop the run */ }
@@ -469,6 +510,7 @@
         if (e.passed) setStep("recovered", "active", "The failing request works. Watching live traffic...");
         break;
       case "recovered":
+        redoT = e.mttr;
         setStep("recovered", "done", "Working again " + e.mttr.toFixed(1) + " s after the first error.", e.t);
         setState("mended", "Mended in " + e.mttr.toFixed(1) + " s");
         outcomeEl.textContent = "Mended in " + e.mttr.toFixed(1) + " s, and a new gold seam marks the repair. ";
@@ -496,8 +538,25 @@
       case "error":
         setState("broken", "Run error");
         outcomeEl.textContent = "The run hit an error: " + e.message; break;
+      case "undo_start":
+        setState("broken", "Undoing"); outcomeEl.textContent = "Taking the fix out again…"; break;
+      case "undo_done":
+        setState("broken", "Fix undone");
+        outcomeEl.textContent = "The fix is out and the bug is back. Press Redo to put the certified fix back, with no AI.";
+        break;
+      case "redo_start":
+        setState("mending", "Redoing"); outcomeEl.textContent = "Checking the certificate before redeploying…"; break;
+      case "cert_verified":
+        outcomeEl.textContent = (e.hash && e.chain && e.record && e.patch) ?
+          "Certificate verified. Redeploying the exact signed fix…" : "The certificate did not verify, so nothing is deployed.";
+        break;
       case "end":
-        ended = true; finish(); break;
+        ended = true; finish();
+        if (!replaying && e.undo) { keptRun = currentRun; showUndo("undo"); armKeep(); }
+        else if (e.outcome === "undone") showUndo("redo");
+        else if (e.outcome === "redone") { showUndo("undo");
+          setState("mended", "Mended again"); outcomeEl.textContent = "The certified fix is back in " + (redoT || 0).toFixed(1) + " s, with no AI call. Undo and redo as often as you like."; }
+        break;
     }
   }
 
@@ -521,6 +580,13 @@
     };
   }
 
+  function listenMore(url) {          // undo/redo: same picture, new events
+    ended = false; lastT = 0; lastWall = performance.now(); samples = [];
+    source = new EventSource(url);
+    source.onmessage = function (m) { handle(JSON.parse(m.data)); };
+    source.onerror = function () { ended = true; finish(); };
+  }
+
   function replay(bug) {
     var name = recordings[bug];
     if (!name) {
@@ -541,6 +607,7 @@
       .then(function (r) { return r.json().then(function (j) { return [r.ok, j]; }); })
       .then(function (res) {
         if (!res[0]) { modeEl.textContent = res[1].error || "The run could not start."; go.disabled = false; return; }
+        currentRun = res[1].run; showUndo(null);
         listen("/live/stream/" + res[1].run);
       })
       .catch(function () { modeEl.textContent = "The run could not start."; go.disabled = false; });
