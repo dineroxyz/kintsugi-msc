@@ -262,12 +262,22 @@ def main() -> None:
     if a.drill:
         drill(a.drill, a.connect)
     while True:
-        data = api("GET", "/worker/jobs")
+        try:
+            data = api("GET", "/worker/jobs")
+        except httpx.HTTPError as exc:            # the site restarting is not fatal
+            log(f"Kintsugi site not reachable ({type(exc).__name__}); trying again shortly.")
+            if a.once:
+                return
+            time.sleep(30)
+            continue
         for job in data["jobs"]:
             if data["spent_usd"] >= CAP_USD:
                 log(f"Spending cap of ${CAP_USD:.0f} reached; only detecting and alerting from now on.")
-            heal(job, data["spent_usd"])
-            data["spent_usd"] = api("GET", "/worker/jobs")["spent_usd"]
+            try:
+                heal(job, data["spent_usd"])
+                data["spent_usd"] = api("GET", "/worker/jobs")["spent_usd"]
+            except Exception as exc:              # one bad job must not stop the worker
+                log(f"[job {job['job']}] stopped: {type(exc).__name__}: {str(exc)[:200]}")
         if a.once or a.drill:
             return
         time.sleep(20)
