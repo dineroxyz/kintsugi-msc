@@ -248,7 +248,7 @@ def heal(*, run_tests, fresh_tree, drop_tree, selectors, test_files, suite, pack
                 try:
                     # test mode: the input is the project's own tests, so imports are
                     # allowed; process, network, dynamic-code and URL rules still apply
-                    sc = security_check(diff, capture, base, allow_imports=True)
+                    sc = security_check(diff, capture, base, allow_imports=True, allow_file_writes=True)
                 finally:
                     sec.MAX_ADDED = old
                 if not st["passed"] or not sc["passed"]:

@@ -21,7 +21,7 @@ APPS = {
     "mealie": {"pythonpath": ["."], "args": []},
     "prefect": {"pythonpath": ["src"], "args": ["-p", "no:randomly"],
                 "copy": ["src/prefect/_build_info.py", "src/prefect/_internal/analytics/_config.py"]},
-    "lnbits": {"pythonpath": ["."], "args": ["-p", "kintsugi_lnbits_setup"], "mkdir": ["tests/data"],
+    "lnbits": {"pythonpath": ["."], "args": ["-p", "kintsugi_lnbits_setup"], "mkdir": ["tests/data"], "clean": ["tests/data"],
                "env": {"LNBITS_DATA_FOLDER": "./tests/data", "LNBITS_BACKEND_WALLET_CLASS": "FakeWallet",
                        "DEBUG": "true"}},
     "langflow": {"pythonpath": ["src/backend/base", "src/lfx/src"], "args": [],
@@ -108,6 +108,8 @@ def _run_tests(app: str, t: str, sel: list[str], sink: str, stop_first: bool = T
         src = os.path.join(REAL, app, f)
         if os.path.exists(src) and not os.path.exists(os.path.join(t, f)):
             shutil.copy(src, os.path.join(t, f))
+    for d in cfg.get("clean", []):          # state a test run leaves behind
+        shutil.rmtree(os.path.join(t, d), ignore_errors=True)
     for d in cfg.get("mkdir", []):
         os.makedirs(os.path.join(t, d), exist_ok=True)
     py = os.path.join(venv, "bin", "python")

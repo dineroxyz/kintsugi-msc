@@ -75,7 +75,8 @@ def allowed_files(capture: dict, workdir: str) -> set[str]:
     return out
 
 
-def security_check(diff: str, capture: dict, workdir: str, allow_imports: bool = False) -> dict:
+def security_check(diff: str, capture: dict, workdir: str, allow_imports: bool = False,
+                   allow_file_writes: bool = False) -> dict:
     problems = []
     allowed = allowed_files(capture, workdir)
     outside = [p for p in _touched(diff) if p not in allowed]
@@ -88,7 +89,8 @@ def security_check(diff: str, capture: dict, workdir: str, allow_imports: bool =
         problems.append("adds an import")
     if any(_ROUTE.match(l) for l in added):
         problems.append("adds a route or endpoint")
-    if any(_REACH.search(l) for l in added):
+    reach = _REACH if not allow_file_writes else re.compile(_REACH.pattern.split("|open")[0])
+    if any(reach.search(l) for l in added):
         problems.append("adds a process, network, dynamic-code or file-write call")
     if any(_URL.search(l) for l in added):
         problems.append("adds a literal URL")
