@@ -1,0 +1,282 @@
+{
+ "service": "mealie",
+ "release": "head",
+ "identity": {
+  "sub": "413f0839-797d-4872-b6cd-2af0ce7f0da6"
+ },
+ "exception_type": "AttributeError",
+ "exception_module": "builtins",
+ "exception_message": "'NoneType' object has no attribute 'list_items'",
+ "frames": [
+  {
+   "file": "/Users/ssheyii/kintsugi/libs/kintsugi_capture/__init__.py",
+   "line": 162,
+   "function": "__call__",
+   "code": "await self.app(scope, buffering_receive, send)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/mealie/.venv/lib/python3.14/site-packages/starlette/middleware/base.py",
+   "line": 203,
+   "function": "__call__",
+   "code": "response = await self.dispatch_func(request, call_next)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/work/f2873227-faulty/mealie/middleware/locale_context.py",
+   "line": 21,
+   "function": "dispatch",
+   "code": "response = await call_next(request)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/mealie/.venv/lib/python3.14/site-packages/starlette/middleware/base.py",
+   "line": 179,
+   "function": "call_next",
+   "code": "raise app_exc from app_exc.__cause__ or app_exc.__context__"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/mealie/.venv/lib/python3.14/site-packages/starlette/middleware/base.py",
+   "line": 149,
+   "function": "coro",
+   "code": "await self.app(scope, receive_or_disconnect, send_no_error)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/mealie/.venv/lib/python3.14/site-packages/starlette/middleware/sessions.py",
+   "line": 91,
+   "function": "__call__",
+   "code": "await self.app(scope, receive, send_wrapper)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/mealie/.venv/lib/python3.14/site-packages/starlette/middleware/gzip.py",
+   "line": 79,
+   "function": "__call__",
+   "code": "await responder(scope, receive, send)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/mealie/.venv/lib/python3.14/site-packages/starlette/middleware/gzip.py",
+   "line": 104,
+   "function": "__call__",
+   "code": "await self.app(scope, receive, self.send_with_compression)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/mealie/.venv/lib/python3.14/site-packages/starlette/middleware/exceptions.py",
+   "line": 63,
+   "function": "__call__",
+   "code": "await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/mealie/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py",
+   "line": 53,
+   "function": "wrapped_app",
+   "code": "raise exc"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/mealie/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py",
+   "line": 42,
+   "function": "wrapped_app",
+   "code": "await app(scope, receive, sender)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/mealie/.venv/lib/python3.14/site-packages/fastapi/middleware/asyncexitstack.py",
+   "line": 18,
+   "function": "__call__",
+   "code": "await self.app(scope, receive, send)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/mealie/.venv/lib/python3.14/site-packages/starlette/routing.py",
+   "line": 676,
+   "function": "__call__",
+   "code": "await self.middleware_stack(scope, receive, send)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/mealie/.venv/lib/python3.14/site-packages/fastapi/routing.py",
+   "line": 2788,
+   "function": "app",
+   "code": "await route.handle(scope, receive, send)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/mealie/.venv/lib/python3.14/site-packages/fastapi/routing.py",
+   "line": 1819,
+   "function": "handle",
+   "code": "await self.original_router.handle(scope, receive, send)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/mealie/.venv/lib/python3.14/site-packages/fastapi/routing.py",
+   "line": 2871,
+   "function": "handle",
+   "code": "await included_router._handle_selected(scope, receive, send)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/mealie/.venv/lib/python3.14/site-packages/fastapi/routing.py",
+   "line": 1830,
+   "function": "_handle_selected",
+   "code": "await route.handle(scope, receive, send)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/mealie/.venv/lib/python3.14/site-packages/fastapi/routing.py",
+   "line": 1819,
+   "function": "handle",
+   "code": "await self.original_router.handle(scope, receive, send)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/mealie/.venv/lib/python3.14/site-packages/fastapi/routing.py",
+   "line": 2871,
+   "function": "handle",
+   "code": "await included_router._handle_selected(scope, receive, send)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/mealie/.venv/lib/python3.14/site-packages/fastapi/routing.py",
+   "line": 1830,
+   "function": "_handle_selected",
+   "code": "await route.handle(scope, receive, send)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/mealie/.venv/lib/python3.14/site-packages/fastapi/routing.py",
+   "line": 1819,
+   "function": "handle",
+   "code": "await self.original_router.handle(scope, receive, send)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/mealie/.venv/lib/python3.14/site-packages/fastapi/routing.py",
+   "line": 2871,
+   "function": "handle",
+   "code": "await included_router._handle_selected(scope, receive, send)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/mealie/.venv/lib/python3.14/site-packages/fastapi/routing.py",
+   "line": 1830,
+   "function": "_handle_selected",
+   "code": "await route.handle(scope, receive, send)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/mealie/.venv/lib/python3.14/site-packages/fastapi/routing.py",
+   "line": 1819,
+   "function": "handle",
+   "code": "await self.original_router.handle(scope, receive, send)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/mealie/.venv/lib/python3.14/site-packages/fastapi/routing.py",
+   "line": 2871,
+   "function": "handle",
+   "code": "await included_router._handle_selected(scope, receive, send)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/mealie/.venv/lib/python3.14/site-packages/fastapi/routing.py",
+   "line": 1845,
+   "function": "_handle_selected",
+   "code": "await original_route.handle(scope, receive, send)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/mealie/.venv/lib/python3.14/site-packages/fastapi/routing.py",
+   "line": 1308,
+   "function": "handle",
+   "code": "await effective_context.app(scope, receive, send)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/mealie/.venv/lib/python3.14/site-packages/fastapi/routing.py",
+   "line": 165,
+   "function": "app",
+   "code": "await wrap_app_handling_exceptions(app, request)(scope, receive, send)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/mealie/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py",
+   "line": 53,
+   "function": "wrapped_app",
+   "code": "raise exc"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/mealie/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py",
+   "line": 42,
+   "function": "wrapped_app",
+   "code": "await app(scope, receive, sender)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/mealie/.venv/lib/python3.14/site-packages/fastapi/routing.py",
+   "line": 151,
+   "function": "app",
+   "code": "response = await f(request)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/mealie/.venv/lib/python3.14/site-packages/fastapi/routing.py",
+   "line": 727,
+   "function": "app",
+   "code": "raw_response = await run_endpoint_function("
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/mealie/.venv/lib/python3.14/site-packages/fastapi/routing.py",
+   "line": 362,
+   "function": "run_endpoint_function",
+   "code": "return await run_in_threadpool("
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/mealie/.venv/lib/python3.14/site-packages/starlette/concurrency.py",
+   "line": 34,
+   "function": "run_in_threadpool",
+   "code": "return await anyio.to_thread.run_sync(func)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/mealie/.venv/lib/python3.14/site-packages/anyio/to_thread.py",
+   "line": 65,
+   "function": "run_sync",
+   "code": "return await get_async_backend().run_sync_in_worker_thread("
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/mealie/.venv/lib/python3.14/site-packages/anyio/_backends/_asyncio.py",
+   "line": 2706,
+   "function": "run_sync_in_worker_thread",
+   "code": "return await future"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/mealie/.venv/lib/python3.14/site-packages/anyio/_backends/_asyncio.py",
+   "line": 1100,
+   "function": "run",
+   "code": "result = context.run(func, *args)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/mealie/.venv/lib/python3.14/site-packages/fastapi/telemetry/_api.py",
+   "line": 244,
+   "function": "_run_sync_endpoint",
+   "code": "return function(**arguments)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/work/f2873227-faulty/mealie/routes/households/controller_shopping_lists.py",
+   "line": 143,
+   "function": "update_one",
+   "code": "return self.update_many([data.cast(ShoppingListItemUpdateBulk, id=item_id)])"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/work/f2873227-faulty/mealie/routes/households/controller_shopping_lists.py",
+   "line": 137,
+   "function": "update_many",
+   "code": "items = self.service.bulk_update_items(data)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/work/f2873227-faulty/mealie/services/household_services/shopping_lists.py",
+   "line": 385,
+   "function": "bulk_update_items",
+   "code": "self.remove_unused_recipe_references(list_id)"
+  },
+  {
+   "file": "/Users/ssheyii/kintsugi-real/work/f2873227-faulty/mealie/services/household_services/shopping_lists.py",
+   "line": 136,
+   "function": "remove_unused_recipe_references",
+   "code": "for item in shopping_list.list_items:"
+  }
+ ],
+ "request": {
+  "method": "PUT",
+  "path": "/api/households/shopping/items/75080136-e484-4ba7-bf07-bcecbc47e54e",
+  "query": "",
+  "headers": {
+   "host": "testserver",
+   "accept": "*/*",
+   "accept-encoding": "gzip, deflate, zstd",
+   "connection": "keep-alive",
+   "user-agent": "testclient",
+   "authorization": "[redacted]",
+   "content-length": "136",
+   "content-type": "application/json"
+  },
+  "body": "{\"shopping_list_id\":\"b66a8697-f32f-4b8e-b9f9-26c68c1104b6\",\"note\":\"hr4enor73r\",\"quantity\":9,\"id\":\"75080136-e484-4ba7-bf07-bcecbc47e54e\"}"
+ },
+ "external_calls": [],
+ "snapshot": "/Users/ssheyii/kintsugi/study/real/captures/f2873227.db"
+}

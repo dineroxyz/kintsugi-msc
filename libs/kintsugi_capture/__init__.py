@@ -186,6 +186,7 @@ class CaptureMiddleware:
             "release": self.release,
             "identity": identity,
             "exception_type": type(exc).__name__,
+            "exception_module": type(exc).__module__,
             "exception_message": str(exc),
             "frames": frames,
             "request": {
