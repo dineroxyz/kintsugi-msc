@@ -48,19 +48,19 @@
    ]
   },
   "langflow": {
-   "mined": 59,
+   "mined": 136,
    "by_step": {
-    "wrong output": 51,
-    "invalid ground truth": 6,
+    "wrong output": 109,
+    "invalid ground truth": 24,
     "no discriminating tests at HEAD": 1,
-    "runtime failure": 1
+    "runtime failure": 2
    },
-   "valid": 52,
-   "runtime_failures": 1,
-   "share": 0.019,
+   "valid": 111,
+   "runtime_failures": 2,
+   "share": 0.018,
    "ci95": [
-    0.003,
-    0.101
+    0.005,
+    0.063
    ]
   }
  },
@@ -125,15 +125,22 @@
    "subject": "fix(admin): harden conflict and prune handling (#14923)",
    "signature": "NameError@authz_roles.py:236",
    "request": "POST /api/v1/authz/roles"
+  },
+  {
+   "app": "langflow",
+   "sha": "cf5c37f2",
+   "subject": "fix: handle invalid session auth tokens (#13823)",
+   "signature": "InvalidTokenError@login.py:234",
+   "request": "GET /api/v1/session"
   }
  ],
  "total": {
-  "valid": 241,
-  "runtime_failures": 8,
-  "share": 0.033,
+  "valid": 300,
+  "runtime_failures": 9,
+  "share": 0.03,
   "ci95": [
-   0.017,
-   0.064
+   0.016,
+   0.056
   ]
  }
 }

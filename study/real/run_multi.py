@@ -73,22 +73,22 @@ def _paths(sel: list[str]) -> list[str]:
     return out
 
 
-def run_tests(app: str, t: str, sel: list[str], sink: str) -> subprocess.CompletedProcess:
+def run_tests(app: str, t: str, sel: list[str], sink: str, stop_first: bool = True) -> subprocess.CompletedProcess:
     """Test paths under different test roots run in separate pytest calls,
     because each root's conftest has the same module name."""
     files = _paths(sel)
     rest = [x for x in sel if x not in files]
     roots = sorted({test_root(f) for f in files})
     if len(roots) <= 1:
-        return _run_tests(app, t, sel, sink)
-    runs = [_run_tests(app, t, [f for f in files if test_root(f) == r] + rest, sink) for r in roots]
+        return _run_tests(app, t, sel, sink, stop_first)
+    runs = [_run_tests(app, t, [f for f in files if test_root(f) == r] + rest, sink, stop_first) for r in roots]
     worst = max(runs, key=lambda r: (r.returncode not in (0, 5), r.returncode))
     ok = all(r.returncode in (0, 5) for r in runs) and any(r.returncode == 0 for r in runs)
     return subprocess.CompletedProcess(worst.args, 0 if ok else (worst.returncode or 1),
                                        "".join(r.stdout for r in runs), "".join(r.stderr for r in runs))
 
 
-def _run_tests(app: str, t: str, sel: list[str], sink: str) -> subprocess.CompletedProcess:
+def _run_tests(app: str, t: str, sel: list[str], sink: str, stop_first: bool = True) -> subprocess.CompletedProcess:
     cfg = dict(APPS[app])
     files = _paths(sel)
     special = cfg.get("roots", {}).get(test_root(files[0])) if files else None
@@ -112,7 +112,8 @@ def _run_tests(app: str, t: str, sel: list[str], sink: str) -> subprocess.Comple
         os.makedirs(os.path.join(t, d), exist_ok=True)
     py = os.path.join(venv, "bin", "python")
     return sh([py, "-m", "pytest", "-p", "kintsugi_generic", "-p", "no:cacheprovider",
-               "-o", "addopts=", "-q", "-x", *cfg["args"], *sel], cwd=cwd, env=env, timeout=1200)
+               "-o", "addopts=", "-q", *(["-x"] if stop_first else []), *cfg["args"], *sel],
+              cwd=cwd, env=env, timeout=1800)
 
 
 def selectors(c: dict, t: str) -> list[str]:

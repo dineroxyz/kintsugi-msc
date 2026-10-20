@@ -1,0 +1,3 @@
+{"app": "mealie", "sha": "0f176fdd99bdd446fd42c519fce918c4f9098692", "status": "run", "reproduced": true, "healed": false, "reason": "no candidate passed every check", "cost": 0.7825} total=$0.78
+{"app": "lnbits", "sha": "181c3ded642b1ec46442b2adcd4fef3ef1383911", "status": "run", "reproduced": true, "healed": false, "reason": "no candidate passed every check", "cost": 1.4548} total=$2.24
+{"app": "prefect", "sha": "0a5c64d14b852e29aa0bfc460b9327f2eb390009", "status": "run", "reproduced": true, "healed": false, "reason": "no candidate passed every check", "cost": 0.7899} total=$3.03

@@ -188,10 +188,12 @@ class Result:
 
 
 def heal(*, run_tests, fresh_tree, drop_tree, selectors, test_files, suite, package,
-         client, usage: Usage, budget: float, model: str = "claude-opus-5", tries: int = 3) -> Result:
+         client, usage: Usage, budget: float, model: str = "claude-opus-5", tries: int = 3,
+         run_suite=None) -> Result:
     """Reproduce, then up to `tries` candidates through the gate."""
-    import subprocess
     from control_plane.gate.security import security_check
+    from control_plane.patching import apply_loose
+    run_suite = run_suite or run_tests
     from control_plane.gate.verifier import structural_check
 
     base = fresh_tree("base")
@@ -209,48 +211,48 @@ def heal(*, run_tests, fresh_tree, drop_tree, selectors, test_files, suite, pack
         files = localise(client, usage, model, base, rep["failing"], rep["output"], test_src, cands)
         res = Result(True, files=files)
         feedback: list[str] = []
+        baseline = None
         for attempt in range(1, tries + 1):
             if usage.spent >= budget:
                 res.reason = "spending cap reached"
                 break
-            diff = propose(client, usage, model, base, rep["failing"], rep["output"], test_src, files, feedback)
-            a = {"attempt": attempt, "diff": diff}
+            raw = propose(client, usage, model, base, rep["failing"], rep["output"], test_src, files, feedback)
+            a = {"attempt": attempt, "diff": raw}
             res.attempts.append(a)
-            st = structural_check(diff, "AssertionError")
-            capture = {"frames": [{"file": os.path.join(base, f)} for f in files], "request": {}}
-            if not diff.strip():
+            if not raw.strip():
                 a["rejected"] = "no diff in the answer"
                 feedback.append("Your last answer contained no diff. Reply with the unified diff only.")
                 continue
-            import control_plane.gate.security as sec
-            old = sec.MAX_ADDED
-            sec.MAX_ADDED = MAX_ADDED
-            try:
-                # test mode: the input is the project's own tests, so imports are
-                # allowed; process, network, dynamic-code and URL rules still apply
-                sc = security_check(diff, capture, base, allow_imports=True)
-            finally:
-                sec.MAX_ADDED = old
-            touched = re.findall(r"^\+\+\+ b/(.+)$", diff, re.M)
+            touched = re.findall(r"^\+\+\+ b/(.+)$", raw, re.M)
             wanted = [f for f in touched if f not in files and f.startswith(package)
                       and "/tests/" not in f"/{f}" and os.path.exists(os.path.join(base, f))]
-            if wanted and len(files) < MAX_FILES + 2 and st["passed"]:
+            if wanted and len(files) < MAX_FILES + 2:
                 files += wanted[: MAX_FILES + 2 - len(files)]
                 a["rejected"] = f"needed files it had not been shown: {', '.join(wanted)}; shown now"
                 feedback.append(f"You edited {', '.join(wanted)} without seeing it. It is now included; "
                                 "write the fix again against its actual content.")
                 continue
-            if not st["passed"] or not sc["passed"]:
-                a["rejected"] = "; ".join(st["problems"] + sc["problems"])
-                feedback.append(a["rejected"])
-                continue
             t = fresh_tree(f"try{attempt}")
             try:
-                ok = subprocess.run(["git", "apply", "--whitespace=nowarn", "-"], cwd=t,
-                                    input=diff if diff.endswith("\n") else diff + "\n",
-                                    text=True, capture_output=True)
-                if ok.returncode:
-                    a["rejected"] = "the diff does not apply: " + ok.stderr[-200:]
+                diff, err = apply_loose(t, raw)
+                if diff is None:
+                    a["rejected"] = "the change could not be applied: " + err
+                    feedback.append(a["rejected"] + ". Quote the existing lines exactly.")
+                    continue
+                a["diff"] = diff                       # the canonical patch is what is checked
+                st = structural_check(diff, "AssertionError")
+                capture = {"frames": [{"file": os.path.join(base, f)} for f in files], "request": {}}
+                import control_plane.gate.security as sec
+                old = sec.MAX_ADDED
+                sec.MAX_ADDED = MAX_ADDED
+                try:
+                    # test mode: the input is the project's own tests, so imports are
+                    # allowed; process, network, dynamic-code and URL rules still apply
+                    sc = security_check(diff, capture, base, allow_imports=True)
+                finally:
+                    sec.MAX_ADDED = old
+                if not st["passed"] or not sc["passed"]:
+                    a["rejected"] = "; ".join(st["problems"] + sc["problems"])
                     feedback.append(a["rejected"])
                     continue
                 passes = sum(run_tests(t, selectors)[0] == 0 for _ in range(5))
@@ -258,9 +260,12 @@ def heal(*, run_tests, fresh_tree, drop_tree, selectors, test_files, suite, pack
                     a["rejected"] = f"the failing tests pass on only {passes} of 5 runs"
                     feedback.append(a["rejected"] + ". Output:\n" + _trim_output(run_tests(t, selectors)[1], 2000))
                     continue
-                rc, out = run_tests(t, suite)
-                if rc not in (0, 5):
-                    a["rejected"] = "other tests in the same folders fail: " + ", ".join(failing_ids(out)[:5])
+                if baseline is None:
+                    baseline = set(failing_ids(run_suite(base, suite)[1]))
+                rc, out = run_suite(t, suite)
+                new_failures = [f for f in failing_ids(out) if f not in baseline]
+                if new_failures:
+                    a["rejected"] = "other tests in the same folders now fail: " + ", ".join(new_failures[:5])
                     feedback.append(a["rejected"])
                     continue
                 a["admitted"] = True

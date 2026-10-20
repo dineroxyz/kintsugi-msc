@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.join(ROOT, "study", "real"))
 import run_multi as M  # noqa: E402
 from control_plane.testheal import Usage, heal  # noqa: E402
 
-SEED, PER_APP, BUDGET = 259074235, 15, 40.0 - 10.70   # harness checks spent 10.70 first
+SEED, PER_APP, BUDGET = 259074235, 15, 40.0 - 13.73   # harness checks and discarded trials spent 13.73 first
 OUT = os.path.join(HERE, "trials.jsonl")
 PACKAGE = {"mealie": "mealie/", "lnbits": "lnbits/", "prefect": "src/prefect/", "langflow": "src/"}
 
@@ -71,7 +71,9 @@ def main():
             try:
                 r = heal(run_tests=run_tests, fresh_tree=fresh_tree, drop_tree=lambda p, repo=repo: M.drop(repo, p),
                          selectors=sel, test_files=[f for f in c["test_files"] if f.endswith(".py")],
-                         suite=dirs, package=PACKAGE[app], client=client, usage=usage, budget=BUDGET)
+                         suite=dirs, package=PACKAGE[app], client=client, usage=usage, budget=BUDGET,
+                         run_suite=lambda tree, sel, app=app: (lambda r: (r.returncode, r.stdout + r.stderr))(
+                             M.run_tests(app, tree, sel, os.path.join(tempfile.mkdtemp(), "s.jsonl"), stop_first=False)))
                 row = {"app": app, "sha": c["sha"], "subject": c["subject"], "status": "run",
                        "reproduced": r.reproduced, "healed": r.healed, "reason": r.reason,
                        "files": r.files, "attempts": r.attempts, "patch": r.patch,
