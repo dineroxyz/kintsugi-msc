@@ -128,3 +128,20 @@ def test_healthy_requests_capture_nothing(control_plane):
     for _ in range(10):
         assert svc.get("/fine").status_code == 200
     assert control_plane.get("/incidents").json() == []
+
+
+def test_identity_hook_reads_principal_before_redaction():
+    """The identity hook sees the raw headers; the stored request does not."""
+    events = []
+    app = FastAPI()
+
+    @app.get("/boom")
+    def boom():
+        raise KeyError("x")
+
+    app.add_middleware(CaptureMiddleware, service="svc", deliver=events.append,
+                       identity=lambda h: {"sub": h.get("authorization", "")[-3:]})
+    TestClient(app, raise_server_exceptions=False).get(
+        "/boom", headers={"Authorization": "Bearer secret-abc"})
+    assert events[0]["identity"] == {"sub": "abc"}
+    assert events[0]["request"]["headers"]["authorization"] == "[redacted]"

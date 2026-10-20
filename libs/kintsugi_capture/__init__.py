@@ -128,8 +128,12 @@ class CaptureMiddleware:
     """ASGI middleware: buffer request context, flush on unhandled exception."""
 
     def __init__(self, app, service: str, control_plane_url: str | None = None,
-                 release: str | None = None, deliver=None):
+                 release: str | None = None, deliver=None, identity=None):
         self.app = app
+        # optional hook: headers -> a non-secret identity (e.g. a token's
+        # subject claim) read BEFORE redaction, so a replay can re-issue
+        # credentials for the same principal without the secret ever leaving
+        self.identity = identity
         self.service = service
         self.control_plane_url = control_plane_url or os.environ.get(
             "KINTSUGI_CONTROL_PLANE", "http://localhost:8100")
@@ -171,9 +175,16 @@ class CaptureMiddleware:
             {"file": f.filename, "line": f.lineno, "function": f.name, "code": f.line}
             for f in tb
         ]
+        identity = None
+        if self.identity is not None:
+            try:
+                identity = self.identity(headers)
+            except Exception:
+                identity = None
         return {
             "service": self.service,
             "release": self.release,
+            "identity": identity,
             "exception_type": type(exc).__name__,
             "exception_message": str(exc),
             "frames": frames,
