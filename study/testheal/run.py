@@ -74,7 +74,8 @@ def main():
                          suite=dirs, package=PACKAGE[app], client=client, usage=usage, budget=BUDGET)
                 row = {"app": app, "sha": c["sha"], "subject": c["subject"], "status": "run",
                        "reproduced": r.reproduced, "healed": r.healed, "reason": r.reason,
-                       "files": r.files, "attempts": r.attempts, "patch": r.patch}
+                       "files": r.files, "attempts": r.attempts, "patch": r.patch,
+                       "last_call": usage.last}
             except Exception as exc:
                 row = {"app": app, "sha": c["sha"], "subject": c["subject"], "status": "harness error",
                        "error": repr(exc)[:400]}

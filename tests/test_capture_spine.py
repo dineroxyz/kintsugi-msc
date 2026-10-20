@@ -145,3 +145,38 @@ def test_identity_hook_reads_principal_before_redaction():
         "/boom", headers={"Authorization": "Bearer secret-abc"})
     assert events[0]["identity"] == {"sub": "abc"}
     assert events[0]["request"]["headers"]["authorization"] == "[redacted]"
+
+
+def test_a_handled_server_error_is_reported_and_reproduces(tmp_path):
+    """An app that catches its own error and answers 500 is still failing:
+    the capture reports it at the route's handler, and replay reproduces it."""
+    events = []
+    app = FastAPI()
+
+    @app.get("/save")
+    def save():
+        from fastapi.responses import JSONResponse
+        try:
+            raise RuntimeError("disk full")
+        except RuntimeError:
+            return JSONResponse({"error": "could not save"}, status_code=500)
+
+    app.add_middleware(CaptureMiddleware, service="svc", deliver=events.append,
+                       handled_errors=True)
+    TestClient(app, raise_server_exceptions=False).get("/save")
+    assert events and events[0]["exception_type"] == "HTTP500" and events[0]["handled"]
+    assert events[0]["frames"][0]["function"] == "save"
+
+    # the replay engine treats the same handled 500 on every replay as reproduced
+    (tmp_path / "svcmod.py").write_text(
+        "from fastapi import FastAPI\n"
+        "from fastapi.responses import JSONResponse\n"
+        "from libs.kintsugi_capture import CaptureMiddleware\n"
+        "app = FastAPI()\n"
+        "@app.get('/save')\n"
+        "def save():\n"
+        "    return JSONResponse({'error': 'could not save'}, status_code=500)\n"
+        "app.add_middleware(CaptureMiddleware, service='svc', handled_errors=True)\n")
+    from control_plane.reproduction.engine import reproduce
+    result = reproduce(events[0], "svcmod:app", workdir=str(tmp_path))
+    assert result.reproduced, result.reason

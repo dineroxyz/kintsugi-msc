@@ -22,7 +22,7 @@ import re
 from dataclasses import dataclass, field
 
 MAX_FILES = 3
-MAX_FILE_CHARS = 60_000
+MAX_FILE_CHARS = 24_000
 MAX_ADDED = 60
 
 SYSTEM = """You are the repair stage of Kintsugi. A test fails deterministically on the \
@@ -38,6 +38,7 @@ class Usage:
     price_out: float = float(os.environ.get("KINTSUGI_PRICE_OUT", "75"))
     spent: float = 0.0
     calls: int = 0
+    last: dict = field(default_factory=dict)
 
     def add(self, msg) -> None:
         self.calls += 1
@@ -98,10 +99,22 @@ def candidate_files(tree: str, output: str, test_files: list[str], package: str)
     return found[:25]
 
 
-def _ask(client, usage: Usage, model: str, system: str, text: str) -> str:
-    msg = client.messages.create(model=model, max_tokens=8000, system=system,
-                                 messages=[{"role": "user", "content": text}])
+def _ask(client, usage: Usage, model: str, system: str, text: str, think: bool = True) -> str:
+    import time
+    kw = {} if think else {"thinking": {"type": "disabled"}}
+    for attempt in range(4):                 # temporary network errors are retried
+        try:
+            with client.messages.stream(model=model, max_tokens=12000 if think else 2000, system=system,
+                                        messages=[{"role": "user", "content": text}], **kw) as stream:
+                msg = stream.get_final_message()
+            break
+        except Exception as exc:
+            if attempt == 3 or "rate" in str(exc).lower() and attempt == 3:
+                raise
+            time.sleep(10 * (attempt + 1))
     usage.add(msg)
+    usage.last = {"stop": msg.stop_reason, "blocks": [b.type for b in msg.content],
+                  "in": msg.usage.input_tokens, "out": msg.usage.output_tokens}
     return "".join(getattr(b, "text", "") for b in msg.content)
 
 
@@ -110,16 +123,51 @@ def localise(client, usage, model, tree, failing, output, test_src, candidates) 
     text = (f"Failing tests: {', '.join(failing)}\n\nTest output:\n{_trim_output(output)}\n\n"
             f"Test source:\n{test_src[:12000]}\n\nCandidate application files:\n{listing}\n\n"
             f"Reply with the paths of at most {MAX_FILES} files most likely to contain the cause, one per line, nothing else.")
-    reply = _ask(client, usage, model, "You locate the cause of failing tests in a codebase.", text)
+    reply = _ask(client, usage, model, "You locate the cause of failing tests in a codebase.", text, think=False)
     picked = [l.strip("-* `").strip() for l in reply.splitlines()]
     return [p for p in picked if p in candidates][:MAX_FILES] or candidates[:1]
+
+
+def focus(src: str, words: set[str]) -> str:
+    """Whole file if small; otherwise the top-level definitions that mention
+    names from the failure or the test, with line numbers kept for context."""
+    if len(src) <= MAX_FILE_CHARS:
+        return src
+    try:
+        tree = ast.parse(src)
+    except SyntaxError:
+        return src[:MAX_FILE_CHARS]
+    lines = src.splitlines()
+    head = [n for n in tree.body if isinstance(n, (ast.Import, ast.ImportFrom))]
+    keep = set(range(0, (head[-1].end_lineno if head else 0)))
+    scored = []
+    for n in tree.body:
+        if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            body = "\n".join(lines[n.lineno - 1:n.end_lineno])
+            hits = sum(1 for w in words if w in body)
+            scored.append((hits, n))
+    budget = MAX_FILE_CHARS
+    for hits, n in sorted(scored, key=lambda x: -x[0]):
+        size = sum(len(l) + 1 for l in lines[n.lineno - 1:n.end_lineno])
+        if hits and size <= budget:
+            keep.update(range(n.lineno - 1 - len(getattr(n, "decorator_list", [])), n.end_lineno))
+            budget -= size
+    out, prev = [], -2
+    for i in sorted(keep):
+        if i != prev + 1:
+            out.append(f"... (lines {prev + 2}-{i} omitted) ...")
+        out.append(lines[i])
+        prev = i
+    return "\n".join(out)
 
 
 def propose(client, usage, model, tree, failing, output, test_src, files, feedback) -> str:
     parts = [f"Failing tests: {', '.join(failing)}", f"Test output:\n{_trim_output(output)}",
              f"Test source:\n{test_src[:12000]}"]
+    words = set(re.findall(r"[A-Za-z_][A-Za-z0-9_]{3,}", output + test_src))
     for f in files:
-        parts.append(f"=== {f} ===\n{open(os.path.join(tree, f), encoding='utf-8', errors='replace').read()[:MAX_FILE_CHARS]}")
+        src = open(os.path.join(tree, f), encoding="utf-8", errors="replace").read()
+        parts.append(f"=== {f} ===\n{focus(src, words)}")
     if feedback:
         parts.append("Earlier attempts were rejected:\n" + "\n".join(f"- {x}" for x in feedback))
     reply = _ask(client, usage, model, SYSTEM, "\n\n".join(parts))

@@ -124,12 +124,19 @@ class CaptureClient(httpx.Client):
         return response
 
 
+class _HandledServerError(Exception):
+    """Stands for a 5xx response the application produced without raising."""
+
+
 class CaptureMiddleware:
     """ASGI middleware: buffer request context, flush on unhandled exception."""
 
     def __init__(self, app, service: str, control_plane_url: str | None = None,
-                 release: str | None = None, deliver=None, identity=None):
+                 release: str | None = None, deliver=None, identity=None,
+                 handled_errors: bool | None = None):
         self.app = app
+        self.handled_errors = (os.environ.get("KINTSUGI_HANDLED_ERRORS", "0") == "1"
+                               if handled_errors is None else handled_errors)
         # optional hook: headers -> a non-secret identity (e.g. a token's
         # subject claim) read BEFORE redaction, so a replay can re-issue
         # credentials for the same principal without the secret ever leaving
@@ -158,15 +165,45 @@ class CaptureMiddleware:
         token = _ctx.set({
             "external_calls": [],
         })
+        status = {"code": None}
+
+        async def watching_send(message):
+            if message["type"] == "http.response.start":
+                status["code"] = message.get("status")
+            await send(message)
+
         try:
-            await self.app(scope, buffering_receive, send)
+            await self.app(scope, buffering_receive, watching_send)
         except Exception as exc:
             ctx = _ctx.get() or {"external_calls": []}
             event = self._build_event(scope, b"".join(body_chunks), exc, ctx)
             self._deliver(event)
             raise
+        else:
+            # a server error the application caught and answered itself: still
+            # a failure, located at the route's own handler
+            if self.handled_errors and (status["code"] or 0) >= 500:
+                ctx = _ctx.get() or {"external_calls": []}
+                self._deliver(self._handled_event(scope, b"".join(body_chunks), status["code"], ctx))
         finally:
             _ctx.reset(token)
+
+    def _handled_event(self, scope, body: bytes, code: int, ctx: dict) -> dict:
+        import inspect
+        frames = []
+        endpoint = getattr(scope.get("route"), "endpoint", None)
+        if endpoint is not None:
+            try:
+                fn = inspect.unwrap(endpoint)
+                frames = [{"file": inspect.getsourcefile(fn), "line": fn.__code__.co_firstlineno,
+                           "function": fn.__name__, "code": ""}]
+            except (TypeError, OSError, AttributeError):
+                frames = []
+        event = self._build_event(scope, body, _HandledServerError(f"handled HTTP {code}"), ctx)
+        event["frames"] = frames
+        event["exception_type"] = f"HTTP{code}"
+        event["handled"] = True
+        return event
 
     def _build_event(self, scope, body: bytes, exc: Exception, ctx: dict) -> dict:
         headers = {k.decode("latin1"): v.decode("latin1") for k, v in scope.get("headers", [])}
