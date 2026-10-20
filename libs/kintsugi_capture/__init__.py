@@ -133,8 +133,16 @@ class CaptureMiddleware:
 
     def __init__(self, app, service: str, control_plane_url: str | None = None,
                  release: str | None = None, deliver=None, identity=None,
-                 handled_errors: bool | None = None):
+                 handled_errors: bool | None = None, snapshot_sqlite: str | None = None,
+                 snapshot_env: str | None = None, snapshot_limit: int = 2 * 1024 * 1024):
         self.app = app
+        # optional state capture for SQLite apps: a consistent copy of the
+        # database taken before each request travels with a failure, so a
+        # replay can start from the same data. `snapshot_env` names the
+        # environment variable through which the app finds its database.
+        self.snapshot_sqlite = snapshot_sqlite
+        self.snapshot_env = snapshot_env
+        self.snapshot_limit = snapshot_limit
         self.handled_errors = (os.environ.get("KINTSUGI_HANDLED_ERRORS", "0") == "1"
                                if handled_errors is None else handled_errors)
         # optional hook: headers -> a non-secret identity (e.g. a token's
@@ -166,6 +174,7 @@ class CaptureMiddleware:
             "external_calls": [],
         })
         status = {"code": None}
+        snap = self._snapshot() if self.snapshot_sqlite else None
 
         async def watching_send(message):
             if message["type"] == "http.response.start":
@@ -177,6 +186,8 @@ class CaptureMiddleware:
         except Exception as exc:
             ctx = _ctx.get() or {"external_calls": []}
             event = self._build_event(scope, b"".join(body_chunks), exc, ctx)
+            if snap:
+                event["snapshot"] = snap
             self._deliver(event)
             raise
         else:
@@ -184,9 +195,36 @@ class CaptureMiddleware:
             # a failure, located at the route's own handler
             if self.handled_errors and (status["code"] or 0) >= 500:
                 ctx = _ctx.get() or {"external_calls": []}
-                self._deliver(self._handled_event(scope, b"".join(body_chunks), status["code"], ctx))
+                event = self._handled_event(scope, b"".join(body_chunks), status["code"], ctx)
+                if snap:
+                    event["snapshot"] = snap
+                self._deliver(event)
         finally:
             _ctx.reset(token)
+
+    def _snapshot(self) -> dict | None:
+        """A consistent copy of the SQLite database, compressed; None if absent or too big."""
+        import base64
+        import sqlite3
+        import tempfile as _tf
+        import zlib
+        if not self.snapshot_sqlite or not os.path.exists(self.snapshot_sqlite):
+            return None
+        tmp = _tf.NamedTemporaryFile(suffix=".db", delete=False)
+        tmp.close()
+        try:
+            src, dst = sqlite3.connect(self.snapshot_sqlite), sqlite3.connect(tmp.name)
+            src.backup(dst)
+            dst.close()
+            src.close()
+            raw = open(tmp.name, "rb").read()
+        finally:
+            os.unlink(tmp.name)
+        data = zlib.compress(raw, 6)
+        if len(data) > self.snapshot_limit:
+            return {"format": "sqlite", "omitted": f"{len(raw)} bytes, over the limit"}
+        return {"format": "sqlite", "env": self.snapshot_env,
+                "data": base64.b64encode(data).decode()}
 
     def _handled_event(self, scope, body: bytes, code: int, ctx: dict) -> dict:
         import inspect

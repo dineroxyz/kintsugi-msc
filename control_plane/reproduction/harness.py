@@ -46,6 +46,16 @@ def replay(capture: dict, service_spec: str) -> dict:
     os.environ["KINTSUGI_REPLAY_FILE"] = stub_file.name
     os.environ["KINTSUGI_CAPTURE_FILE"] = sink.name
 
+    snap = capture.get("snapshot") or {}
+    if snap.get("data") and snap.get("env"):
+        # start from the data the failing request saw, in a private copy
+        import base64
+        import zlib
+        db = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
+        db.write(zlib.decompress(base64.b64decode(snap["data"])))
+        db.close()
+        os.environ[snap["env"]] = db.name
+
     module_name, attr = service_spec.split(":")
     module = importlib.import_module(module_name)
     app = getattr(module, attr)

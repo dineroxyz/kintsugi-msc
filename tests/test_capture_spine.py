@@ -180,3 +180,48 @@ def test_a_handled_server_error_is_reported_and_reproduces(tmp_path):
     from control_plane.reproduction.engine import reproduce
     result = reproduce(events[0], "svcmod:app", workdir=str(tmp_path))
     assert result.reproduced, result.reason
+
+
+def test_a_sqlite_snapshot_makes_a_data_dependent_failure_reproducible(tmp_path, monkeypatch):
+    """A crash that only happens with a certain row present: without the
+    snapshot the replay sees an empty database; with it, the crash recurs."""
+    import sqlite3
+    db = tmp_path / "live.db"
+    con = sqlite3.connect(db)
+    con.execute("create table notes (id integer primary key, body text)")
+    con.execute("insert into notes values (1, NULL)")
+    con.commit()
+    con.close()
+    (tmp_path / "notesvc.py").write_text(
+        "import os, sqlite3\n"
+        "from fastapi import FastAPI\n"
+        "from libs.kintsugi_capture import CaptureMiddleware\n"
+        "DB = os.environ.get('NOTES_DB', 'missing.db')\n"
+        "app = FastAPI()\n"
+        "@app.get('/notes/{nid}')\n"
+        "def note(nid: int):\n"
+        "    con = sqlite3.connect(DB)\n"
+        "    con.execute('create table if not exists notes (id integer primary key, body text)')\n"
+        "    row = con.execute('select body from notes where id = ?', (nid,)).fetchone()\n"
+        "    return {'length': len(row[0]) if row else 0}\n"
+        "app.add_middleware(CaptureMiddleware, service='notes', snapshot_sqlite=DB, snapshot_env='NOTES_DB')\n")
+    monkeypatch.setenv("NOTES_DB", str(db))
+    monkeypatch.syspath_prepend(str(tmp_path))
+    import importlib
+    import notesvc
+    importlib.reload(notesvc)
+    events = []
+    notesvc.app.user_middleware.clear()
+    notesvc.app.middleware_stack = None
+    notesvc.app.add_middleware(CaptureMiddleware, service="notes", deliver=events.append,
+                               snapshot_sqlite=str(db), snapshot_env="NOTES_DB")
+    TestClient(notesvc.app, raise_server_exceptions=False).get("/notes/1")
+    assert events and events[0]["exception_type"] == "TypeError" and events[0]["snapshot"]["data"]
+
+    from control_plane.reproduction.engine import reproduce
+    monkeypatch.delenv("NOTES_DB")
+    with_snapshot = reproduce(events[0], "notesvc:app", workdir=str(tmp_path))
+    without = reproduce({k: v for k, v in events[0].items() if k != "snapshot"}, "notesvc:app",
+                        workdir=str(tmp_path))
+    assert with_snapshot.reproduced, with_snapshot.reason
+    assert not without.reproduced
