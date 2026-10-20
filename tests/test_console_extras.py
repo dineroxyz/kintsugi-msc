@@ -354,3 +354,17 @@ def test_connected_failure_opens_heal_job_with_alert(site, monkeypatch):
     assert "other@example.com" in other.get("/account").text, r.text[-400:]
     assert other.get(f"/account/incidents/{jid}").status_code == 404
     assert other.get(f"/account/artifacts/{aid}").status_code == 404
+
+
+def test_worker_can_connect_a_service_for_an_owner_only(site, monkeypatch):
+    c, A = site
+    monkeypatch.setenv("KINTSUGI_WORKER_TOKEN", "w-token-123")
+    W = {"x-kintsugi-worker": "w-token-123"}
+    _signup(c)
+    body = {"emails": ["dev@example.com"], "name": "dinero", "repo": "dineroxyz/dinero-app"}
+    assert c.post("/worker/services", json=body).status_code == 401
+    assert c.post("/worker/services", headers=W, json=body).status_code == 404     # not an owner
+    monkeypatch.setenv("KINTSUGI_UNLIMITED_EMAILS", "dev@example.com")
+    r = c.post("/worker/services", headers=W, json=body).json()
+    assert r["account"] == "dev@example.com" and "/connect/ks_" in r["connect"]
+    assert "dineroxyz/dinero-app" in c.get("/account").text

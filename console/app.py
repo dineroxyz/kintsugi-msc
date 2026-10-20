@@ -1143,6 +1143,27 @@ def worker_jobs(request: Request):
     return {"jobs": H.pending(), "spent_usd": H.total_cost()}
 
 
+@app.post("/worker/services")
+async def worker_connect_service(request: Request):
+    """Connect a service on an owner account (owners only), returning its
+    ingest URL once; the owner's own worker uses this to wire up their apps."""
+    if not _worker(request):
+        return JSONResponse({"error": "worker token required"}, status_code=401)
+    body = await request.json()
+    email = next((e for e in body.get("emails", []) if A.is_admin(e) and A.get_user(e)), None)
+    if email is None:
+        return JSONResponse({"error": "no owner account with those emails"}, status_code=404)
+    user = A.get_user(email)
+    try:
+        svc, key = A.create_service(user.id, body.get("name", ""))
+        if body.get("repo"):
+            H.set_repo(svc.id, body["repo"], body.get("branch") or "main")
+    except ValueError as exc:
+        return JSONResponse({"error": str(exc)}, status_code=400)
+    base = os.environ.get("KINTSUGI_PUBLIC_URL", str(request.base_url).rstrip("/"))
+    return {"account": email, "service": svc.name, "connect": f"{base}/connect/{key}"}
+
+
 @app.post("/worker/jobs/{job_id}/stage")
 async def worker_stage(job_id: int, request: Request):
     if not _worker(request):
