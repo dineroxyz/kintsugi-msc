@@ -59,11 +59,25 @@ def test_root(path: str) -> str:
     return "/".join(parts[:parts.index("tests") + 1]) if "tests" in parts else parts[0]
 
 
+def _paths(sel: list[str]) -> list[str]:
+    out, skip = [], False
+    for x in sel:
+        if skip:
+            skip = False
+            continue
+        if x == "-k":
+            skip = True
+            continue
+        if not x.startswith("-"):
+            out.append(x)
+    return out
+
+
 def run_tests(app: str, t: str, sel: list[str], sink: str) -> subprocess.CompletedProcess:
-    """Test files under different test roots run in separate pytest calls,
+    """Test paths under different test roots run in separate pytest calls,
     because each root's conftest has the same module name."""
-    files = [x for x in sel if x.endswith(".py")]
-    rest = sel[len(files):]
+    files = _paths(sel)
+    rest = [x for x in sel if x not in files]
     roots = sorted({test_root(f) for f in files})
     if len(roots) <= 1:
         return _run_tests(app, t, sel, sink)
@@ -76,12 +90,12 @@ def run_tests(app: str, t: str, sel: list[str], sink: str) -> subprocess.Complet
 
 def _run_tests(app: str, t: str, sel: list[str], sink: str) -> subprocess.CompletedProcess:
     cfg = dict(APPS[app])
-    files = [x for x in sel if x.endswith(".py")]
+    files = _paths(sel)
     special = cfg.get("roots", {}).get(test_root(files[0])) if files else None
     if special:                              # a sub-project with its own environment
         cfg.update(pythonpath=special["pythonpath"])
         cwd = os.path.join(t, special["cwd"])
-        sel = [os.path.relpath(x, special["cwd"]) if x.endswith(".py") else x for x in sel]
+        sel = [os.path.relpath(x, special["cwd"]) if x in files else x for x in sel]
         venv = os.path.join(REAL, app, special["venv"])
     else:
         cwd, venv = t, os.path.join(REAL, app, ".venv")

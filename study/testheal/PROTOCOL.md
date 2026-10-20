@@ -42,3 +42,5 @@ The population was mined for defects that came with tests, so it measures the
 defects a test catches, not all defects. The discriminating tests are both
 the reproduction and part of the gate's evidence; the folder suite guards
 against breaking other behaviour. One model; three attempts.
+
+Note at commit: the Langflow stage-1 run was still in progress, so its 15 are drawn from the 107 Langflow defects classified as valid at that time. The drawn sample is frozen in sample.json, committed with this note before any trial.
