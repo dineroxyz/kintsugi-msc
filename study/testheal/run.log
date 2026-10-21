@@ -5,3 +5,13 @@
 {"app": "mealie", "sha": "28522f18657cdb6faf39c355c9d6f63b8f3c788c", "status": "run", "reproduced": true, "healed": false, "reason": "no candidate passed every check", "cost": 1.1614} total=$7.52
 {"app": "lnbits", "sha": "29e980dd672e26a885fcc4a7837f9eef77bcf0b5", "status": "run", "reproduced": true, "healed": false, "reason": "no candidate passed every check", "cost": 0.8275} total=$8.35
 {"app": "prefect", "sha": "1a33bc2801e0535b717682147649ad87e166c3fb", "status": "run", "reproduced": true, "healed": true, "reason": "admitted on attempt 1", "cost": 0.6717} total=$9.02
+{"app": "lnbits", "sha": "181c3ded642b1ec46442b2adcd4fef3ef1383911", "status": "run", "reproduced": true, "healed": false, "reason": "no candidate passed every check", "cost": 1.7691} total=$6.94
+{"app": "mealie", "sha": "28522f18657cdb6faf39c355c9d6f63b8f3c788c", "status": "run", "reproduced": true, "healed": true, "reason": "admitted on attempt 1", "cost": 0.3177} total=$7.26
+{"app": "lnbits", "sha": "29e980dd672e26a885fcc4a7837f9eef77bcf0b5", "status": "harness error", "reproduced": null, "healed": null, "reason": null, "cost": 0.3409} total=$7.60
+{"app": "langflow", "sha": "31d4cc2b7c42b2ca4bb2eb065fdeaeb3933096d1", "status": "run", "reproduced": true, "healed": false, "reason": "no candidate passed every check", "cost": 1.862} total=$9.46
+{"app": "mealie", "sha": "2bcba88a97621ebf3524d43d2316eac4754e10db", "status": "run", "reproduced": true, "healed": true, "reason": "admitted on attempt 2", "cost": 0.8033} total=$10.26
+{"app": "lnbits", "sha": "51e585c78cbe0cd94896264143d043248a092421", "status": "run", "reproduced": true, "healed": true, "reason": "admitted on attempt 1", "cost": 0.5663} total=$10.83
+{"app": "prefect", "sha": "21e5527c89b533f1664a2e2111521fc07f6b4164", "status": "run", "reproduced": true, "healed": false, "reason": "no candidate passed every check", "cost": 3.5994} total=$14.43
+{"app": "langflow", "sha": "3bc188525c3c6257b4c5a9ff699fedb178a06f9b", "status": "run", "reproduced": true, "healed": false, "reason": "no candidate passed every check", "cost": 2.0735} total=$16.50
+{"app": "mealie", "sha": "46a0010474e53490cf04167eee228f93c2d4d428", "status": "run", "reproduced": true, "healed": true, "reason": "admitted on attempt 1", "cost": 0.4312} total=$16.93
+{"app": "lnbits", "sha": "5de4239f3c362a631a5fd7382c7602d2e5ff8dd0", "status": "run", "reproduced": true, "healed": true, "reason": "admitted on attempt 1", "cost": 0.7196} total=$17.65

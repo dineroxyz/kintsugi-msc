@@ -65,7 +65,10 @@ def main():
                 r = M.run_tests(app, tree, sel, os.path.join(tempfile.mkdtemp(), "s.jsonl"))
                 return r.returncode, r.stdout + r.stderr
             sel = M.selectors(c, os.path.join(M.REAL, app))
-            dirs = sorted({os.path.dirname(f) for f in c["test_files"]
+            # the folders of the defect's tests; a test at the top of a test root
+            # stands for itself, never for the project's whole suite
+            dirs = sorted({(f if os.path.dirname(f) in ("tests", "src/backend/tests", "src/lfx/tests")
+                            else os.path.dirname(f)) for f in c["test_files"]
                            if os.path.exists(os.path.join(M.REAL, app, f))})
             before = usage.spent
             try:
