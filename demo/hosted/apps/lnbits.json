@@ -1,0 +1,43 @@
+{
+ "name": "lnbits",
+ "about": "lnbits is a widely used open source Bitcoin Lightning wallet and payments server. This is the real application, running unmodified with its fake test wallet, with Kintsugi in front of it.",
+ "bug": "A fiat subscription request is accepted as a one-off payment (lnbits fix #4116, from its own history)",
+ "mode": "test",
+ "sha": "51e585c78cbe0cd94896264143d043248a092421",
+ "repo": "lnbits",
+ "pythonpath": [
+  "."
+ ],
+ "cmd": [
+  "python",
+  "-m",
+  "uvicorn",
+  "lnbits.__main__:app"
+ ],
+ "health": "/api/v1/health",
+ "env": {
+  "LNBITS_DATA_FOLDER": "./tests/data",
+  "LNBITS_BACKEND_WALLET_CLASS": "FakeWallet",
+  "DEBUG": "true"
+ },
+ "tests": [
+  "tests/unit/test_services_payments.py::test_create_payment_request_rejects_fiat_subscription"
+ ],
+ "suite": [
+  "tests/unit/test_services_payments.py"
+ ],
+ "pytest_args": [
+  "-p",
+  "kintsugi_lnbits_setup"
+ ],
+ "clean_test_data": true,
+ "package": "lnbits/",
+ "include": [
+  "lnbits",
+  "tests",
+  "pyproject.toml",
+  "uv.lock",
+  "README.md",
+  "LICENSE"
+ ]
+}
