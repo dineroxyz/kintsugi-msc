@@ -283,7 +283,7 @@ def heal_from_tests() -> None:
                   selectors=CFG["tests"], test_files=[t.split("::")[0] for t in CFG["tests"]],
                   suite=CFG["suite"], package=CFG["package"], client=anthropic.Anthropic(),
                   usage=Usage(), budget=float(os.environ.get("KINTSUGI_DEMO_BUDGET", "3")),
-                  run_suite=lambda tree, sel: run(tree, sel, stop_first=False))
+                  run_suite=lambda tree, sel: run(tree, sel, stop_first=False), tries=4)
     if not r.reproduced:
         stage("refused", f"Kintsugi will not guess a fix it cannot prove: {r.reason}.")
         return
