@@ -933,8 +933,13 @@ def _recent_feed(runs: list, titles: dict) -> str:
 
 def live(entries: list, recordings: list[dict], *, live_enabled: bool,
          repairs: int, csrf: str, status: dict, welcome: bool = False,
-         recent: list | None = None, titles: dict | None = None) -> str:
-    """The Live view: break a bug, watch the platform mend it."""
+         recent: list | None = None, titles: dict | None = None, real: dict | None = None) -> str:
+    """The Live view: break a bug, watch the platform mend it.
+
+    With `real` (one of REAL_APPS), the same screen drives a hosted real
+    application instead of the shop: one real past defect, run through the
+    same events, the same steps and the same picture.
+    """
     by_entry: dict[str, dict] = {}
     for r in recordings:                      # newest first: keep the latest
         by_entry.setdefault(r["entry"], r)
@@ -974,22 +979,54 @@ def live(entries: list, recordings: list[dict], *, live_enabled: bool,
     if welcome:
         mode_note = "Welcome. Your account is ready. " + mode_note
     empty = not (fixable or alone)
+    test_mode = bool(real and real.get("test"))
+    if real:
+        slug = real["slug"]
+        rec_json = E(json.dumps({slug: "last"} if real.get("recorded") else {}))
+        rec_meta = E(json.dumps({}))
+        empty = False
+        extra = (f' data-run-url="/real-apps/{slug}/run" data-stream-base="/real-apps/{slug}/stream/"'
+                 f' data-replay-base="/real-apps/{slug}/replay/"'
+                 f' data-run-note="Live: the real {E(real["name"])} application, the real defect from its history, and the real AI model, now."')
+        head = (f'<div><h1>{E(real["name"])}, with Kintsugi</h1>'
+                f'<p class="muted">{E(real["what"])}, running unmodified. Break it puts a real defect back from '
+                f'{E(real["name"])}\'s own history: <b>{E(real["bug"])}</b>. Then watch Kintsugi '
+                f'{"run the project&#39;s own failing test" if test_mode else "catch the crash"}, prove it, fix it and sign for it.</p></div>')
+        picker = f'<option value="{E(slug)}" selected>{E(real["name"])}: {E(real["bug"])}</option>'
+        replay_btn = ('<button class="btn" id="live-replay" type="button">Replay the last real run</button>'
+                      if real.get("recorded") else "")
+        undo_btns = ""
+    else:
+        extra = ""
+        head = """<div><h1>Break it, and watch it mend</h1>
+<p class="muted">Pick a bug, plant it in the running shop, and watch Kintsugi catch
+it, prove it, fix it and sign for it.</p></div>"""
+        picker = (f'<optgroup label="Bugs that can be fixed">{opts(fixable)}</optgroup>'
+                  f'<optgroup label="Bugs it should leave alone">{opts(alone)}</optgroup>')
+        replay_btn = ('<button class="btn" id="live-replay" type="button">Replay a recorded run</button>'
+                      if can_run else "")
+        undo_btns = ('<button class="btn" id="live-undo" type="button" hidden>Undo the fix</button>'
+                     '<button class="btn" id="live-redo" type="button" hidden>Redo the fix</button>' if can_run else "")
+    target = real["name"] if real else "the shop"
+    caught = ("The project's own tests run, as continuous integration would." if test_mode
+              else "Kintsugi records the failing request.")
+    repeated = ("Five runs of the failing test in fresh copies must all fail." if test_mode
+                else "Five replays in a safe copy must all fail.")
+    works = ("The failing test passes, and the tests around it still pass." if test_mode
+             else "Checked on the failing request and on live traffic.")
     return f"""
 <div class="live" data-live="{"1" if can_run else "0"}" data-recordings="{rec_json}"
-     data-meta="{rec_meta}" data-repairs="{repairs}" data-csrf="{E(csrf)}">
+     data-meta="{rec_meta}" data-repairs="{repairs}" data-csrf="{E(csrf)}"{extra}>
 <div class="live-head">
-<div><h1>Break it, and watch it mend</h1>
-<p class="muted">Pick a bug, plant it in the running shop, and watch Kintsugi catch
-it, prove it, fix it and sign for it.</p></div>
+{head}
 <form class="live-controls" id="live-form" onsubmit="return false">
 <label class="sr-only" for="live-bug">Bug to plant</label>
 <select id="live-bug"{" disabled" if empty else ""}>
-<optgroup label="Bugs that can be fixed">{opts(fixable)}</optgroup>
-<optgroup label="Bugs it should leave alone">{opts(alone)}</optgroup>
+{picker}
 </select>
 <button class="btn btn-primary break" id="live-go" type="button"{" disabled" if empty else ""}>{"Break it" if can_run else "Watch a replay"}</button>
-{'<button class="btn" id="live-replay" type="button">Replay a recorded run</button>' if can_run else ""}
-{'<button class="btn" id="live-undo" type="button" hidden>Undo the fix</button><button class="btn" id="live-redo" type="button" hidden>Redo the fix</button>' if can_run else ""}
+{replay_btn}
+{undo_btns}
 </form></div>
 <p class="live-mode" id="live-mode">{mode_note}</p>
 
@@ -1010,7 +1047,7 @@ it, prove it, fix it and sign for it.</p></div>
 </section>
 <div class="live-grid">
 <section class="panel traffic" aria-labelledby="t-title">
-<div class="panel-head"><h2 id="t-title">Live traffic to the shop</h2>
+<div class="panel-head"><h2 id="t-title">Live traffic to {E(target)}</h2>
 <span class="state" id="live-state" role="status" aria-live="polite">Waiting</span></div>
 <canvas id="live-canvas" aria-label="Each dot is one request to the shop: green succeeded, red failed." role="img"></canvas>
 <div class="rate"><span>Failing requests</span><canvas id="live-rate" aria-hidden="true"></canvas>
@@ -1022,14 +1059,14 @@ it, prove it, fix it and sign for it.</p></div>
 <span class="clock" id="live-clock">0.0 s</span></div>
 <ol class="lsteps" id="live-steps">
 <li data-step="fault"><b>The bug goes live</b><span>A new version with the bug replaces the working one.</span></li>
-<li data-step="captured"><b>The error is caught</b><span id="st-captured">Kintsugi records the failing request.</span></li>
-<li data-step="replay"><b>It is repeated on purpose</b><span id="st-replay">Five replays in a safe copy must all fail.</span>
+<li data-step="captured"><b>The error is caught</b><span id="st-captured">{caught}</span></li>
+<li data-step="replay"><b>It is repeated on purpose</b><span id="st-replay">{repeated}</span>
 <i class="dots" id="st-dots"><i></i><i></i><i></i><i></i><i></i></i></li>
 <li data-step="ai"><b>The AI writes a fix</b><span id="st-ai">The model sees the evidence and proposes a patch.</span></li>
 <li data-step="gate"><b>The fix is checked</b><span id="st-gate">It must apply, stop the error, break nothing and not hide the error.</span>
 <i class="chips" id="st-chips"></i></li>
 <li data-step="deploy"><b>The fix goes live</b><span id="st-deploy">Only a signed, checked fix can be deployed.</span></li>
-<li data-step="recovered"><b>The app works again</b><span id="st-recovered">Checked on the failing request and on live traffic.</span></li>
+<li data-step="recovered"><b>The app works again</b><span id="st-recovered">{works}</span></li>
 <li data-step="certificate"><b>A certificate is signed</b><span id="st-cert">A tamper-evident record of the whole repair.</span></li>
 </ol>
 </section>
@@ -1044,7 +1081,7 @@ aria-label="A bowl with one gold seam for every repair Kintsugi has made"></svg>
 <p class="muted small" id="live-outcome">Every repair adds a seam.</p>
 </section>
 </div>
-{_recent_feed(recent or [], titles or {})}
+{"" if real else _recent_feed(recent or [], titles or {})}
 </div>"""
 
 
@@ -1327,15 +1364,15 @@ How to check a single certificate in your browser is on the <a href="/trust">tru
 
 
 REAL_APPS = [
-    {"name": "Prefect", "what": "Workflow orchestration server used by thousands of teams",
+    {"name": "Prefect", "slug": "prefect", "what": "Workflow orchestration server used by thousands of teams",
      "bug": "A page of zero deployments crashes the server (division by zero), Prefect fix #22566",
-     "mode": "Crash in live traffic", "url": "https://prefect-demo-production.up.railway.app"},
-    {"name": "Mealie", "what": "Popular self-hosted recipe manager",
+     "mode": "Crash in live traffic", "host": "https://prefect-demo-production.up.railway.app"},
+    {"name": "Mealie", "slug": "mealie", "what": "Popular self-hosted recipe manager", "test": True,
      "bug": "A failed recipe-image upload deletes the existing image, Mealie fix #8506",
-     "mode": "Failing test, as in CI", "url": "https://mealie-demo-production.up.railway.app"},
-    {"name": "lnbits", "what": "Bitcoin Lightning wallet and payments server",
+     "mode": "Failing test, as in CI", "host": "https://mealie-demo-production.up.railway.app"},
+    {"name": "lnbits", "slug": "lnbits", "what": "Bitcoin Lightning wallet and payments server", "test": True,
      "bug": "A fiat subscription request is accepted as a one-off payment, lnbits fix #4116",
-     "mode": "Failing test, as in CI", "url": "https://lnbits-demo-production.up.railway.app"},
+     "mode": "Failing test, as in CI", "host": "https://lnbits-demo-production.up.railway.app"},
     {"name": "Dinero", "what": "Live community platform with real users (Next.js)",
      "bug": "Watched in production: any real server crash is caught and reproduced in a sealed copy",
      "mode": "Live production app", "url": "https://www.dinerooo.xyz"},
@@ -1345,18 +1382,27 @@ REAL_APPS = [
 ]
 
 
+def real_app(slug: str) -> dict | None:
+    app = next((a for a in REAL_APPS if a.get("slug") == slug), None)
+    host = os.environ.get(f"KINTSUGI_REAL_HOST_{slug.upper()}") if app else None
+    return {**app, "host": host} if host else app
+
+
 def real_apps() -> str:
+    def button(a):
+        if a.get("slug"):
+            return (f'<a class="btn btn-primary" href="/real-apps/{E(a["slug"])}">Break it, and watch it mend</a>')
+        return f'<a class="btn" href="{E(a["url"])}" rel="noopener">Visit the live app</a>'
     cards = "".join(
         f'''<article class="ra-card"><h2>{E(a["name"])}</h2><p class="muted">{E(a["what"])}</p>
 <p><b>{E(a["mode"])}.</b> {E(a["bug"])}</p>
-<p><a class="btn {"btn-primary" if "demo" in a["url"] else ""}" href="{E(a["url"] + ("/__kintsugi" if "demo" in a["url"] else ""))}" rel="noopener">
-{"Open the demo: break it and watch it mend" if "demo" in a["url"] else "Visit the live app"}</a></p></article>'''
+<p>{button(a)}</p></article>'''
         for a in REAL_APPS)
     return f"""
 <div class="page-head"><h1>Real apps, real bugs</h1>
-<p class="lede">Kintsugi working on software it did not write. The three demos run the real, unmodified
-applications; each Break re-introduces a real defect from that project's own git history, and Kintsugi has to
-reproduce it, fix it, prove the fix with the project's own tests, and deploy it. The two live apps are watched in
-production.</p></div>
+<p class="lede">Kintsugi working on software it did not write. Prefect, Mealie and lnbits run here as the real,
+unmodified applications; each Break puts back a real defect from that project's own git history, and Kintsugi
+has to reproduce it, fix it, prove the fix with the project's own tests, and deploy it, on the same screen as the
+Live page. Dinero and Duce are watched in production.</p></div>
 <div class="ra-grid">{cards}</div>
-<p class="muted small">Each demo's alerts, timeline and signed certificate appear on the owner's Kintsugi account.</p>"""
+<p class="muted small">Each run's alerts, timeline and signed certificate appear on the owner's Kintsugi account.</p>"""

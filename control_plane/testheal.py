@@ -99,7 +99,8 @@ def candidate_files(tree: str, output: str, test_files: list[str], package: str)
     return found[:25]
 
 
-def _ask(client, usage: Usage, model: str, system: str, text: str, think: bool = True) -> str:
+def _ask(client, usage: Usage, model: str, system: str, text: str, think: bool = True,
+         on_text=None) -> str:
     import time
     # thinking is capped so it can never use up the room the answer needs
     kw = ({"thinking": {"type": "adaptive"}, "extra_body": {"output_config": {"effort": "medium"}}}
@@ -108,6 +109,9 @@ def _ask(client, usage: Usage, model: str, system: str, text: str, think: bool =
         try:
             with client.messages.stream(model=model, max_tokens=12000 if think else 2000, system=system,
                                         messages=[{"role": "user", "content": text}], **kw) as stream:
+                if on_text is not None:          # the live view types the answer out
+                    for piece in stream.text_stream:
+                        on_text(piece)
                 msg = stream.get_final_message()
             break
         except Exception as exc:
@@ -163,7 +167,7 @@ def focus(src: str, words: set[str]) -> str:
     return "\n".join(out)
 
 
-def propose(client, usage, model, tree, failing, output, test_src, files, feedback) -> str:
+def propose(client, usage, model, tree, failing, output, test_src, files, feedback, on_text=None) -> str:
     parts = [f"Failing tests: {', '.join(failing)}", f"Test output:\n{_trim_output(output)}",
              f"Test source:\n{test_src[:12000]}"]
     words = set(re.findall(r"[A-Za-z_][A-Za-z0-9_]{3,}", output + test_src))
@@ -172,7 +176,7 @@ def propose(client, usage, model, tree, failing, output, test_src, files, feedba
         parts.append(f"=== {f} ===\n{focus(src, words)}")
     if feedback:
         parts.append("Earlier attempts were rejected:\n" + "\n".join(f"- {x}" for x in feedback))
-    reply = _ask(client, usage, model, SYSTEM, "\n\n".join(parts))
+    reply = _ask(client, usage, model, SYSTEM, "\n\n".join(parts), on_text=on_text)
     m = re.search(r"```(?:diff|patch)?\n(.*?)```", reply, re.S)
     return (m.group(1) if m else reply).lstrip()
 
@@ -189,8 +193,14 @@ class Result:
 
 def heal(*, run_tests, fresh_tree, drop_tree, selectors, test_files, suite, package,
          client, usage: Usage, budget: float, model: str = "claude-opus-5", tries: int = 3,
-         run_suite=None) -> Result:
-    """Reproduce, then up to `tries` candidates through the gate."""
+         run_suite=None, on_event=None) -> Result:
+    """Reproduce, then up to `tries` candidates through the gate.
+
+    `on_event(kind, **data)`, when given, receives the same events as the
+    request loop (reproduce_done, context, candidate_start, token,
+    gate_result), so the live view can show a failing-test repair as it runs.
+    """
+    emit = on_event or (lambda kind, **data: None)
     from control_plane.gate.security import security_check
     from control_plane.patching import apply_loose
     run_suite = run_suite or run_tests
@@ -198,8 +208,13 @@ def heal(*, run_tests, fresh_tree, drop_tree, selectors, test_files, suite, pack
 
     base = fresh_tree("base")
     try:
+        emit("reproduce_start")
         rep = reproduce(run_tests, base, selectors)
+        emit("reproduce_done", reproduced=rep["reproduced"], reason=rep.get("reason", ""),
+             signature=", ".join(rep.get("failing", []))[:200],
+             replays=[True] * rep["runs"] if rep["reproduced"] else [True] * (rep["runs"] - 1) + [False])
         if not rep["reproduced"]:
+            emit("refused", reason=rep["reason"])
             return Result(False, reason=rep["reason"])
         test_src = "\n\n".join(open(os.path.join(base, t)).read() for t in test_files
                                if os.path.exists(os.path.join(base, t)))
@@ -209,6 +224,10 @@ def heal(*, run_tests, fresh_tree, drop_tree, selectors, test_files, suite, pack
         if usage.spent >= budget:
             return Result(True, reason="spending cap reached before this defect")
         files = localise(client, usage, model, base, rep["failing"], rep["output"], test_src, cands)
+        emit("context", files=[{"file": f, "line": 1, "function": "(module)",
+                                "lines": len(open(os.path.join(base, f), errors="replace").read().splitlines())}
+                               for f in files],
+             frames=len(files), prior_failures=0, memory_notes=0, release_diff=False)
         res = Result(True, files=files)
         feedback: list[str] = []
         baseline = None
@@ -216,12 +235,21 @@ def heal(*, run_tests, fresh_tree, drop_tree, selectors, test_files, suite, pack
             if usage.spent >= budget:
                 res.reason = "spending cap reached"
                 break
-            raw = propose(client, usage, model, base, rep["failing"], rep["output"], test_src, files, feedback)
+            emit("candidate_start", attempt=attempt)
+            raw = propose(client, usage, model, base, rep["failing"], rep["output"], test_src, files, feedback,
+                          on_text=(lambda piece: emit("token", text=piece)) if on_event else None)
             a = {"attempt": attempt, "diff": raw}
+            checks: dict = {}
+
+            def verdict(admitted: bool = False, why: str = "") -> None:
+                emit("gate_result", attempt=attempt, diff=a["diff"], conditions=dict(checks),
+                     admitted=admitted, details={k: why for k, v in checks.items() if not v} if why else {})
             res.attempts.append(a)
             if not raw.strip():
                 a["rejected"] = "no diff in the answer"
                 feedback.append("Your last answer contained no diff. Reply with the unified diff only.")
+                checks["applies"] = False
+                verdict(why=a["rejected"])
                 continue
             touched = re.findall(r"^\+\+\+ b/(.+)$", raw, re.M)
             wanted = [f for f in touched if f not in files and f.startswith(package)
@@ -231,6 +259,8 @@ def heal(*, run_tests, fresh_tree, drop_tree, selectors, test_files, suite, pack
                 a["rejected"] = f"needed files it had not been shown: {', '.join(wanted)}; shown now"
                 feedback.append(f"You edited {', '.join(wanted)} without seeing it. It is now included; "
                                 "write the fix again against its actual content.")
+                checks["applies"] = False
+                verdict(why=a["rejected"])
                 continue
             t = fresh_tree(f"try{attempt}")
             try:
@@ -238,7 +268,10 @@ def heal(*, run_tests, fresh_tree, drop_tree, selectors, test_files, suite, pack
                 if diff is None:
                     a["rejected"] = "the change could not be applied: " + err
                     feedback.append(a["rejected"] + ". Quote the existing lines exactly.")
+                    checks["applies"] = False
+                    verdict(why=a["rejected"])
                     continue
+                checks["applies"] = True
                 a["diff"] = diff                       # the canonical patch is what is checked
                 st = structural_check(diff, "AssertionError")
                 capture = {"frames": [{"file": os.path.join(base, f)} for f in files], "request": {}}
@@ -251,24 +284,31 @@ def heal(*, run_tests, fresh_tree, drop_tree, selectors, test_files, suite, pack
                     sc = security_check(diff, capture, base, allow_imports=True, allow_file_writes=True)
                 finally:
                     sec.MAX_ADDED = old
+                checks["structural"], checks["security"] = st["passed"], sc["passed"]
                 if not st["passed"] or not sc["passed"]:
                     a["rejected"] = "; ".join(st["problems"] + sc["problems"])
                     feedback.append(a["rejected"])
+                    verdict(why=a["rejected"])
                     continue
                 passes = sum(run_tests(t, selectors)[0] == 0 for _ in range(5))
+                checks["reproduction"] = passes == 5
                 if passes < 5:
                     a["rejected"] = f"the failing tests pass on only {passes} of 5 runs"
                     feedback.append(a["rejected"] + ". Output:\n" + _trim_output(run_tests(t, selectors)[1], 2000))
+                    verdict(why=a["rejected"])
                     continue
                 if baseline is None:
                     baseline = set(failing_ids(run_suite(base, suite)[1]))
                 rc, out = run_suite(t, suite)
                 new_failures = [f for f in failing_ids(out) if f not in baseline]
+                checks["suite"] = not new_failures
                 if new_failures:
                     a["rejected"] = "other tests in the same folders now fail: " + ", ".join(new_failures[:5])
                     feedback.append(a["rejected"])
+                    verdict(why=a["rejected"])
                     continue
                 a["admitted"] = True
+                verdict(admitted=True)
                 res.healed, res.patch, res.reason = True, diff, f"admitted on attempt {attempt}"
                 return res
             finally:

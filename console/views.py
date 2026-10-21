@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import hashlib
 import html
+import os
+import re
 from urllib.parse import urlencode
 
 from console import data as D
@@ -65,6 +67,33 @@ NAV = [("/live", "live", "Live"),
        ("/guide", "guide", "Guide")]
 
 
+def _static_version() -> str:
+    """Changes whenever a stylesheet or script changes, so browsers can cache
+    them for a year and still pick up every deploy."""
+    h = hashlib.sha256()
+    root = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
+    for name in sorted(os.listdir(root)):
+        if name.endswith((".css", ".js")):
+            with open(os.path.join(root, name), "rb") as fh:
+                h.update(fh.read())
+    return h.hexdigest()[:10]
+
+
+STATIC_VERSION = _static_version()
+_ASSET = re.compile(r'(/static/[\w./-]+\.(?:css|js))"')
+
+# Chrome and Edge start loading a page while the pointer rests on its link,
+# so most clicks open at once. Only plain pages: never downloads, data or
+# anything that acts.
+SPECULATION = """<script type="speculationrules">
+{"prerender": [{"where": {"and": [{"href_matches": "/*"},
+  {"not": {"href_matches": ["/logout", "/data/*", "/api/*", "/live/*", "/real-apps/*/*", "/*.json", "/*.ots",
+                            "/worker/*", "/account/artifacts/*", "/.well-known/*"]}},
+  {"not": {"selector_matches": "[download], [rel~=nofollow], form *"}}]},
+  "eagerness": "moderate"}]}
+</script>"""
+
+
 def shell(title: str, active: str, body: str, *, description: str = "",
           user: str | None = None, csrf: str = "", wide: bool = False,
           extra_head: str = "", role: str | None = None, admin: bool = False,
@@ -96,7 +125,7 @@ def shell(title: str, active: str, body: str, *, description: str = "",
                    f'{" aria-current=page" if active == "signup" else ""}>Create account</a>')
     desc = description or ("Kintsugi is a self-healing software platform: it "
                            "repairs live apps with AI, but only with proof.")
-    return f"""<!doctype html>
+    doc = f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{E(title)} | Kintsugi</title>
@@ -110,6 +139,7 @@ def shell(title: str, active: str, body: str, *, description: str = "",
 <link rel="stylesheet" href="/static/console.css">
 <script src="/static/console.js" defer></script>
 {extra_head}
+{SPECULATION}
 </head><body{' class="wide"' if wide else ""}>
 <a class="skip" href="#main">Skip to content</a>
 <header class="site-head"><div class="wrap">
@@ -147,6 +177,7 @@ analytics, no third-party requests.</p>
 <button class="close" type="button" aria-label="Close">{ICON_CLOSE}</button></div>
 <div class="detail-body"></div></dialog>
 </body></html>"""
+    return _ASSET.sub(lambda m: m.group(1) + '?v=' + STATIC_VERSION + '"', doc)
 
 
 # --------------------------------------------------------------- statuses

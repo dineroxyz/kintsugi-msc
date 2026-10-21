@@ -3,10 +3,11 @@
 One process per hosted demo. It runs the real application from /app/live,
 forwards every request to it unchanged, and adds a small control surface:
 
-    /__kintsugi            status page with Break, Trigger and Reset
-    /__kintsugi/break      put a real past defect (from the app's own history) back
-    /__kintsugi/trigger    send the request that makes that defect crash
-    /__kintsugi/reset      restore the current release
+    /__kintsugi            opens this application's page on the Kintsugi site
+    /__kintsugi/run        (worker token) one full run: healthy traffic, the real
+                           past defect put back, Kintsugi catching and mending it
+    /__kintsugi/events     (worker token) that run's events, in the Live view's format
+    /__kintsugi/last       (worker token) the last mended run, for replay
 
 When the application crashes, the agent reports it to the Kintsugi site
 (an alert on the owner's profile), replays it five times in fresh processes
@@ -28,8 +29,10 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import re
 import threading
 import time
+import uuid
 
 import httpx
 from starlette.applications import Starlette
@@ -55,12 +58,79 @@ PY = sys.executable
 
 state = {"mode": "healthy", "log": [], "job": None, "busy": False, "spent": 0.0}
 proc: list[subprocess.Popen | None] = [None]
+TOKEN = os.environ.get("KINTSUGI_WORKER_TOKEN", "")
+FAKE_PATCH = os.environ.get("KINTSUGI_DEMO_FAKE_PATCH")   # local testing only: no model call
+LAST_RUN = os.path.join(DATA, "last_run.json")
+
+# One run at a time. Its events use the Live view's format, so the Kintsugi site
+# shows a real application's repair on exactly the same screen as its own shop.
+RUN: dict = {"id": None, "events": [], "t0": 0.0, "done": True, "first_error": None, "paused": False}
+RUN_COND = threading.Condition()
+
+
+def emit(kind: str, **data) -> None:
+    if RUN["id"] is None or RUN["done"]:
+        return
+    with RUN_COND:
+        RUN["events"].append({"t": round(time.time() - RUN["t0"], 3), "kind": kind, **data})
+        if kind == "end":
+            RUN["done"] = True
+        RUN_COND.notify_all()
 
 
 def note(text: str) -> None:
     state["log"].append({"at": time.strftime("%H:%M:%S"), "text": text})
     state["log"] = state["log"][-60:]
     print(time.strftime("%H:%M:%S"), text, flush=True)
+    emit("note", text=text)
+
+
+def complete_fn():
+    """The model call, streamed to the run so the page can type the patch out."""
+    if FAKE_PATCH:
+        def fake(_text: str) -> str:
+            body = open(FAKE_PATCH).read()
+            for i in range(0, len(body), 24):
+                emit("token", text=body[i:i + 24])
+                time.sleep(0.02)
+            return body
+        return fake
+    from control_plane.diagnosis.proposer import anthropic_streaming_complete
+    return anthropic_streaming_complete(lambda piece: emit("token", text=piece))
+
+
+class _FakeStream:
+    """Local testing only: stands in for the model in failing-test mode."""
+    def __init__(self, text):
+        self.text = text
+        self.text_stream = (text[i:i + 24] for i in range(0, len(text), 24))
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+    def get_final_message(self):
+        class U:
+            input_tokens = output_tokens = 0
+        class B:
+            type = "text"
+        b = B()
+        b.text = self.text
+        class M:
+            usage, stop_reason, content = U(), "end_turn", [b]
+        return M()
+
+
+class _FakeClient:
+    class messages:
+        @staticmethod
+        def stream(**kw):
+            system = kw.get("system", "")
+            if "locate" in system:
+                return _FakeStream(CFG.get("fake_files", ""))
+            return _FakeStream(open(FAKE_PATCH).read())
 
 
 # ------------------------------------------------------------------ the app
@@ -158,7 +228,7 @@ def run_tests(tree: str) -> tuple[bool, str]:
 
 def heal(capture: dict) -> None:
     from control_plane.diagnosis.packer import pack
-    from control_plane.diagnosis.proposer import anthropic_complete, render_evidence
+    from control_plane.diagnosis.proposer import render_evidence
     from control_plane.gate.security import security_check
     from control_plane.gate.verifier import structural_check
     t0 = time.time()
@@ -178,21 +248,46 @@ def heal(capture: dict) -> None:
                 state["job"] = mine[0]["job"]
                 break
             time.sleep(2)
+    emit("captured", exception_type=capture.get("exception_type"),
+         message=str(capture.get("exception_message", ""))[:160],
+         method=capture["request"].get("method"), path=capture["request"].get("path"),
+         service=CFG["name"], **evidence(capture))
     stage("reproducing", f"Caught {capture['exception_type']} on {capture['request']['method']} "
                          f"{capture['request']['path']}. Replaying it five times in fresh processes.")
+    emit("reproduce_start")
     faulty = copy_tree(LIVE)
     verdicts = [replay(faulty, capture) for _ in range(5)]
     sigs = {(v.get("exception_type"), v.get("top_frame")) for v in verdicts}
-    if not all(v.get("failed") for v in verdicts) or len(sigs) != 1:
+    ok_repro = all(v.get("failed") for v in verdicts) and len(sigs) == 1
+    sig = f"{verdicts[0].get('exception_type')}@{verdicts[0].get('top_frame')}"
+    emit("reproduce_done", reproduced=ok_repro, signature=sig if ok_repro else None,
+         reason="" if ok_repro else "it did not fail the same way on every replay",
+         replays=[bool(v.get("failed")) for v in verdicts],
+         verdicts=[{k: v.get(k) for k in ("failed", "exception_type", "top_frame", "status_code")} for v in verdicts])
+    if not ok_repro:
         stage("refused", "It did not fail the same way five times, so Kintsugi will not guess a fix.")
+        emit("refused", reason="it did not fail the same way on every replay")
+        finish_run("refused")
         return
-    sig = f"{verdicts[0]['exception_type']}@{verdicts[0]['top_frame']}"
     stage("reproduced", f"Failed identically on 5 of 5 replays: {sig}.")
     stage("fixing", "Asking the AI for a fix; it must pass every check of the gate.")
     feedback, admitted = [], None
+    model = complete_fn()
     for attempt in range(1, 4):
+        emit("candidate_start", attempt=attempt)
         package = pack(capture, sig, faulty, prior_failures=feedback)
-        diff = anthropic_complete(render_evidence(package))
+        emit("context", attempt=attempt,
+             files=[{"file": "/".join(x["file"].split("/")[-2:]), "line": x["line"], "function": x["function"],
+                     "lines": len(x["source"].splitlines())} for x in package["sources"]],
+             frames=len(package["frames"]), prior_failures=len(feedback), memory_notes=0,
+             release_diff=bool(package.get("release_diff")))
+        diff = model(render_evidence(package))
+        checks: dict = {}
+
+        def verdict(admitted_now=False, why=""):
+            emit("gate_result", attempt=attempt, diff=diff, conditions=dict(checks), admitted=admitted_now,
+                 details={k: why for k, v in checks.items() if not v} if why else
+                 ({"suite": tail.splitlines()[0]} if admitted_now else {}))
         with open(os.path.join(DATA, "attempts.jsonl"), "a") as fh:
             fh.write(json.dumps({"attempt": attempt, "diff": diff, "feedback": feedback[-1:] }) + "\n")
         from control_plane.patching import apply_loose
@@ -201,46 +296,68 @@ def heal(capture: dict) -> None:
         ok = canonical is not None
         if ok:
             diff = canonical                 # what is checked, deployed and certified
+        tail = ""
         if not ok:
+            checks["applies"] = False
             feedback.append({"attempt": attempt, "rejected_diff": diff[:3000], "failures": ["does not apply: " + err]})
             note(f"Attempt {attempt} rejected: the change does not apply.")
+            verdict(why="the change does not apply to the code")
             continue
         st = structural_check(diff, capture["exception_type"])
         sc = security_check(diff, capture, faulty)
+        checks.update(structural=st["passed"], security=sc["passed"], applies=True)
         if not st["passed"] or not sc["passed"]:
             feedback.append({"attempt": attempt, "rejected_diff": diff[:3000],
                              "failures": st["problems"] + sc["problems"]})
             note(f"Attempt {attempt} rejected: {'; '.join(st['problems'] + sc['problems'])}")
+            verdict(why="; ".join(st["problems"] + sc["problems"]))
             continue
         after = [replay(trial, capture) for _ in range(5)]
-        if any(v.get("failed") for v in after):
+        checks["reproduction"] = not any(v.get("failed") for v in after)
+        if not checks["reproduction"]:
             feedback.append({"attempt": attempt, "rejected_diff": diff[:3000], "failures": ["the crash still happens"]})
             note(f"Attempt {attempt} rejected: the crash still happens.")
+            verdict(why="the crash still happens on replay")
             continue
         passed, tail = run_tests(trial)
+        checks["suite"] = passed
         if not passed:
             feedback.append({"attempt": attempt, "rejected_diff": diff[:3000],
                              "failures": ["the application's own tests fail; their output: " + tail]})
             note(f"Attempt {attempt} rejected: the application's tests fail ({tail.splitlines()[0]}).")
+            verdict(why=tail.splitlines()[0][:160])
             continue
         admitted = {"attempt": attempt, "diff": diff, "tests": tail}
+        verdict(admitted_now=True)
         break
     if not admitted:
         stage("gave_up", "No candidate passed every check. Handed to a person.")
+        emit("escalated", reason="no attempt passed every check; handed to a person")
+        finish_run("escalated")
         return
     stage("verified", f"Attempt {admitted['attempt']} passed: crash gone on 5 of 5 replays; tests: {admitted['tests'].splitlines()[0]}.",
           patch=admitted["diff"])
     from control_plane.patching import apply_loose
+    emit("deploying", service=CFG["name"])
+    RUN["paused"] = True                      # the restart is not the bug; keep it off the chart
     apply_loose(LIVE, admitted["diff"])
     start_app()
+    RUN["paused"] = False
+    emit("deployed", service=CFG["name"])
     probe = send_trigger()
     state["mode"] = "mended" if probe < 500 else "broken"
-    stage("proposed", f"Fix deployed to the demo app; the failing request now answers {probe}.",
+    emit("probe", passed=probe < 500)
+    stage("proposed", f"Fix deployed; the failing request now answers {probe}.",
           explanation=f"Kintsugi reproduced {sig} and admitted a fix that passed the gate.")
-    report(f"/worker/jobs/{state['job']}/certify", repo=CFG["name"], signature=sig,
-           replays=[bool(v.get("failed")) for v in verdicts], admitted_patch_sha256=hashlib.sha256(
-               admitted["diff"].encode()).hexdigest(), tests=admitted["tests"], seconds=round(time.time() - t0, 1)) \
-        if state["job"] else None
+    if probe >= 500:
+        emit("false_fix")
+        finish_run("false_fix")
+        return
+    cert = report(f"/worker/jobs/{state['job']}/certify", repo=CFG["name"], signature=sig,
+                  replays=[bool(v.get("failed")) for v in verdicts], admitted_patch_sha256=hashlib.sha256(
+                      admitted["diff"].encode()).hexdigest(), tests=admitted["tests"],
+                  seconds=round(time.time() - t0, 1)) if state["job"] else None
+    finish_run("recovered", cert=cert, attempts=admitted["attempt"], replays="5 of 5 replays")
 
 
 def heal_from_tests() -> None:
@@ -278,57 +395,49 @@ def heal_from_tests() -> None:
                 time.sleep(2)
         except Exception:
             pass
+    test = CFG["tests"][0]
+    emit("captured", exception_type="a failing test", message=CFG["bug"], method="TEST", path=test,
+         service=CFG["name"], test=True, frames=[], headers=None, source=test_source(test))
     stage("reproducing", "A test failed. Running it five times in fresh copies to prove the failure is real.")
     r = test_heal(run_tests=run, fresh_tree=fresh, drop_tree=lambda p: shutil.rmtree(os.path.dirname(p), ignore_errors=True),
                   selectors=CFG["tests"], test_files=[t.split("::")[0] for t in CFG["tests"]],
-                  suite=CFG["suite"], package=CFG["package"], client=anthropic.Anthropic(),
+                  suite=CFG["suite"], package=CFG["package"], client=_FakeClient() if FAKE_PATCH else anthropic.Anthropic(),
                   usage=Usage(), budget=float(os.environ.get("KINTSUGI_DEMO_BUDGET", "3")),
-                  run_suite=lambda tree, sel: run(tree, sel, stop_first=False), tries=4)
+                  run_suite=lambda tree, sel: run(tree, sel, stop_first=False), tries=4,
+                  on_event=lambda kind, **d: emit(kind, **d))
     if not r.reproduced:
         stage("refused", f"Kintsugi will not guess a fix it cannot prove: {r.reason}.")
+        finish_run("refused")
         return
     stage("reproduced", "The test failed the same way on 5 of 5 runs.")
     if not r.healed:
         for a in r.attempts:
             note(f"Attempt {a['attempt']} rejected: {a.get('rejected', '')[:200]}")
         stage("gave_up", f"No candidate passed every check: {r.reason}. Handed to a person.")
+        emit("escalated", reason=f"no attempt passed every check ({r.reason}); handed to a person")
+        finish_run("escalated")
         return
     for a in r.attempts:
         if not a.get("admitted"):
             note(f"Attempt {a['attempt']} rejected: {a.get('rejected', '')[:200]}")
     stage("verified", "The fix makes the test pass on 5 of 5 runs and breaks no other test in the folder.",
           patch=r.patch)
+    emit("deploying", service=CFG["name"])
+    RUN["paused"] = True
     apply_loose(LIVE, r.patch)
     start_app()
+    RUN["paused"] = False
+    emit("deployed", service=CFG["name"])
     state["mode"] = "mended"
-    stage("proposed", "Fix deployed to the demo app.")
+    emit("probe", passed=True)
+    stage("proposed", "Fix deployed; the project's failing test now passes.")
+    cert = None
     if state["job"]:
-        report(f"/worker/jobs/{state['job']}/certify", repo=CFG["name"], mode="failing test",
-               tests=CFG["tests"], admitted_patch_sha256=hashlib.sha256(r.patch.encode()).hexdigest(),
-               seconds=round(time.time() - t0, 1))
-
-
-def agent() -> None:
-    seen = 0
-    while True:
-        time.sleep(1)
-        if not os.path.exists(SINK):
-            continue
-        lines = open(SINK).read().splitlines()
-        fresh, seen = lines[seen:], len(lines)
-        if not fresh or state["busy"] or state["mode"] != "broken":
-            continue
-        capture = json.loads(fresh[0])
-        state["busy"] = True
-        state["mode"] = "healing"
-        try:
-            heal(capture)
-        except Exception as exc:
-            note(f"Heal stopped: {type(exc).__name__}: {str(exc)[:200]}")
-        finally:
-            state["busy"] = False
-            if state["mode"] == "healing":
-                state["mode"] = "broken"
+        cert = report(f"/worker/jobs/{state['job']}/certify", repo=CFG["name"], mode="failing test",
+                      tests=CFG["tests"], admitted_patch_sha256=hashlib.sha256(r.patch.encode()).hexdigest(),
+                      seconds=round(time.time() - t0, 1))
+    attempts = next((a["attempt"] for a in r.attempts if a.get("admitted")), len(r.attempts))
+    finish_run("recovered", cert=cert, attempts=attempts, replays="5 of 5 test runs")
 
 
 # ------------------------------------------------------------- the surface
@@ -342,64 +451,201 @@ def send_trigger() -> int:
         return 599
 
 
-async def control(request: Request):
-    action = request.path_params.get("action", "")
-    if request.method == "POST":
-        if state["busy"]:
-            return JSONResponse({"error": "busy"}, status_code=409)
-        if action == "break":
-            subprocess.run(["rm", "-rf", LIVE])
-            shutil.copytree(PRISTINE, LIVE, symlinks=True)
-            ok, err = git_apply(LIVE, open(FAULT).read(), reverse=True)
-            await asyncio.to_thread(start_app)
-            state.update(mode="broken", job=None)
-            note(f"Broke it: re-introduced '{CFG['bug']}' from {CFG['name']}'s own history." if ok else f"Break failed: {err}")
-        elif action == "trigger" and CFG.get("mode") == "test":
-            if state["mode"] != "broken":
-                return JSONResponse({"error": "break it first"}, status_code=409)
-            state.update(busy=True, mode="healing")
-            note("Running the project's own tests, as continuous integration would.")
+SLUG = CFG.get("slug") or CFG["name"].lower()
 
-            def work():
-                try:
-                    heal_from_tests()
-                except Exception as exc:
-                    note(f"Heal stopped: {type(exc).__name__}: {str(exc)[:200]}")
-                finally:
-                    state["busy"] = False
-                    if state["mode"] == "healing":
-                        state["mode"] = "broken"
-            threading.Thread(target=work, daemon=True).start()
-        elif action == "trigger":
-            code = await asyncio.to_thread(send_trigger)
-            note(f"Sent the request that hits the bug; the app answered {code}.")
-        elif action == "reset":
+
+def evidence(capture: dict) -> dict:
+    """The stack and the source around the crash, in the Live view's format."""
+    root = os.path.realpath(LIVE) + os.sep
+    frames = [{"file": os.path.basename(f.get("file", "")), "line": f.get("line"), "function": f.get("function"),
+               "code": (f.get("code") or "")[:120]}
+              for f in capture.get("frames", []) if os.path.realpath(f.get("file", "")).startswith(root)][-6:]
+    source = None
+    app = [f for f in capture.get("frames", []) if os.path.realpath(f.get("file", "")).startswith(root)]
+    if app:
+        f = app[-1]
+        try:
+            lines = open(f["file"]).read().splitlines()
+            lo = max(0, f["line"] - 9)
+            source = {"file": os.path.relpath(os.path.realpath(f["file"]), root), "start": lo + 1,
+                      "line": f["line"], "lines": lines[lo:f["line"] + 8]}
+        except OSError:
+            source = None
+    return {"frames": frames, "source": source,
+            "headers": len((capture.get("request") or {}).get("headers") or {}),
+            "outbound": len(capture.get("external_calls") or [])}
+
+
+def test_source(selector: str) -> dict | None:
+    """The failing test itself, with its first assertion marked."""
+    path, _, name = selector.partition("::")
+    name = name.split("::")[-1].split("[")[0]
+    try:
+        lines = open(os.path.join(LIVE, path)).read().splitlines()
+    except OSError:
+        return None
+    start = next((i for i, l in enumerate(lines) if re.match(rf"\s*(async\s+)?def {re.escape(name)}\b", l)), 0)
+    end = next((i for i in range(start + 1, len(lines)) if re.match(r"(async\s+)?def |class |@", lines[i])), len(lines))
+    mark = next((i for i in range(start, end) if "assert" in lines[i]), start)
+    lo, hi = start, min(end, start + 40)
+    return {"file": path, "start": lo + 1, "line": mark + 1, "lines": lines[lo:hi]}
+
+
+def finish_run(outcome: str, cert: dict | None = None, attempts: int = 1, replays: str = "") -> None:
+    started = RUN.get("first_error") or RUN.get("fault_at") or RUN["t0"]
+    mttr = round(time.time() - started, 2)
+    if cert:
+        emit("certificate", sequence=cert.get("sequence"), hash=cert.get("hash", ""), replays=replays,
+             attempts=attempts, link=f"/account/incidents/{state['job']}" if state["job"] else None)
+    if outcome == "recovered":
+        emit("recovered", mttr=mttr)
+        time.sleep(4)                         # healthy traffic after the repair, so the chart shows it
+    emit("end", outcome=outcome, mttr=mttr if outcome == "recovered" else None)
+    if outcome == "recovered":
+        try:
+            json.dump({"recorded": time.strftime("%Y-%m-%d %H:%M"), "model": os.environ.get("KINTSUGI_MODEL", "claude-opus-5"),
+                       "events": RUN["events"]}, open(LAST_RUN, "w"))
+        except OSError:
+            pass
+
+
+def pump(run_id: str) -> None:
+    """Real requests to the real application, every one checked, for the traffic chart."""
+    reqs = [{"method": "GET", "path": CFG["health"]}] + CFG.get("traffic", [])
+    if CFG.get("mode") != "test":
+        reqs.append(CFG["trigger"])           # users keep asking for the page that crashes
+    buf, last, i = [], time.time(), 0
+    with httpx.Client(timeout=10) as c:
+        while RUN["id"] == run_id and not RUN["done"]:
+            if RUN["paused"]:
+                time.sleep(0.2)
+                continue
+            r = reqs[i % len(reqs)]
+            i += 1
+            try:
+                code = c.request(r["method"], f"http://127.0.0.1:{APP_PORT}{r['path']}",
+                                 json=r.get("json"), params=r.get("params")).status_code
+            except httpx.HTTPError:
+                code = 0
+            if code:
+                buf.append([round(time.time() - RUN["t0"], 3), code, r["path"]])
+                if code >= 500 and RUN.get("fault_at") and RUN.get("first_error") is None:
+                    RUN["first_error"] = time.time()
+            if time.time() - last > 0.5 and buf:
+                emit("traffic", samples=buf)
+                buf, last = [], time.time()
+            time.sleep(0.12)
+
+
+def run_flow(run_id: str) -> None:
+    """One full run: healthy traffic, the real past defect put back, Kintsugi mending it."""
+    with RUN_COND:
+        RUN.update(id=run_id, events=[], t0=time.time(), done=False, first_error=None, fault_at=None, paused=False)
+    state.update(busy=True, job=None)
+    try:
+        emit("start", entry=SLUG, title=CFG["bug"], service=CFG["name"])
+        if state["mode"] != "healthy" or proc[0] is None or proc[0].poll() is not None:
+            note("Putting the current release back first.")
             subprocess.run(["rm", "-rf", LIVE])
             shutil.copytree(PRISTINE, LIVE, symlinks=True)
-            await asyncio.to_thread(start_app)
-            state.update(mode="healthy", job=None)
-            note("Reset to the current release.")
-        return JSONResponse({"mode": state["mode"]})
-    if action == "state":
-        return JSONResponse(state)
-    rows = "".join(f"<li><code>{e['at']}</code> {html.escape(e['text'])}</li>" for e in reversed(state["log"]))
-    page = f"""<!doctype html><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1">
-<title>Kintsugi demo: {html.escape(CFG['name'])}</title>
-<style>body{{font:16px/1.5 -apple-system,Helvetica,sans-serif;max-width:820px;margin:32px auto;padding:0 16px;background:#17140F;color:#EDE6D8}}
-h1{{font:700 30px Georgia,serif;margin:0}} .seam{{height:3px;width:120px;background:#C6A25A;margin:12px 0 18px}}
-button{{font:inherit;padding:10px 18px;border-radius:6px;border:1px solid #C6A25A;background:#2a241b;color:#EDE6D8;cursor:pointer;margin:0 8px 8px 0}}
-.mode{{display:inline-block;padding:2px 12px;border-radius:12px;border:1px solid #C6A25A}} ul{{padding-left:18px}} code{{color:#C6A25A}}</style>
-<h1>{html.escape(CFG['name'])}, with Kintsugi</h1><div class=seam></div>
-<p>{html.escape(CFG['about'])}</p>
-<p>The bug: <b>{html.escape(CFG['bug'])}</b> (a real defect from the project's own history).</p>
-<p>State: <span class=mode id=mode>{state['mode']}</span></p>
-<p><button onclick="go('break')">1. Break it</button><button onclick="go('trigger')">{'2. Run the tests (as CI would)' if CFG.get('mode') == 'test' else '2. Send the failing request'}</button>
-<button onclick="go('reset')">Reset</button></p>
-<h3>What Kintsugi is doing</h3><ul id=log>{rows}</ul>
-<script>function go(a){{fetch('/__kintsugi/'+a,{{method:'POST'}}).then(()=>setTimeout(()=>location.reload(),800))}}
-setInterval(()=>fetch('/__kintsugi/state').then(r=>r.json()).then(s=>{{document.getElementById('mode').textContent=s.mode;
-document.getElementById('log').innerHTML=s.log.slice().reverse().map(e=>'<li><code>'+e.at+'</code> '+e.text.replace(/</g,'&lt;')+'</li>').join('')}}),2000)</script>"""
-    return HTMLResponse(page)
+            start_app()
+            state["mode"] = "healthy"
+        threading.Thread(target=pump, args=(run_id,), daemon=True).start()
+        emit("traffic_started")
+        time.sleep(4)
+        RUN["paused"] = True
+        seen = len(open(SINK).read().splitlines()) if os.path.exists(SINK) else 0
+        subprocess.run(["rm", "-rf", LIVE])
+        shutil.copytree(PRISTINE, LIVE, symlinks=True)
+        ok, err = git_apply(LIVE, open(FAULT).read(), reverse=True)
+        if not ok:
+            raise RuntimeError(f"the defect could not be put back: {err}")
+        start_app()
+        state["mode"] = "broken"
+        RUN["fault_at"] = time.time()
+        RUN["paused"] = False
+        emit("fault_deployed", service=CFG["name"])
+        note(f"Re-introduced a real defect from {CFG['name']}'s own history: {CFG['bug']}.")
+        if CFG.get("mode") == "test":
+            time.sleep(2)
+            note("Running the project's own tests, as continuous integration would.")
+            heal_from_tests()
+        else:
+            capture = None
+            for _ in range(120):
+                lines = open(SINK).read().splitlines() if os.path.exists(SINK) else []
+                if len(lines) > seen:
+                    capture = json.loads(lines[seen])
+                    break
+                time.sleep(0.5)
+            if capture is None:
+                emit("no_fire")
+                finish_run("fault_never_fired")
+            else:
+                state["mode"] = "healing"
+                heal(capture)
+    except Exception as exc:
+        emit("error", message=f"{type(exc).__name__}: {exc}"[:300])
+    finally:
+        if not RUN["done"]:
+            finish_run("error")
+        state["busy"] = False
+        if state["mode"] == "healing":
+            state["mode"] = "broken"
+
+
+def _authed(request: Request) -> bool:
+    return bool(TOKEN) and request.headers.get("x-kintsugi-worker") == TOKEN
+
+
+async def control(request: Request):
+    """Humans are sent to this application's page on the Kintsugi site."""
+    if SITE:
+        return RedirectResponse(f"{SITE}/real-apps/{SLUG}", status_code=302)
+    return HTMLResponse(f"<p>{html.escape(CFG['name'])} is running with Kintsugi.</p>")
+
+
+async def k_state(request: Request):
+    return JSONResponse({"mode": state["mode"], "busy": state["busy"], "log": state["log"][-20:]})
+
+
+async def k_run(request: Request):
+    if not _authed(request):
+        return JSONResponse({"error": "not allowed"}, status_code=401)
+    if state["busy"]:
+        return JSONResponse({"error": "A run is already in progress on this application. Try again in a minute."},
+                            status_code=409)
+    run_id = uuid.uuid4().hex[:12]
+    threading.Thread(target=run_flow, args=(run_id,), daemon=True).start()
+    for _ in range(50):
+        if RUN["id"] == run_id:
+            break
+        await asyncio.sleep(0.05)
+    return JSONResponse({"run": run_id})
+
+
+async def k_events(request: Request):
+    if not _authed(request):
+        return JSONResponse({"error": "not allowed"}, status_code=401)
+    run_id, after = request.query_params.get("run", ""), int(request.query_params.get("after", "0") or 0)
+    if run_id != RUN["id"]:
+        return JSONResponse({"error": "no such run"}, status_code=404)
+
+    def wait():
+        with RUN_COND:
+            if len(RUN["events"]) <= after and not RUN["done"]:
+                RUN_COND.wait(10)
+            return RUN["events"][after:], RUN["done"]
+    events, done = await asyncio.to_thread(wait)
+    return JSONResponse({"events": events, "done": done})
+
+
+async def k_last(request: Request):
+    if not _authed(request):
+        return JSONResponse({"error": "not allowed"}, status_code=401)
+    if not os.path.exists(LAST_RUN):
+        return JSONResponse({"error": "no recorded run yet"}, status_code=404)
+    return JSONResponse(json.load(open(LAST_RUN)))
 
 
 async def proxy(request: Request):
@@ -421,7 +667,9 @@ async def home(request: Request):
     return RedirectResponse("/__kintsugi", status_code=302)
 
 
-routes = [Route("/", home), Route("/__kintsugi", control), Route("/__kintsugi/{action}", control, methods=["GET", "POST"]),
+routes = [Route("/", home), Route("/__kintsugi", control), Route("/__kintsugi/state", k_state),
+          Route("/__kintsugi/run", k_run, methods=["POST"]), Route("/__kintsugi/events", k_events),
+          Route("/__kintsugi/last", k_last),
           Route("/{path:path}", proxy, methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"])]
 from contextlib import asynccontextmanager
 
@@ -432,7 +680,6 @@ async def lifespan(_app):
         shutil.copytree(PRISTINE, LIVE, symlinks=True)
     os.makedirs(DATA, exist_ok=True)
     threading.Thread(target=start_app, daemon=True).start()
-    threading.Thread(target=agent, daemon=True).start()
     yield
     stop_app()
 

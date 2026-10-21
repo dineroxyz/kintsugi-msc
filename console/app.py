@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import json
 import os
+import time
 from contextlib import asynccontextmanager
 from contextvars import ContextVar
 from functools import lru_cache
@@ -86,6 +87,7 @@ SECURITY_HEADERS = {
 @app.middleware("http")
 async def _context(request: Request, call_next):
     token = _request.set(request)
+    started = time.perf_counter()
     try:
         # the live incident data is for the signed-in operator only;
         # ingest (POST) stays open so the services can report failures
@@ -97,6 +99,14 @@ async def _context(request: Request, call_next):
         _request.reset(token)
     for k, v in SECURITY_HEADERS.items():
         response.headers.setdefault(k, v)
+    path = request.url.path
+    if path.startswith("/static/"):
+        # versioned stylesheets and scripts, fonts and icons never change under
+        # the same address, so the browser keeps them instead of asking again
+        versioned = "v=" in request.url.query or path.startswith(("/static/fonts/", "/static/favicon"))
+        response.headers["Cache-Control"] = ("public, max-age=31536000, immutable" if versioned
+                                             else "public, max-age=3600")
+    response.headers["Server-Timing"] = f"app;dur={(time.perf_counter() - started) * 1000:.1f}"
     return response
 
 
@@ -822,6 +832,153 @@ def _status_checks() -> list[dict]:
 @app.get("/real-apps", response_class=HTMLResponse)
 def real_apps_page():
     return page("Real apps", "realapps", P.real_apps())
+
+
+# ------------------------------------------------- real apps, on the Live screen
+# A hosted real application runs behind its own supervisor; this site starts a
+# run there and relays its events, so the browser sees exactly the Live view.
+
+def _real_headers() -> dict:
+    return {"x-kintsugi-worker": os.environ.get("KINTSUGI_WORKER_TOKEN", "")}
+
+
+_recorded_cache: dict[str, tuple[float, bool]] = {}
+
+
+def _real_recorded(real: dict) -> bool:
+    """Whether the application has a mended run to replay (asked at most once a minute)."""
+    import httpx
+    hit = _recorded_cache.get(real["host"])
+    if hit and time.time() - hit[0] < 60:
+        return hit[1]
+    try:
+        ok = httpx.get(real["host"] + "/__kintsugi/last", headers=_real_headers(), timeout=3).status_code == 200
+    except httpx.HTTPError:
+        ok = False
+    _recorded_cache[real["host"]] = (time.time(), ok)
+    return ok
+
+
+@app.get("/real-apps/{slug}", response_class=HTMLResponse)
+def real_app_page(slug: str, request: Request):
+    real = P.real_app(slug)
+    if real is None:
+        return page("Not found", "realapps", "<h1>No such application</h1>", status=404)
+    body = P.live([], [], live_enabled=L.enabled(), repairs=L.repair_count(CERT_DIR),
+                  csrf=auth.form_token("live"), status=live_status(request),
+                  real={**real, "recorded": _real_recorded(real)})
+    return page(f"{real['name']}, with Kintsugi", "realapps", body, wide=True,
+                extra_head='<link rel="stylesheet" href="/static/live.css">\n'
+                           '<script src="/static/live.js" defer></script>')
+
+
+@app.post("/real-apps/{slug}/run")
+async def real_app_run(slug: str, request: Request):
+    import httpx
+    real = P.real_app(slug)
+    if real is None:
+        return JSONResponse({"error": "No such application."}, status_code=404)
+    form = await auth.read_form(request)
+    if not auth.check_form_token(form.get("csrf", ""), "live"):
+        return JSONResponse({"error": "This page expired. Reload it and try again."}, status_code=400)
+    st = live_status(request)
+    if not st["can"]:
+        why = {"replay": "Live runs are not available here.",
+               "signin": "Create a free account or sign in to run it for real.",
+               "account_cap": "You have used today's runs. They refresh 24 hours after each run.",
+               "site_cap": "Today's runs for the whole site are used up. Try again tomorrow."}
+        return JSONResponse({"error": why.get(st["why"], "Not available.")}, status_code=403)
+    try:
+        async with httpx.AsyncClient(timeout=30) as c:
+            r = await c.post(real["host"] + "/__kintsugi/run", headers=_real_headers())
+    except httpx.HTTPError:
+        return JSONResponse({"error": f"{real['name']} is not reachable right now. Try again in a minute."},
+                            status_code=502)
+    if r.status_code != 200:
+        return JSONResponse({"error": (r.json() if r.headers.get("content-type", "").startswith("application/json")
+                                       else {}).get("error", "The run could not start.")}, status_code=r.status_code)
+    run_id = r.json()["run"]
+    record = A.start_run(st.get("user_id"), slug)
+    _real_runs[run_id] = record
+    return {"run": run_id}
+
+
+_real_runs: dict[str, int] = {}
+
+
+@app.get("/real-apps/{slug}/stream/{run_id}")
+def real_app_stream(slug: str, run_id: str, request: Request):
+    import httpx
+    real = P.real_app(slug)
+    if real is None:
+        return JSONResponse({"error": "no such application"}, status_code=404)
+    owner = is_admin(request)
+
+    def gen():
+        i, misses = 0, 0
+        with httpx.Client(timeout=20) as c:
+            while True:
+                try:
+                    r = c.get(real["host"] + "/__kintsugi/events", headers=_real_headers(),
+                              params={"run": run_id, "after": i})
+                    body = r.json()
+                    misses = 0
+                except (httpx.HTTPError, ValueError):
+                    misses += 1
+                    if misses > 5:
+                        yield from _sse([{"t": 0, "kind": "error", "message": f"lost contact with {real['name']}"},
+                                         {"t": 0, "kind": "end", "outcome": "error", "mttr": None}])
+                        return
+                    yield ": keep-alive\n\n"
+                    continue
+                if r.status_code != 200:
+                    yield from _sse([{"t": 0, "kind": "error", "message": body.get("error", "the run ended")},
+                                     {"t": 0, "kind": "end", "outcome": "error", "mttr": None}])
+                    return
+                events = body.get("events", [])
+                for e in events:
+                    if e.get("kind") == "certificate" and not owner:
+                        e.pop("link", None)          # only the owner can open the incident page
+                    if e.get("kind") == "end" and run_id in _real_runs:
+                        try:
+                            A.finish_run(_real_runs.pop(run_id), outcome=e.get("outcome"), mttr=e.get("mttr"),
+                                         recording=None, certificate=None)
+                        except Exception:
+                            pass
+                i += len(events)
+                yield from _sse(events)
+                if not events:
+                    yield ": keep-alive\n\n"
+                if body.get("done") and not events:
+                    return
+    return StreamingResponse(gen(), media_type="text/event-stream", headers=SSE_HEADERS)
+
+
+@app.get("/real-apps/{slug}/replay/{name}")
+def real_app_replay(slug: str, name: str):
+    import httpx
+    import time as _t
+    real = P.real_app(slug)
+    if real is None:
+        return JSONResponse({"error": "no such application"}, status_code=404)
+    try:
+        rec = httpx.get(real["host"] + "/__kintsugi/last", headers=_real_headers(), timeout=10).json()
+    except (httpx.HTTPError, ValueError):
+        return JSONResponse({"error": "no recording"}, status_code=404)
+    if "events" not in rec:
+        return JSONResponse({"error": "no recording"}, status_code=404)
+
+    def gen():
+        yield from _sse([{"t": 0, "kind": "replay", "recorded": rec.get("recorded"), "model": rec.get("model")}])
+        start = _t.time()
+        for e in rec["events"]:
+            if e.get("kind") == "certificate":
+                e.pop("link", None)
+            delay = e.get("t", 0) - (_t.time() - start)
+            if delay > 0:
+                _t.sleep(min(delay, 20))
+            yield from _sse([e])
+    return StreamingResponse(gen(), media_type="text/event-stream", headers=SSE_HEADERS)
 
 
 @app.get("/status", response_class=HTMLResponse)

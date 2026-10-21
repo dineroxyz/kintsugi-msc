@@ -158,6 +158,8 @@ def get(run_id: str) -> Run | None:
 # ------------------------------------------------------------ recordings
 
 def save(run: Run) -> str | None:
+    _rec_cache[1] = None                  # a new recording and maybe a new repair
+    _count_cache.clear()
     if not run.events or run.events[-1].get("kind") != "end":
         return None
     end = run.events[-1]
@@ -179,8 +181,19 @@ def _dirs() -> list[str]:
     return [d for d in dict.fromkeys([RECORDINGS, BUNDLED]) if os.path.isdir(d)]
 
 
+_rec_cache: list = [0.0, None]
+
+
 def recordings() -> list[dict]:
-    """Saved runs from every recording folder, newest first."""
+    """Saved runs from every recording folder, newest first (re-read at most
+    every 30 seconds, or at once after a run is saved)."""
+    if _rec_cache[1] is not None and time.time() - _rec_cache[0] < 30:
+        return _rec_cache[1]
+    _rec_cache[:] = [time.time(), _read_recordings()]
+    return _rec_cache[1]
+
+
+def _read_recordings() -> list[dict]:
     seen: dict[str, dict] = {}
     for d in _dirs():
         for name in os.listdir(d):
@@ -212,8 +225,22 @@ def load_recording(name: str) -> tuple[dict, list[dict]] | None:
     return rows[0], rows[1:]
 
 
+_count_cache: dict = {}
+
+
 def repair_count(study_certs: str = "") -> int:
-    """Repairs mended in gold: the study's certificates plus live ones."""
+    """Repairs mended in gold: the study's certificates plus live ones.
+    Counted at most every 30 seconds; listing hundreds of files on every page
+    load made the Live page slow."""
+    hit = _count_cache.get(study_certs)
+    if hit and time.time() - hit[0] < 30:
+        return hit[1]
+    total = _count_dirs(study_certs)
+    _count_cache[study_certs] = (time.time(), total)
+    return total
+
+
+def _count_dirs(study_certs: str) -> int:
     total = 0
     for d in (study_certs, LIVE_CERTS):
         if d and os.path.isdir(d):

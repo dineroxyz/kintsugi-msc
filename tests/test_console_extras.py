@@ -115,7 +115,7 @@ def test_trust_pages_and_published_key(site):
     assert key["key"] == att["key"] and key["key_id"]
     text = c.get("/trust").text
     assert "Why you can trust the record" in text and key["key_id"] in text
-    assert 'type="module" src="/static/verify.js"' in c.get("/certificates/0").text
+    assert 'type="module" src="/static/verify.js?v=' in c.get("/certificates/0").text
 
 
 def test_built_page_counts_real_code(site):
@@ -368,3 +368,17 @@ def test_worker_can_connect_a_service_for_an_owner_only(site, monkeypatch):
     r = c.post("/worker/services", headers=W, json=body).json()
     assert r["account"] == "dev@example.com" and "/connect/ks_" in r["connect"]
     assert "dineroxyz/dinero-app" in c.get("/account").text
+
+
+def test_real_app_pages_use_the_live_screen(site, monkeypatch):
+    c, _ = site
+    monkeypatch.setenv("KINTSUGI_REAL_HOST_PREFECT", "http://127.0.0.1:9")   # nothing listening
+    r = c.get("/real-apps/prefect")
+    assert r.status_code == 200
+    assert 'data-run-url="/real-apps/prefect/run"' in r.text and "Inside the repair" in r.text
+    assert "Live traffic to Prefect" in r.text and "Replay the last real run" not in r.text
+    assert c.get("/real-apps/nope").status_code == 404
+    listing = c.get("/real-apps").text
+    assert 'href="/real-apps/mealie"' in listing and "demo" not in listing.lower()
+    # starting a run needs the page's token; without live runs it is refused
+    assert c.post("/real-apps/prefect/run", data={"csrf": "x"}).status_code in (400, 403)

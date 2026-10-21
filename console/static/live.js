@@ -11,6 +11,10 @@
   var recMeta = JSON.parse(root.dataset.meta || "{}");
   var repairs = parseInt(root.dataset.repairs || "0", 10);
   var csrf = root.dataset.csrf;
+  // the same page serves the shop and the hosted real applications
+  var runUrl = root.dataset.runUrl || "/live/run";
+  var streamBase = root.dataset.streamBase || "/live/stream/";
+  var replayBase = root.dataset.replayBase || "/live/replay/";
 
   var $ = function (id) { return document.getElementById(id); };
   var go = $("live-go"), replayBtn = $("live-replay"), pick = $("live-bug");
@@ -60,6 +64,7 @@
     if (!srcEl || !win) return;
     fileEl.textContent = win.file + ":" + win.line;
     var rows = [], removed = {}, added = {};
+    if (patched && patched.indexOf(" b/" + win.file) < 0 && patched.indexOf("+++ " + win.file) < 0) patched = null;
     if (patched) {                  // overlay the admitted diff on the window it touches
       var oldNo = 0, newNo = 0;
       patched.split("\n").forEach(function (l) {
@@ -301,7 +306,15 @@
           log(t, "load", trafficLogged + " requests so far, every one checked"); break;
       case "fault_deployed":
         log(t, "deploy", "faulty release rolled onto <span class=hi>" + esc(e.service) + "</span>"); break;
+      case "note":
+        log(t, "run", esc(e.text)); break;
       case "captured":
+        if (e.test) {
+          log(t, "ci", no + " the project's own test failed: <span class=hi>" + esc(e.path) + "</span>");
+          log(null, "", '<span class="dim">  ' + esc(e.message || "") + "</span>");
+          if (e.source) { srcWin = e.source; renderSource(srcWin, null); }
+          break;
+        }
         log(t, "capture", no + " <span class=hi>" + esc(e.exception_type) + "</span> " + esc(e.message || "") +
             ' <span class="dim">on ' + esc((e.method || "") + " " + (e.path || "")) + "</span>");
         (e.frames || []).forEach(function (f) {
@@ -440,7 +453,8 @@
         setStep("captured", "active");
         break;
       case "captured":
-        setStep("captured", "done", (e.method || "") + " " + (e.path || "") + " crashed with " +
+        setStep("captured", "done", e.test ? "The project's own test failed: " + (e.path || "") + "." :
+          (e.method || "") + " " + (e.path || "") + " crashed with " +
           (e.exception_type || "an error") + (e.again ? " (a second failure)" : "") + ".", e.t);
         break;
       case "reproduce_start":
@@ -503,7 +517,7 @@
             e.hash.slice(0, 12) + "</span>";
           stamp.hidden = false;
         });
-        certLink = "/live-certificates/" + e.sequence;
+        certLink = e.link || (root.dataset.runUrl ? null : "/live-certificates/" + e.sequence);
         addSeam();
         break;
       case "probe":
@@ -593,28 +607,29 @@
       modeEl.textContent = "There is no recording of bug " + bug + " yet.";
       return;
     }
-    listen("/live/replay/" + encodeURIComponent(name));
+    listen(replayBase + encodeURIComponent(name));
   }
 
   go.addEventListener("click", function () {
     var bug = pick.value;
     if (!canLive) { replay(bug); return; }
     modeEl.classList.remove("replaying");
-    modeEl.textContent = "Live: running the real platform and the real AI model on bug " + bug + ".";
+    modeEl.textContent = root.dataset.runNote ||
+      ("Live: running the real platform and the real AI model on bug " + bug + ".");
     go.disabled = true;
-    fetch("/live/run", { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    fetch(runUrl, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" },
                          body: "csrf=" + encodeURIComponent(csrf) + "&entry=" + encodeURIComponent(bug) })
       .then(function (r) { return r.json().then(function (j) { return [r.ok, j]; }); })
       .then(function (res) {
         if (!res[0]) { modeEl.textContent = res[1].error || "The run could not start."; go.disabled = false; return; }
         currentRun = res[1].run; showUndo(null);
-        listen("/live/stream/" + res[1].run);
+        listen(streamBase + res[1].run);
       })
       .catch(function () { modeEl.textContent = "The run could not start."; go.disabled = false; });
   });
   if (replayBtn) replayBtn.addEventListener("click", function () { replay(pick.value); });
   // /live?replay=<recording> plays one specific recorded run (from an account page)
   var asked = new URLSearchParams(location.search).get("replay");
-  if (asked && /^[0-9A-Za-z-]+$/.test(asked)) listen("/live/replay/" + encodeURIComponent(asked));
+  if (asked && /^[0-9A-Za-z-]+$/.test(asked)) listen(replayBase + encodeURIComponent(asked));
   pick.addEventListener("change", function () { go.textContent = canLive ? "Break it" : "Watch a replay"; });
 })();
