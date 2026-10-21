@@ -1,0 +1,39 @@
+{
+ "name": "Mealie",
+ "about": "Mealie is a popular self-hosted recipe manager. This is the real application, running unmodified, with Kintsugi in front of it.",
+ "bug": "A failed recipe-image upload deletes the recipe's existing image (Mealie fix #8506, from its own history)",
+ "mode": "test",
+ "sha": "28522f18657cdb6faf39c355c9d6f63b8f3c788c",
+ "repo": "mealie",
+ "pythonpath": [
+  "."
+ ],
+ "cmd": [
+  "python",
+  "-m",
+  "uvicorn",
+  "mealie.app:app"
+ ],
+ "health": "/api/app/about",
+ "env": {
+  "PRODUCTION": "True",
+  "TESTING": "False",
+  "ALLOW_SIGNUP": "True"
+ },
+ "tests": [
+  "tests/unit_tests/services_tests/test_recipe_data_service.py"
+ ],
+ "suite": [
+  "tests/unit_tests/services_tests"
+ ],
+ "package": "mealie/",
+ "generated": [],
+ "include": [
+  "mealie",
+  "tests",
+  "pyproject.toml",
+  "uv.lock",
+  "README.md",
+  "LICENSE"
+ ]
+}

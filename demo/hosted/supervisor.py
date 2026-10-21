@@ -47,7 +47,7 @@ GENERIC = os.path.join(ROOT, "kintsugi", "study", "real", "generic")
 sys.path.insert(0, os.path.join(ROOT, "kintsugi"))
 SINK = os.path.join(DATA, "sink.jsonl")
 SNAPS = os.path.join(DATA, "snaps")
-APP_PORT = 4300
+APP_PORT = int(os.environ.get("KINTSUGI_APP_PORT", "4300"))
 SITE = os.environ.get("KINTSUGI_SITE", "").rstrip("/")
 CONNECT = os.environ.get("KINTSUGI_CONNECT", "").rstrip("/")
 WORKER = {"x-kintsugi-worker": os.environ.get("KINTSUGI_WORKER_TOKEN", "")}
@@ -243,6 +243,71 @@ def heal(capture: dict) -> None:
         if state["job"] else None
 
 
+def heal_from_tests() -> None:
+    """Test mode: the developers' own failing test is the reproduction."""
+    import anthropic
+    from control_plane.patching import apply_loose
+    from control_plane.testheal import Usage, heal as test_heal
+    t0 = time.time()
+    trees: list[str] = []
+
+    def fresh(name):
+        t = copy_tree(LIVE)
+        trees.append(t)
+        return t
+
+    def run(tree, sel, stop_first=True):
+        shutil.rmtree(os.path.join(tree, "tests", "data"), ignore_errors=True) if CFG.get("clean_test_data") else None
+        os.makedirs(os.path.join(tree, "tests", "data"), exist_ok=True) if CFG.get("clean_test_data") else None
+        r = subprocess.run([PY, "-m", "pytest", "-q", "-p", "no:cacheprovider", "-o", "addopts=",
+                            *(["-x"] if stop_first else []), *CFG.get("pytest_args", []), *sel],
+                           cwd=tree, env=app_env({"KINTSUGI_SINK": ""}, tree), text=True,
+                           capture_output=True, timeout=1800)
+        return r.returncode, r.stdout + r.stderr
+    capture = {"exception_type": "TestFailure", "exception_message": CFG["bug"], "frames": [],
+               "request": {"method": "TEST", "path": " ".join(CFG["tests"])}, "release": "demo"}
+    if CONNECT:
+        try:
+            ingest = httpx.post(CONNECT + "/ingest/event", json=capture, timeout=20).json()
+            for _ in range(10):
+                jobs = httpx.get(SITE + "/worker/jobs", headers=WORKER, timeout=20).json().get("jobs", [])
+                mine = [j for j in jobs if j["incident"] == ingest.get("incident_id")]
+                if mine:
+                    state["job"] = mine[0]["job"]
+                    break
+                time.sleep(2)
+        except Exception:
+            pass
+    stage("reproducing", "A test failed. Running it five times in fresh copies to prove the failure is real.")
+    r = test_heal(run_tests=run, fresh_tree=fresh, drop_tree=lambda p: shutil.rmtree(os.path.dirname(p), ignore_errors=True),
+                  selectors=CFG["tests"], test_files=[t.split("::")[0] for t in CFG["tests"]],
+                  suite=CFG["suite"], package=CFG["package"], client=anthropic.Anthropic(),
+                  usage=Usage(), budget=float(os.environ.get("KINTSUGI_DEMO_BUDGET", "3")),
+                  run_suite=lambda tree, sel: run(tree, sel, stop_first=False))
+    if not r.reproduced:
+        stage("refused", f"Kintsugi will not guess a fix it cannot prove: {r.reason}.")
+        return
+    stage("reproduced", "The test failed the same way on 5 of 5 runs.")
+    if not r.healed:
+        for a in r.attempts:
+            note(f"Attempt {a['attempt']} rejected: {a.get('rejected', '')[:200]}")
+        stage("gave_up", f"No candidate passed every check: {r.reason}. Handed to a person.")
+        return
+    for a in r.attempts:
+        if not a.get("admitted"):
+            note(f"Attempt {a['attempt']} rejected: {a.get('rejected', '')[:200]}")
+    stage("verified", "The fix makes the test pass on 5 of 5 runs and breaks no other test in the folder.",
+          patch=r.patch)
+    apply_loose(LIVE, r.patch)
+    start_app()
+    state["mode"] = "mended"
+    stage("proposed", "Fix deployed to the demo app.")
+    if state["job"]:
+        report(f"/worker/jobs/{state['job']}/certify", repo=CFG["name"], mode="failing test",
+               tests=CFG["tests"], admitted_patch_sha256=hashlib.sha256(r.patch.encode()).hexdigest(),
+               seconds=round(time.time() - t0, 1))
+
+
 def agent() -> None:
     seen = 0
     while True:
@@ -289,6 +354,22 @@ async def control(request: Request):
             await asyncio.to_thread(start_app)
             state.update(mode="broken", job=None)
             note(f"Broke it: re-introduced '{CFG['bug']}' from {CFG['name']}'s own history." if ok else f"Break failed: {err}")
+        elif action == "trigger" and CFG.get("mode") == "test":
+            if state["mode"] != "broken":
+                return JSONResponse({"error": "break it first"}, status_code=409)
+            state.update(busy=True, mode="healing")
+            note("Running the project's own tests, as continuous integration would.")
+
+            def work():
+                try:
+                    heal_from_tests()
+                except Exception as exc:
+                    note(f"Heal stopped: {type(exc).__name__}: {str(exc)[:200]}")
+                finally:
+                    state["busy"] = False
+                    if state["mode"] == "healing":
+                        state["mode"] = "broken"
+            threading.Thread(target=work, daemon=True).start()
         elif action == "trigger":
             code = await asyncio.to_thread(send_trigger)
             note(f"Sent the request that hits the bug; the app answered {code}.")
@@ -312,7 +393,7 @@ button{{font:inherit;padding:10px 18px;border-radius:6px;border:1px solid #C6A25
 <p>{html.escape(CFG['about'])}</p>
 <p>The bug: <b>{html.escape(CFG['bug'])}</b> (a real defect from the project's own history).</p>
 <p>State: <span class=mode id=mode>{state['mode']}</span></p>
-<p><button onclick="go('break')">1. Break it</button><button onclick="go('trigger')">2. Send the failing request</button>
+<p><button onclick="go('break')">1. Break it</button><button onclick="go('trigger')">{'2. Run the tests (as CI would)' if CFG.get('mode') == 'test' else '2. Send the failing request'}</button>
 <button onclick="go('reset')">Reset</button></p>
 <h3>What Kintsugi is doing</h3><ul id=log>{rows}</ul>
 <script>function go(a){{fetch('/__kintsugi/'+a,{{method:'POST'}}).then(()=>setTimeout(()=>location.reload(),800))}}

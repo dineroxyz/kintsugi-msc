@@ -19,7 +19,8 @@ def main(app: str, out: str) -> None:
     shutil.rmtree(out, ignore_errors=True)
     os.makedirs(out)
     src = os.path.join(REAL, cfg["repo"])
-    archive = subprocess.run(["git", "-C", src, "archive", "HEAD"], capture_output=True, check=True).stdout
+    keep = cfg.get("include") or []
+    archive = subprocess.run(["git", "-C", src, "archive", "HEAD", *keep], capture_output=True, check=True).stdout
     os.makedirs(os.path.join(out, "pristine"))
     subprocess.run(["tar", "-x", "-C", os.path.join(out, "pristine")], input=archive, check=True)
     for f in cfg.get("generated", []):
