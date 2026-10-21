@@ -789,3 +789,9 @@ kbd { display: inline-block; min-width: 26px; padding: 1px 7px;
 .timeline li p { margin: 2px 0 0; }
 .heal-video { width: 100%; max-width: 860px; border-radius: 8px; border: 1px solid var(--rule); background: #000; }
 pre.diff { overflow-x: auto; font-size: 13px; padding: var(--s3); background: var(--surface); border-radius: 6px; }
+
+/* real apps */
+.ra-grid { display: grid; gap: var(--s4); grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.ra-card { background: var(--surface); border: 1px solid var(--rule-2); border-radius: 8px; padding: var(--s4) var(--s5); }
+.ra-card h2 { font-size: 22px; margin: 0 0 4px; }
+.ra-card p { margin: 0 0 var(--s3); }

@@ -58,6 +58,7 @@ ICON_CLOSE = ('<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M1
               '6L6 18"/></svg>')
 
 NAV = [("/live", "live", "Live"),
+       ("/real-apps", "realapps", "Real apps"),
        ("/results", "results", "Results"),
        ("/certificates", "certificates", "Certificates"),
        ("/practice", "practice", "Practice"),

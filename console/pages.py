@@ -1324,3 +1324,39 @@ works.</p></div>
 <p class="muted">For programmers: <a href="/data/verification.json" download>download the raw report (JSON)</a>,
 or run the same checks with <code>python study/verify_certificates.py</code>.
 How to check a single certificate in your browser is on the <a href="/trust">trust page</a>.</p>"""
+
+
+REAL_APPS = [
+    {"name": "Prefect", "what": "Workflow orchestration server used by thousands of teams",
+     "bug": "A page of zero deployments crashes the server (division by zero), Prefect fix #22566",
+     "mode": "Crash in live traffic", "url": "https://prefect-demo-production.up.railway.app"},
+    {"name": "Mealie", "what": "Popular self-hosted recipe manager",
+     "bug": "A failed recipe-image upload deletes the existing image, Mealie fix #8506",
+     "mode": "Failing test, as in CI", "url": "https://mealie-demo-production.up.railway.app"},
+    {"name": "lnbits", "what": "Bitcoin Lightning wallet and payments server",
+     "bug": "A fiat subscription request is accepted as a one-off payment, lnbits fix #4116",
+     "mode": "Failing test, as in CI", "url": "https://lnbits-demo-production.up.railway.app"},
+    {"name": "Dinero", "what": "Live community platform with real users (Next.js)",
+     "bug": "Watched in production: any real server crash is caught and reproduced in a sealed copy",
+     "mode": "Live production app", "url": "https://www.dinerooo.xyz"},
+    {"name": "Duce", "what": "Live creator-economy platform (Next.js, via Sentry)",
+     "bug": "Watched in production: crashes are caught and alerted; fixes need its sign-in keys, so they go to a person",
+     "mode": "Live production app", "url": "https://duc3.com"},
+]
+
+
+def real_apps() -> str:
+    cards = "".join(
+        f'''<article class="ra-card"><h2>{E(a["name"])}</h2><p class="muted">{E(a["what"])}</p>
+<p><b>{E(a["mode"])}.</b> {E(a["bug"])}</p>
+<p><a class="btn {"btn-primary" if "demo" in a["url"] else ""}" href="{E(a["url"] + ("/__kintsugi" if "demo" in a["url"] else ""))}" rel="noopener">
+{"Open the demo: break it and watch it mend" if "demo" in a["url"] else "Visit the live app"}</a></p></article>'''
+        for a in REAL_APPS)
+    return f"""
+<div class="page-head"><h1>Real apps, real bugs</h1>
+<p class="lede">Kintsugi working on software it did not write. The three demos run the real, unmodified
+applications; each Break re-introduces a real defect from that project's own git history, and Kintsugi has to
+reproduce it, fix it, prove the fix with the project's own tests, and deploy it. The two live apps are watched in
+production.</p></div>
+<div class="ra-grid">{cards}</div>
+<p class="muted small">Each demo's alerts, timeline and signed certificate appear on the owner's Kintsugi account.</p>"""

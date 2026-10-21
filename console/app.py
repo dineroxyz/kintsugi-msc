@@ -819,6 +819,11 @@ def _status_checks() -> list[dict]:
     return out
 
 
+@app.get("/real-apps", response_class=HTMLResponse)
+def real_apps_page():
+    return page("Real apps", "realapps", P.real_apps())
+
+
 @app.get("/status", response_class=HTMLResponse)
 def status():
     return page("Status", "status",
