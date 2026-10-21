@@ -52,3 +52,7 @@ Amendment before the full run resumed: the first three trials of the run were di
 Second amendment during the run: three trials were discarded and are rerun (3.85 dollars, ledger 17.58, cap 22.42). (1) lnbits keeps a test database in tests/data that a run leaves behind, so repeated runs on one tree failed for reasons unrelated to the patch; the folder is now cleared before every run. (2) In test mode the input is the project's own tests, so the security rule against writing files was a false positive (an image-upload fix must write a file); test mode now allows imports and file writes, and still forbids process, network and dynamic-code calls and new URLs.
 
 Third note during the run: the suite for a defect whose test file sits at the top of a test root (for example Prefect's tests/test_x.py) had expanded to the project's whole suite, which takes hours; such a file now stands for itself. The interrupted defect is rerun.
+
+## Result (2026-10-21)
+
+Stopped at the spending cap ($22.95 recorded against $22.42; the last defect ran past it). 17 defects run, all 17 reproduced on 5 of 5 runs, 11 healed (Mealie 5/5, Prefect 3/4, lnbits 2/4, Langflow 1/4). One lnbits defect (29e980dd) ended in a model-provider timeout and is excluded; one (67bb86c1) was cut off by the cap mid-run and counts as not healed; 42 were not reached.
