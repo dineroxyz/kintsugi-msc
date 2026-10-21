@@ -34,7 +34,7 @@ import time
 import httpx
 from starlette.applications import Starlette
 from starlette.requests import Request
-from starlette.responses import HTMLResponse, JSONResponse, Response
+from starlette.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 from starlette.routing import Route
 
 ROOT = os.environ.get("KINTSUGI_DEMO_ROOT", "/app")
@@ -416,7 +416,12 @@ async def proxy(request: Request):
     return Response(r.content, status_code=r.status_code, headers=out)
 
 
-routes = [Route("/__kintsugi", control), Route("/__kintsugi/{action}", control, methods=["GET", "POST"]),
+async def home(request: Request):
+    """The bare address opens the demo page, not the application's own root."""
+    return RedirectResponse("/__kintsugi", status_code=302)
+
+
+routes = [Route("/", home), Route("/__kintsugi", control), Route("/__kintsugi/{action}", control, methods=["GET", "POST"]),
           Route("/{path:path}", proxy, methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"])]
 from contextlib import asynccontextmanager
 
