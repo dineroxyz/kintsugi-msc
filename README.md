@@ -4,7 +4,7 @@ An AI-native platform for autonomous software repair gated on deterministic
 failure reproduction. MSc project, Department of Computer Sciences, University
 of Lagos.
 
-**Author:** Abe Oluwaseyi Elizabeth (259074235)<br>
+**Author:** Abe Oluwaseyi Elizabeth<br>
 **Supervisor:** Dr A.U Rufai
 
 The platform manages instrumented demo services. When one fails, Kintsugi
